@@ -19,7 +19,7 @@ flutter run -d chrome          # web (needs a secure context: localhost or HTTPS
 
 ```bash
 flutter test                                        # widget tests (in-memory vault)
-flutter test integration_test -d <device>           # real vault on Android/iOS
+flutter test integration_test -d <device>           # real vault on Android/iOS (touches only its own test account)
 flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/app_test.dart -d web-server   # real vault on the web
 ```
