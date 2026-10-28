@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../goldens/gallery.dart';
+import '../../support/gallery.dart';
 
 /// Flutter's automated accessibility guidelines over every widget, in both
 /// default themes (FR-UI-08 AC1). The manual TalkBack/VoiceOver pass is

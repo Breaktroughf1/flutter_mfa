@@ -1,30 +1,12 @@
-import 'dart:io';
-
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 
-import '../support/fixtures.dart';
+import 'fixtures.dart';
 
-/// Loads the test fonts (see fonts/README.md) once per test file.
-Future<void> loadGoldenFonts() async {
-  Future<void> load(String family, List<String> files) async {
-    final loader = FontLoader(family);
-    for (final file in files) {
-      final bytes = File('test/goldens/fonts/$file').readAsBytesSync();
-      loader.addFont(Future.value(ByteData.sublistView(bytes)));
-    }
-    await loader.load();
-  }
-
-  await load('Roboto', ['Roboto-Regular.ttf', 'Roboto-Bold.ttf']);
-  await load('NotoSansArabic', ['NotoSansArabic.ttf']);
-  await load('NotoSansDevanagari', ['NotoSansDevanagari.ttf']);
-}
-
-/// [theme] with the golden fonts on every text style.
+/// [theme] with the golden fonts on every text style. Without the fonts
+/// loaded (see test/goldens/golden_fonts.dart), Flutter's test font is used.
 MfaThemeData withGoldenFonts(MfaThemeData theme) {
   TextStyle f(TextStyle s) => s.copyWith(
     fontFamily: 'Roboto',

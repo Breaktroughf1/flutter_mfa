@@ -5,7 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'gallery.dart';
+import '../support/gallery.dart';
+import 'golden_fonts.dart';
 
 /// Golden images of every widget (FR-UI-08, M2-07): light, dark, Arabic
 /// (right to left), Hindi and 200% text. Valid only on the pinned Linux
