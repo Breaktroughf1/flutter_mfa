@@ -8,7 +8,8 @@ import Security
 /// (`ThisDeviceOnly`: never in iCloud Keychain or encrypted backups restored
 /// to another device) and never synchronizable. `kSecAttrGeneric` records the
 /// format version and protection level. No value is ever logged or interpreted.
-final class KeychainVault {
+/// Immutable and backed by the thread-safe Keychain API, hence `Sendable`.
+final class KeychainVault: @unchecked Sendable {
   static let defaultService = "com.breaktroughf1.flutter_mfa"
   private static let formatVersion: UInt8 = 1
 
