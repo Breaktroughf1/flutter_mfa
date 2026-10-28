@@ -11,3 +11,8 @@
 ## Consequences
 + Apps that only need manual entry or server-side enrolment avoid camera dependencies; no surprise CDN code on web.
 − Firefox users of web apps need integrator opt-in to scan; manual entry always available.
+
+## Implementation notes (M2-09)
+- A self-hosted `decoderScriptUrl` uses mobile_scanner's pure-JavaScript `@zxing/library` reader, not `zxing-wasm`: the `zxing-wasm` script always fetches its WebAssembly binary from `fastly.jsdelivr.net` (mobile_scanner does not override that path), so it cannot be fully self-hosted. `@zxing/library`'s UMD build makes no network requests.
+- `decoderScriptUrl` must be `https` or a same-origin path. mobile_scanner creates the script tag without Subresource Integrity, so the README publishes the expected SHA-256 for integrators to check their copy.
+- The web reader and script URL are page-wide settings in mobile_scanner; the script is loaded at most once per page.
