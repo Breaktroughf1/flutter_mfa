@@ -16,15 +16,15 @@ Estimated calendar (Claude Code implementing, BF1 reviewing within 1 working day
 
 | ✓ | ID | Task | Depends | Done when |
 |---|---|---|---|---|
-| ☐ | M0-01 | Verify environment: Flutter stable version, Dart version, `melos`, Xcode/Android SDK availability in the dev environment; record in `docs/STATUS.md` | — | Versions recorded; gaps flagged to maintainer |
-| ☐ | M0-02 | Check pub.dev name availability for all 5 package names (decision D1); report | — | Report in STATUS.md |
-| ☐ | M0-03 | Create workspace root `pubspec.yaml` (publish_to: none, `workspace:` list, melos scripts — see scaffold) and `analysis_options.yaml` | — | `dart pub get` resolves |
-| ☐ | M0-04 | Create the five packages (`dart create -t package` for core/platform_interface; `flutter create --template=plugin --platforms=android,ios,web --org dev.breaktroughf1 -a kotlin -i swift` for flutter_mfa; `flutter create -t package` for ui/qr), each with `resolution: workspace`, MIT LICENSE, README stub, CHANGELOG, `example/` | M0-03 | `melos run analyze` passes on empty packages |
-| ☐ | M0-05 | Remove template boilerplate; set SDK constraints (Dart `>=3.9.0 <4.0.0`, Flutter `>=3.35.0`); Android minSdk 24; iOS 15 (raised from 23/13, see STATUS M0-05); SPM + podspec | M0-04 | Example app builds for android, ios (if macOS available), web |
-| ☐ | M0-06 | `tool/coverage_gate.dart`, `tool/check_no_flutter_in_core.sh`, `tool/check_no_material_in_ui.sh`, `tool/forbidden_apis.sh` | M0-03 | Scripts run in `melos run verify` |
-| ☐ | M0-07 | CI workflow (`.github/workflows/ci.yml` from scaffold) — adapt and make green; confirm branch coverage flag behaviour; write ADR-0008 outcome | M0-06 | CI green on a dummy PR |
-| ☐ | M0-08 | Community files finalised: README (root), CONTRIBUTING (DCO), SECURITY, CODE_OF_CONDUCT (Contributor Covenant 2.1 full text), AUTHORS, CODEOWNERS, PR/issue templates, dependabot | — | Files present, links valid |
-| ☐ | M0-09 | `docs/STATUS.md` created | — | — |
+| ✅ | M0-01 | Verify environment: Flutter stable version, Dart version, `melos`, Xcode/Android SDK availability in the dev environment; record in `docs/STATUS.md` | — | Versions recorded; gaps flagged to maintainer |
+| ✅ | M0-02 | Check pub.dev name availability for all 5 package names (decision D1); report | — | Report in STATUS.md |
+| ✅ | M0-03 | Create workspace root `pubspec.yaml` (publish_to: none, `workspace:` list, melos scripts — see scaffold) and `analysis_options.yaml` | — | `dart pub get` resolves |
+| ✅ | M0-04 | Create the five packages (`dart create -t package` for core/platform_interface; `flutter create --template=plugin --platforms=android,ios,web --org dev.breaktroughf1 -a kotlin -i swift` for flutter_mfa; `flutter create -t package` for ui/qr), each with `resolution: workspace`, MIT LICENSE, README stub, CHANGELOG, `example/` | M0-03 | `melos run analyze` passes on empty packages |
+| ✅ | M0-05 | Remove template boilerplate; set SDK constraints (Dart `>=3.9.0 <4.0.0`, Flutter `>=3.35.0`); Android minSdk 24; iOS 15 (raised from 23/13, see STATUS M0-05); SPM + podspec | M0-04 | Example app builds for android, ios (if macOS available), web |
+| ✅ | M0-06 | `tool/coverage_gate.dart`, `tool/check_no_flutter_in_core.sh`, `tool/check_no_material_in_ui.sh`, `tool/forbidden_apis.sh` | M0-03 | Scripts run in `melos run verify` |
+| ✅ | M0-07 | CI workflow (`.github/workflows/ci.yml` from scaffold) — adapt and make green; confirm branch coverage flag behaviour; write ADR-0008 outcome | M0-06 | CI green on a dummy PR |
+| ✅ | M0-08 | Community files finalised: README (root), CONTRIBUTING (DCO), SECURITY, CODE_OF_CONDUCT (Contributor Covenant 2.1 full text), AUTHORS, CODEOWNERS, PR/issue templates, dependabot | — | Files present, links valid |
+| ✅ | M0-09 | `docs/STATUS.md` created (already existed; finalised) | — | — |
 
 🛑 **Checkpoint M0** — report env, name availability, CI status. Maintainer confirms D1, D4, D5.
 

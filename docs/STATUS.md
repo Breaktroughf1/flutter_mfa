@@ -13,6 +13,7 @@ Updated by Claude Code after every task. Newest at the bottom.
 | 28 Oct 2026 | M0-06 | Done | see git log | — | `tool/test.sh` is the single test runner (VM, Chrome for `test/web/**`, examples) used by `melos test`, `melos coverage`, `verify` and CI. `coverage_gate.dart` counts `BRDA` records because the Dart VM emits no BRF/BRH. Guards hardened: core bans `dart:io/isolate/ffi/mirrors` plus a dependency allowlist; the Material ban now covers qr too; forbidden_apis adds seeded `Random(n)`, console logging, `fetch`, and all native logging (Kotlin `println`, `System.out`, `os_log`, `Logger`); comment lines ignored. Each guard red-teamed with injected violations (all caught). PRD FR-VLT-02 AC1 no longer asks for a native debug log (gap 13). |
 | 28 Oct 2026 | M0-07 | Done locally; CI result in the PR | see git log | — | `ci.yml` rewritten. Jobs: verify, test (VM + Chrome + coverage gates), min-sdk (Flutter 3.35.7 + `pub downgrade`, **passed locally**), goldens, web (WASM build + `flutter drive`), android (API 24/36: APK build, JVM unit tests, emulator instrumented + integration), ios (macOS 15, SPM build, XCTest, integration; main/nightly/`ci:ios`), security (gitleaks binary v8.30.1 checksum-verified, **no leaks in history**; osv-scanner v2.7.0; forbidden APIs), publish-dry-run. All actions pinned by SHA (also in publish.yml); Flutter pinned to 3.47.8. Shared setup is a composite action (DRY). Fixed an emulator-runner bug (each script line runs in its own shell, so `cd` was lost). **ADR-0008 outcome:** branch coverage works for dart and flutter test but emits only BRDA records; web coverage is unsupported, so browser tests gate web-only code. Not runnable here: android/ios jobs (no SDK/macOS); actionlint was blocked by the sandbox, workflows checked with a YAML parse instead. |
 | 28 Oct 2026 | M0-08 | Done | see git log | — | Full Contributor Covenant 2.1 text from the official repo (contact: conduct@breaktroughf1.com, **needs confirming**). README: CI/licence badges, platform table, bold web/XSS warning (S12), docs links. CONTRIBUTING: real setup (`flutter pub get`, Melos 8, Chrome), test layout, commit scopes. CODEOWNERS covers `/tool/`. Dependabot adds the root workspace, examples, the composite action and the example Gradle project. All relative markdown links checked: 0 broken. |
+| 28 Oct 2026 | M0-09 | Done | see git log | — | STATUS finalised for the M0 checkpoint (decisions, placeholders, open gaps below). |
 
 ## Environment (M0-01)
 Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.
@@ -40,4 +41,38 @@ Checked 28 Oct 2026 against `https://pub.dev/api/packages/<name>` (404 = no pack
 | flutter_mfa_qr | Yes (404) |
 
 ## Open decisions
-See docs/00_STUDY.md §7. Record outcomes here: D1 **confirmed `flutter_mfa*`** (maintainer, 28 Oct 2026), D2 _, D3 _, D4 Breaktroughf1/flutter_mfa (CODEOWNERS: @NoealRajeev), D5 _, D6 _, D7 DCO (default), D8 Public, D9 _.
+See docs/00_STUDY.md §7.
+
+| ID | Outcome |
+|---|---|
+| D1 | **Confirmed `flutter_mfa*`** (maintainer, 28 Oct 2026). All five names unclaimed on pub.dev. |
+| D2 | Open (study §4 recommendation: reviewers / security testers / docs + translations) |
+| D3 | Open: AUTHORS.md draft wording stands until R-01 |
+| D4 | `Breaktroughf1/flutter_mfa`, CODEOWNERS `@NoealRajeev` |
+| D5 | Open: verified publisher `breaktroughf1.com` (DNS TXT) blocks the first publish only |
+| D6 | Open: `security@breaktroughf1.com` is in SECURITY.md and the podspec author field but is unconfirmed |
+| D7 | DCO |
+| D8 | Public |
+| D9 | Open (default: English + hi/ar scaffolding) |
+
+## Maintainer decisions taken at M0 (28 Oct 2026)
+- Commits carry the maintainer identity (author + DCO sign-off: Noeal Rajeev).
+- Android/iOS bundle prefix **`com.breaktroughf1`** (not `dev.breaktroughf1`). Android namespace `com.breaktroughf1.flutter_mfa`. **02_ARCHITECTURE §4.2's Keychain service `dev.breaktroughf1.flutter_mfa` becomes `com.breaktroughf1.flutter_mfa` in M1-13.**
+- `formatter.trailing_commas: preserve` added so `require_trailing_commas` stays.
+- Coverage gates are hard 85/75 (core 95/90) from day one: no staged 70 % threshold at M1.
+- Branch: the session's designated branch `claude/determined-wright-aqfz9k` is used instead of `chore/M0-setup` (the harness only permits pushes there).
+
+## Placeholders still open (need maintainer input)
+| Where | Placeholder |
+|---|---|
+| `SECURITY.md`, `ios/flutter_mfa.podspec` author | `security@breaktroughf1.com` (D6) |
+| `CODE_OF_CONDUCT.md` | enforcement contact `conduct@breaktroughf1.com` |
+| `AUTHORS.md` | contributor list + AI-assisted wording (D3, R-01) |
+| pub.dev | verified publisher (D5) |
+
+## Known gaps carried into M1+ (from the kickoff review)
+- **Secret length (before M1-03):** API says `OtpSecret.fromBytes` needs ≥ 16 B, but the docs' sample/KAT secret `JBSWY3DPEHPK3PXP` is 10 B and many real issuers use 80-bit secrets. Decision to take in M1-03 (default plan: ≥ 16 B for generation and relying-party enrolment; authenticator import accepts ≥ 10 B with a compatibility warning; recorded in the spec).
+- **PRD ↔ API mismatches to reconcile in M1:** FR-OTP-01 (`ArgumentError` vs `OtpConfigException`), FR-OTP-06 (`secondsRemaining` vs `remaining`), FR-URI-01 AC5 (`FormatException` vs `OtpAuthUriException`), FR-VER-05 (`InMemoryAttemptLimiter` vs `InMemoryAttemptStore`, and which library exports it), FR-UI-04 (`accounts` vs `watchAccounts`), undefined types (`RelyingPartyEnrollment`, `ImportReport`, `DuplicateStrategy`, `IntegrityReport`, `NoopIntegrityCheck`, `MfaLogger`, `AttemptState`, `PassphraseCheck`, `CompatibilityWarning`), and `VaultCapabilities` having no screen-capture flag.
+- **`hardwareBound` semantics (M3):** Android StrongBox → TEE fallback vs iOS fail-closed. Plan: fail closed on every platform; report the obtained backing in capabilities.
+- **Web backup KDF (M3):** `Isolate.run` doesn't exist on web; PBKDF2 at 600k iterations in pure Dart would block the UI thread. Needs an ADR (WebCrypto PBKDF2 or a worker).
+- **Passphrase policy vs KAT passphrase** (`correct horse battery staple`, all lower-case) at M3-02/03.
