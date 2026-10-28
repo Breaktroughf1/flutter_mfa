@@ -207,6 +207,41 @@ void main() {
       final fresh = await client();
       expect(await fresh.accounts(), hasLength(20));
     });
+
+    test(
+      'two clients over one vault do not lose each other\'s entries',
+      () async {
+        final a = await client();
+        final b = await client();
+        await a.accounts();
+        await b.accounts();
+        await Future.wait([
+          for (var i = 0; i < 10; i++) ...[
+            a.enrollManual(secretBase32: _secret20, accountName: 'a$i'),
+            b.enrollManual(secretBase32: _secret20, accountName: 'b$i'),
+          ],
+        ]);
+        expect(await a.accounts(), hasLength(20));
+        expect(await b.accounts(), hasLength(20));
+        expect(await vault.keys(), hasLength(21), reason: '20 secrets + index');
+      },
+    );
+
+    test('if deleting the secret fails the account is still removed', () async {
+      final mfa = await client();
+      final a = await mfa.enrollFromUri('otpauth://totp/a?secret=$_secret20');
+      vault.failNext(
+        VaultOperation.delete,
+        const VaultCorrupted(),
+        key: 'acct_${a.id}',
+      );
+      await expectLater(mfa.remove(a.id), throwsA(const VaultCorrupted()));
+      expect(
+        await mfa.accounts(),
+        isEmpty,
+        reason: 'never indexed without a secret',
+      );
+    });
   });
 
   group('protected accounts (FR-VLT-05/06)', () {
@@ -267,6 +302,31 @@ void main() {
         expect((await fresh.accounts()).single.counter, 3);
         final c = await fresh.currentCode(a.id);
         expect((c.step, c.remaining, c.progress), (3, Duration.zero, 0.0));
+      },
+    );
+
+    test(
+      'an exhausted counter is refused, not persisted out of range',
+      () async {
+        final mfa = await client();
+        final a = await mfa.enrollManual(
+          secretBase32: _secret20,
+          accountName: 'a',
+          type: OtpType.hotp,
+          counter: Hotp.maxCounter,
+        );
+        await expectLater(
+          mfa.currentCode(a.id),
+          throwsA(
+            isA<OtpConfigException>().having(
+              (e) => e.field,
+              'field',
+              'counter',
+            ),
+          ),
+        );
+        final fresh = await client();
+        expect((await fresh.accounts()).single.counter, Hotp.maxCounter);
       },
     );
   });

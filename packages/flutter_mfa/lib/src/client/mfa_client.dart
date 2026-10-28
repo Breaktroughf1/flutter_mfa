@@ -183,9 +183,10 @@ final class MfaClient {
   /// For protected accounts the OS shows [prompt] (default:
   /// [MfaClientOptions.defaultPrompt]) and the secret is decrypted only after
   /// the biometric check. For HOTP the counter is advanced and persisted
-  /// **before** the code is returned, so a code is never reused. Throws
-  /// `VaultNotFound`, `VaultUserCancelled`, `VaultKeyInvalidated` or
-  /// `VaultCorrupted`.
+  /// **before** the code is returned, so a code is never reused; an account
+  /// whose counter reached `Hotp.maxCounter` is exhausted and throws
+  /// `OtpConfigException` instead. Throws `VaultNotFound`,
+  /// `VaultUserCancelled`, `VaultKeyInvalidated` or `VaultCorrupted`.
   Future<OtpCode> currentCode(
     String accountId, {
     BiometricPrompt? prompt,
@@ -223,6 +224,13 @@ final class MfaClient {
     var used = 0;
     await _repository.modify(accountId, (current) {
       used = current.counter!;
+      // The next counter could not be stored, so this one is never issued.
+      if (used >= Hotp.maxCounter) {
+        throw const OtpConfigException(
+          field: 'counter',
+          reason: 'is exhausted; re-enrol the account',
+        );
+      }
       return current.copyWith(counter: () => used + 1);
     });
     await _notify();

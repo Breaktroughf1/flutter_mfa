@@ -10,25 +10,33 @@ import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.da
 /// * The index is one JSON document under [indexKey] at
 ///   `ProtectionLevel.standard`; secrets live under `acct_<id>` at each
 ///   account's protection level.
-/// * Every index read-modify-write is serialised by one [AsyncMutex], so
-///   concurrent mutations never lose updates.
-/// * Secrets are never left orphaned: they are written before and removed
-///   before their index entry, a failed enrolment deletes its secret, and
-///   leftovers are swept when the index is first loaded.
+/// * Every operation reads the current index from the vault under one
+///   [AsyncMutex] shared by all repositories over the same platform, so
+///   concurrent mutations, even from different clients, never lose updates.
+/// * A secret is written before its index entry and removed after it; a
+///   failed enrolment deletes its secret, and leftovers (for example from a
+///   failed removal) are swept when the index is first loaded.
 /// * A garbled or tampered index surfaces as `VaultCorrupted`; [wipe]
 ///   recovers.
 final class AccountRepository {
   /// Creates a repository over [platform].
-  AccountRepository(this._platform);
+  AccountRepository(MfaPlatform platform)
+    : _platform = platform,
+      _shared = _sharedState[platform] ??= _SharedState();
 
   /// Vault key of the account index.
   static const indexKey = '__index_v1__';
 
   static const _secretPrefix = 'acct_';
 
+  /// Lock and sweep state per platform instance, so every client over one
+  /// vault serialises against the others.
+  static final _sharedState = Expando<_SharedState>();
+
   final MfaPlatform _platform;
-  final _lock = AsyncMutex();
-  List<OtpAccount>? _cache;
+  final _SharedState _shared;
+
+  AsyncMutex get _lock => _shared.lock;
 
   /// Vault key of the secret of account [id].
   static String secretKey(String id) => '$_secretPrefix$id';
@@ -81,23 +89,21 @@ final class AccountRepository {
     return bytes;
   }
 
-  /// Deletes the secret of [id], then its index entry. Throws
-  /// `VaultNotFound` if absent.
+  /// Deletes the index entry of [id], then its secret. Throws
+  /// `VaultNotFound` if absent. If the secret deletion fails, the account is
+  /// already gone and the leftover secret is swept on the next first load.
   Future<void> remove(String id) => _lock.protect(() async {
     final accounts = await _load();
     _find(accounts, id);
-    await _platform.delete(secretKey(id));
     await _save([
       for (final a in accounts)
         if (a.id != id) a,
     ]);
+    await _platform.delete(secretKey(id));
   });
 
   /// Deletes every entry of this plugin (all secrets and the index).
-  Future<void> wipe() => _lock.protect(() async {
-    await _platform.wipe();
-    _cache = [];
-  });
+  Future<void> wipe() => _lock.protect(_platform.wipe);
 
   static OtpAccount _find(List<OtpAccount> accounts, String id) {
     for (final a in accounts) {
@@ -107,12 +113,13 @@ final class AccountRepository {
   }
 
   Future<List<OtpAccount>> _load() async {
-    final cached = _cache;
-    if (cached != null) return cached;
     final raw = await _platform.read(indexKey);
     final accounts = raw == null ? <OtpAccount>[] : _decode(raw);
-    await _sweepOrphans(accounts);
-    return _cache = accounts;
+    if (!_shared.swept) {
+      await _sweepOrphans(accounts);
+      _shared.swept = true;
+    }
+    return accounts;
   }
 
   Future<void> _save(List<OtpAccount> accounts) async {
@@ -125,7 +132,6 @@ final class AccountRepository {
       Uint8List.fromList(utf8.encode(json)),
       ProtectionLevel.standard,
     );
-    _cache = accounts;
   }
 
   Future<void> _sweepOrphans(List<OtpAccount> accounts) async {
@@ -160,4 +166,9 @@ final class AccountRepository {
       throw const VaultCorrupted();
     }
   }
+}
+
+final class _SharedState {
+  final lock = AsyncMutex();
+  bool swept = false;
 }
