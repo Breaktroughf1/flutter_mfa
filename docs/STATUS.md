@@ -5,14 +5,22 @@ Updated by Claude Code after every task. Newest at the bottom.
 | Date | Task | Status | Commit / PR | Coverage | Notes / deviations |
 |---|---|---|---|---|---|
 | 28 Oct 2026 | — | Docs pack created | — | — | Baseline docs, ADR-0001..0008, CI scaffold |
+| 28 Oct 2026 | M0-01 | Done | this commit | — | Toolchain verified; Android SDK + Xcode unavailable locally (CI only) |
 
 ## Environment (M0-01)
-- Flutter: 3.38.6 (stable)
-- Dart: 3.10.7 (stable)
-- Melos: _
-- Android SDK / emulator: _
-- Xcode / simulator: _
+Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.
 
+| Tool | Version found | Notes |
+|---|---|---|
+| Flutter | **3.47.8** stable (rev 737ba8f885, 22 Oct 2026) | Installed from the official archive, SHA-256 verified. The scaffold's "3.38.6" was stale. |
+| Dart | **3.13.7** (bundled with Flutter) | Workspace floor stays `>=3.9.0 <4.0.0` (Flutter 3.35.7 ships Dart 3.9.2) |
+| Melos | **8.10.0** (latest; 7.x line ends at 7.8.2) | Scaffold pinned `^7.0.0`; moved to 8.x (M0-03) |
+| lints | 6.1.0 | `^6.0.0` already correct |
+| coverage / test | 1.16.0 / 1.33.0 | |
+| Java / Gradle | OpenJDK 21.0.12, Gradle 8.14.3 | |
+| Android SDK / emulator | **Not available** | `dl.google.com` blocked by the container's network policy, so the SDK can't be installed; `maven.google.com` works. Android builds and tests run only in GitHub CI. Latest stable platform: **API 36** (Android 16). |
+| Xcode / simulator | **Not available** (Linux) | iOS validated only in CI (`macos-latest`) and on maintainer devices |
+| Chrome | Playwright Chromium (`CHROME_EXECUTABLE=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome`) | Web tests and `--wasm` builds run locally |
 ## Package name availability (M0-02)
 | Package | Available on pub.dev? |
 |---|---|
