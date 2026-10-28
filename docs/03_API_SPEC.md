@@ -152,12 +152,20 @@ enum ProtectionLevel { standard, biometric, hardwareBound }
 
 @immutable
 final class OtpAccount {             // NO secret inside
-  final String id;                   // uuid v4
+  const OtpAccount({required this.id, required this.type, required this.accountName, required this.createdAt,
+      this.issuer, this.algorithm = OtpAlgorithm.sha1, this.digits = 6, this.period = const Duration(seconds: 30),
+      this.counter, this.lastUsedStep, this.protection = ProtectionLevel.standard});
+  factory OtpAccount.fromJson(Map<String, Object?> json);  // strict; FormatException (no input echoed) — M1-08
+  static String generateId({Random? random});               // RFC 9562 UUID v4, Random.secure() default — M1-08
+  final String id;                   // uuid v4; also the vault key of the secret
   final OtpType type; final String? issuer; final String accountName;
   final OtpAlgorithm algorithm; final int digits; final Duration period;
   final int? counter; final int? lastUsedStep;
   final ProtectionLevel protection; final DateTime createdAt;
   String get displayName;            // "Issuer (account)" or account
+  TotpConfig? get totpConfig; HotpConfig? get hotpConfig;
+  OtpAccount copyWith({String? Function()? issuer, String? accountName, int? Function()? counter, int? lastUsedStep, ProtectionLevel? protection});
+  Map<String, Object?> toJson();     // versioned ("v": 1); the single account serialisation (DRY)
 }
 ```
 
@@ -202,7 +210,7 @@ final class AsyncMutex { bool get isLocked; Future<T> protect<T>(FutureOr<T> Fun
 Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/util/`); only the verifiers use it.
 
 ### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
-`FakeClock(DateTime)` with `advance(Duration)`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors`. (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
+`FakeClock(DateTime)` with `advance(Duration)` and a settable `time`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors` (+ `rfc4226Secret`, `rfc6238Seed(OtpAlgorithm)`, `HotpVector`, `TotpVector`). (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
 
 ---
 

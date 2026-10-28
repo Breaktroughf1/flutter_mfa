@@ -18,6 +18,7 @@ export 'src/limit/attempt_limiter.dart'
         AttemptStore,
         InMemoryAttemptStore,
         LimiterPolicy;
+export 'src/model/otp_account.dart';
 export 'src/otp/clock.dart';
 export 'src/otp/hotp.dart';
 export 'src/otp/otp_algorithm.dart';

@@ -41,7 +41,7 @@ Estimated calendar (Claude Code implementing, BF1 reviewing within 1 working day
 | ✅ | M1-05 | `uri/otpauth_uri.dart` parse/generate + compatibility warnings + fuzz | FR-URI-01/02 | M1-02 |
 | ✅ | M1-06 | `limit/` AttemptLimiter, policy, InMemoryAttemptStore | FR-VER-05 | M1-01 |
 | ✅ | M1-07 | `verify/` TotpVerifier, HotpVerifier (+resync), input normalisation | FR-VER-01..06 | M1-03, M1-06 |
-| ☐ | M1-08 | `model/` OtpAccount, ProtectionLevel; `testing.dart` fakes | §1.7 API | M1-03 |
+| ✅ | M1-08 | `model/` OtpAccount, ProtectionLevel; `testing.dart` fakes | §1.7 API | M1-03 |
 | ☐ | M1-09 | Core `example/main.dart` (server-style verify) + README for core | FR-EX doc | M1-07 |
 | ☐ | M1-10 | Platform interface: `MfaPlatform`, capabilities, `InMemoryMfaPlatform`, Pigeon schema + generated code | §2 API | M1-08 |
 | ☐ | M1-11 | `flutter_mfa`: `MfaVault` (error mapping), `AccountRepository` (index), `MfaClient` enrol/list/currentCode/remove on InMemory platform | FR-VLT-01, FR-FAC-01 | M1-10 |
