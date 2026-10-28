@@ -9,5 +9,6 @@
 library;
 
 export 'src/backup/passphrase_check.dart';
+export 'src/codec/base32.dart';
 export 'src/errors/mfa_exception.dart';
 export 'src/util/async_mutex.dart';

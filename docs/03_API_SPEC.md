@@ -34,7 +34,7 @@ final class OtpSecret {
 ```dart
 abstract final class Base32 {
   static String encode(List<int> bytes, {bool padding = false});
-  static Uint8List decode(String input); // throws FormatException(message, source, offset)
+  static Uint8List decode(String input); // throws FormatException(message, null, offset): source is never set, the input is a secret (M1-02)
 }
 ```
 
