@@ -181,6 +181,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Semantics(
+          container: true,
           label: widget.semanticLabel ?? strings.otpCodeFieldLabel,
           hint: strings.otpCodeFieldHint(widget.length),
           // Screen readers activate and focus the field through these, as
@@ -205,6 +206,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
           Padding(
             padding: EdgeInsets.only(top: theme.spacing),
             child: Semantics(
+              container: true,
               liveRegion: true,
               child: Text(
                 error,
@@ -309,6 +311,7 @@ class _PasteToolbar extends StatelessWidget {
         anchorBelow: anchors.secondaryAnchor ?? anchors.primaryAnchor,
       ),
       child: Semantics(
+        container: true,
         button: true,
         label: label,
         excludeSemantics: true,
