@@ -59,18 +59,22 @@ void main() {
           ),
         )
         .painter!;
-    final eyeOff = painter();
+    final counter = painter();
     await tester.pumpWidget(
-      host(const StatusGlyphIcon(StatusGlyph.eyeOff, color: Color(0xFF000000))),
+      host(
+        const StatusGlyphIcon(StatusGlyph.counter, color: Color(0xFF000000)),
+      ),
     );
-    expect(painter().shouldRepaint(eyeOff), isFalse);
+    expect(painter().shouldRepaint(counter), isFalse);
     await tester.pumpWidget(
-      host(const StatusGlyphIcon(StatusGlyph.eyeOff, color: Color(0xFFFFFFFF))),
+      host(
+        const StatusGlyphIcon(StatusGlyph.counter, color: Color(0xFFFFFFFF)),
+      ),
     );
-    expect(painter().shouldRepaint(eyeOff), isTrue);
+    expect(painter().shouldRepaint(counter), isTrue);
     await tester.pumpWidget(
-      host(const StatusGlyphIcon(StatusGlyph.eye, color: Color(0xFF000000))),
+      host(const StatusGlyphIcon(StatusGlyph.copy, color: Color(0xFF000000))),
     );
-    expect(painter().shouldRepaint(eyeOff), isTrue);
+    expect(painter().shouldRepaint(counter), isTrue);
   });
 }

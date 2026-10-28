@@ -29,5 +29,7 @@
   "cameraUnavailable": "कोई कैमरा उपलब्ध नहीं है। इसके बजाय सेटअप कुंजी दर्ज करें।",
   "cameraInsecureContext": "स्कैन करने के लिए सुरक्षित (HTTPS) पेज चाहिए। इसके बजाय सेटअप कुंजी दर्ज करें।",
   "paste": "पेस्ट करें",
-  "codeLabel": "कोड {digits}"
+  "codeLabel": "कोड {digits}",
+  "codeUnavailable": "कोड उपलब्ध नहीं है",
+  "accountLabel": "{issuer}, {account}"
 }

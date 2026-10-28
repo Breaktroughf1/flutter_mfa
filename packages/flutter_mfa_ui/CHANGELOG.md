@@ -14,6 +14,7 @@ All notable changes to this package are documented here. The format follows
   paste, one-time-code autofill, numeric keyboard and announced errors.
 - `OtpCodeDisplay` (grouped, read digit by digit, tap to copy, hidden mode),
   `OtpCountdownRing` and `MfaStatusBadge` (icon and text).
+- `OtpAccountTile` and `OtpAccountList` (driven by `MfaClient.watchAccounts()`).
 
 ## 0.1.0-dev.1
 

@@ -117,4 +117,12 @@ class MfaLocalizationsAr extends MfaLocalizations {
   String codeLabel(String digits) {
     return 'الرمز $digits';
   }
+
+  @override
+  String get codeUnavailable => 'الرمز غير متاح';
+
+  @override
+  String accountLabel(String issuer, String account) {
+    return '$issuer، $account';
+  }
 }

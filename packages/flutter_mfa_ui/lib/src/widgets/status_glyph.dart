@@ -23,11 +23,8 @@ enum StatusGlyph {
   /// Two overlapping sheets: copy.
   copy,
 
-  /// An eye: show.
-  eye,
-
-  /// A crossed-out eye: hide.
-  eyeOff,
+  /// A counter arrow: counter-based (HOTP) account.
+  counter,
 }
 
 /// Paints [glyph] in [color] at [size] logical pixels.
@@ -145,19 +142,22 @@ class _GlyphPainter extends CustomPainter {
               ..lineTo(p(.12, .7).dx, p(.12, .7).dy),
             stroke,
           );
-      case StatusGlyph.eye:
-      case StatusGlyph.eyeOff:
-        final eye = Path()
-          ..moveTo(p(.06, .5).dx, p(.06, .5).dy)
-          ..quadraticBezierTo(.5 * s, .05 * s, .94 * s, .5 * s)
-          ..quadraticBezierTo(.5 * s, .95 * s, .06 * s, .5 * s)
-          ..close();
+      case StatusGlyph.counter:
         canvas
-          ..drawPath(eye, stroke)
-          ..drawCircle(p(.5, .5), s * .13, fill);
-        if (glyph == StatusGlyph.eyeOff) {
-          canvas.drawLine(p(.15, .15), p(.85, .85), stroke);
-        }
+          ..drawArc(
+            Rect.fromLTRB(.15 * s, .15 * s, .85 * s, .85 * s),
+            -math.pi / 2,
+            1.6 * math.pi,
+            false,
+            stroke,
+          )
+          ..drawPath(
+            Path()
+              ..moveTo(p(.5, .02).dx, p(.5, .02).dy)
+              ..lineTo(p(.66, .15).dx, p(.66, .15).dy)
+              ..lineTo(p(.5, .28).dx, p(.5, .28).dy),
+            stroke,
+          );
     }
   }
 
