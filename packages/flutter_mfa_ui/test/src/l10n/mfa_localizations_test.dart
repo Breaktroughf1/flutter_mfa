@@ -34,6 +34,7 @@ List<String> allMessages(MfaLocalizations l) => [
   l.tryAgain,
   l.cameraUnavailable,
   l.cameraInsecureContext,
+  l.paste,
 ];
 
 void main() {

@@ -109,4 +109,7 @@ class MfaLocalizationsAr extends MfaLocalizations {
   @override
   String get cameraInsecureContext =>
       'يتطلب المسح صفحة آمنة (HTTPS). أدخل مفتاح الإعداد بدلاً من ذلك.';
+
+  @override
+  String get paste => 'لصق';
 }

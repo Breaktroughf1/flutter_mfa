@@ -107,4 +107,7 @@ class MfaLocalizationsHi extends MfaLocalizations {
   @override
   String get cameraInsecureContext =>
       'स्कैन करने के लिए सुरक्षित (HTTPS) पेज चाहिए। इसके बजाय सेटअप कुंजी दर्ज करें।';
+
+  @override
+  String get paste => 'पेस्ट करें';
 }

@@ -267,6 +267,12 @@ abstract class MfaLocalizations {
   /// In en, this message translates to:
   /// **'Scanning needs a secure (HTTPS) page. Enter the setup key instead.'**
   String get cameraInsecureContext;
+
+  /// Action that pastes a code from the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get paste;
 }
 
 class _MfaLocalizationsDelegate

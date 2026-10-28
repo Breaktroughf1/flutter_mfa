@@ -107,4 +107,7 @@ class MfaLocalizationsEn extends MfaLocalizations {
   @override
   String get cameraInsecureContext =>
       'Scanning needs a secure (HTTPS) page. Enter the setup key instead.';
+
+  @override
+  String get paste => 'Paste';
 }
