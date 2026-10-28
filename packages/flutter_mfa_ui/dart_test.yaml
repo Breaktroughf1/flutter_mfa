@@ -1,0 +1,3 @@
+tags:
+  # Golden images: only valid on the pinned Linux CI image (tool/goldens.sh).
+  golden:
