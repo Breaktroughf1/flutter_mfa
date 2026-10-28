@@ -15,6 +15,7 @@ import 'src/theme/mfa_theme.dart';
 export 'src/l10n/generated/mfa_localizations.dart';
 export 'src/theme/mfa_theme.dart';
 export 'src/theme/mfa_theme_data.dart';
+export 'src/widgets/enrollment_qr_view.dart' show EnrollmentQrView;
 export 'src/widgets/mfa_status_badge.dart';
 export 'src/widgets/otp_account_list.dart';
 export 'src/widgets/otp_account_tile.dart';

@@ -65,7 +65,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M2-03 | `OtpCodeField` (single semantic field, segmented paint, paste, autofill) | FR-UI-01 |
 | ✅ | M2-04 | `OtpCodeDisplay`, `OtpCountdownRing`, `MfaStatusBadge` | FR-UI-02/03 |
 | ✅ | M2-05 | `OtpAccountTile`, `OtpAccountList` | FR-UI-04 |
-| ☐ | M2-06 | `EnrollmentQrView` (pure-Dart `qr` + CustomPainter) | FR-UI-05 |
+| ✅ | M2-06 | `EnrollmentQrView` (pure-Dart `qr` + CustomPainter) | FR-UI-05 |
 | ☐ | M2-07 | Golden suite (light/dark/RTL/large text) + `meetsGuideline` a11y tests | FR-UI-08 |
 | ☐ | M2-08 | `CodeTicker` + `MfaClient.codeStream`, `copyCode` + `copySensitive` native (Android/iOS/web) | FR-FAC-02, FR-FAC-05 |
 | ☐ | M2-09 | `flutter_mfa_qr`: `OtpQrScanner`, permission states, web options | FR-QR-01..03 |
