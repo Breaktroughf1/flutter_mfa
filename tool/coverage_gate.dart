@@ -1,10 +1,14 @@
 // Enforces coverage thresholds from an lcov file (ADR-0008).
+//
 // Usage: dart run tool/coverage_gate.dart <lcov.info> --lines 85 --branches 75
-// Excludes generated files. Exits 1 below threshold, 2 on bad input.
+//
+// Branch totals come from BRDA records: the Dart VM (`--branch-coverage` on
+// `dart test` / `flutter test`) emits BRDA lines but no BRF/BRH summaries.
+// Generated files are excluded. Exits 1 below a threshold, 2 on bad input.
 import 'dart:io';
 
 void main(List<String> args) {
-  if (args.isEmpty) {
+  if (args.isEmpty || args.first.startsWith('--')) {
     stderr.writeln(
       'usage: coverage_gate <lcov.info> [--lines N] [--branches N]',
     );
@@ -20,42 +24,47 @@ void main(List<String> args) {
     exit(2);
   }
 
-  var lf = 0, lh = 0, brf = 0, brh = 0;
+  final lines = <String, int>{}; // "file:line" -> hits
+  final branches = <String, bool>{}; // "file:line:block:branch" -> taken
+  String? source;
   var skip = false;
   for (final line in file.readAsLinesSync()) {
     if (line.startsWith('SF:')) {
-      final src = line.substring(3);
-      skip =
-          src.endsWith('.g.dart') ||
-          src.contains('/l10n/generated/') ||
-          src.contains('messages.g.dart');
-    } else if (skip) {
+      source = line.substring(3);
+      skip = _isGenerated(source);
+    } else if (line == 'end_of_record') {
+      source = null;
+      skip = false;
+    } else if (skip || source == null) {
       continue;
-    } else if (line.startsWith('LF:')) {
-      lf += int.parse(line.substring(3));
-    } else if (line.startsWith('LH:')) {
-      lh += int.parse(line.substring(3));
-    } else if (line.startsWith('BRF:')) {
-      brf += int.parse(line.substring(4));
-    } else if (line.startsWith('BRH:')) {
-      brh += int.parse(line.substring(4));
+    } else if (line.startsWith('DA:')) {
+      final parts = line.substring(3).split(',');
+      final key = '$source:${parts[0]}';
+      final hits = int.tryParse(parts[1]) ?? 0;
+      lines[key] = (lines[key] ?? 0) + hits;
+    } else if (line.startsWith('BRDA:')) {
+      final parts = line.substring(5).split(',');
+      if (parts.length != 4) _bad(path, line);
+      final key = '$source:${parts.take(3).join(':')}';
+      final taken = parts[3] != '-' && (int.tryParse(parts[3]) ?? 0) > 0;
+      branches[key] = (branches[key] ?? false) || taken;
     }
   }
 
-  final linePct = lf == 0 ? 100.0 : lh * 100 / lf;
-  stdout.writeln('$path  lines ${linePct.toStringAsFixed(2)}% ($lh/$lf)');
+  final lh = lines.values.where((h) => h > 0).length;
+  final linePct = lines.isEmpty ? 100.0 : lh * 100 / lines.length;
+  stdout.writeln(
+    '$path  lines ${linePct.toStringAsFixed(2)}% ($lh/${lines.length})',
+  );
   var failed = linePct < minLines;
 
   if (minBranches != null) {
-    if (brf == 0) {
-      stdout.writeln(
-        '  branches: no branch data in lcov — see ADR-0008 (line gate only)',
-      );
-    } else {
-      final brPct = brh * 100 / brf;
-      stdout.writeln('  branches ${brPct.toStringAsFixed(2)}% ($brh/$brf)');
-      failed = failed || brPct < minBranches;
-    }
+    final bh = branches.values.where((t) => t).length;
+    final brPct = branches.isEmpty ? 100.0 : bh * 100 / branches.length;
+    stdout.writeln(
+      '  branches ${brPct.toStringAsFixed(2)}% ($bh/${branches.length})',
+    );
+    failed = failed || brPct < minBranches;
   }
 
   if (failed) {
@@ -67,8 +76,21 @@ void main(List<String> args) {
   }
 }
 
+bool _isGenerated(String source) =>
+    source.endsWith('.g.dart') || source.contains('/l10n/generated/');
+
+Never _bad(String path, String line) {
+  stderr.writeln('coverage_gate: malformed record in $path: $line');
+  exit(2);
+}
+
 double? _flag(List<String> args, String name) {
   final i = args.indexOf(name);
-  if (i < 0 || i + 1 >= args.length) return null;
-  return double.tryParse(args[i + 1]);
+  if (i < 0) return null;
+  final value = i + 1 < args.length ? double.tryParse(args[i + 1]) : null;
+  if (value == null) {
+    stderr.writeln('coverage_gate: $name needs a number');
+    exit(2);
+  }
+  return value;
 }

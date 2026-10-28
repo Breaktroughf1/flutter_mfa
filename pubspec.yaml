@@ -42,14 +42,11 @@ melos:
       run: cd packages/flutter_mfa_core && if [ -d test ]; then dart test; else echo "no core tests yet"; fi
       description: Fastest loop for core work (pure Dart, VM).
     test:
-      run: melos run test:core && melos run test:flutter
-      description: All unit + widget tests (goldens run in their own CI job).
-    test:flutter:
-      exec: flutter test --exclude-tags golden
-      packageFilters:
-        flutter: true
-        dirExists: test
-      description: Unit + widget tests of every Flutter package.
+      run: bash tool/test.sh
+      description: All unit, widget and browser tests (goldens run in their own CI job).
+    coverage:
+      run: bash tool/test.sh --coverage
+      description: All tests with line + branch coverage gates (core 95/90, others 85/75).
     test:goldens:
       exec: flutter test --tags golden
       packageFilters:
@@ -63,8 +60,8 @@ melos:
         dirExists: test/goldens
       description: Regenerate goldens. Only in a PR labelled as an intended visual change.
     verify:
-      run: melos run format:check && melos run analyze && melos run checks && melos run test
-      description: Run before every commit.
+      run: melos run format:check && melos run analyze && melos run checks && melos run coverage
+      description: Run before every commit (format, analyze, guards, all tests + coverage gates).
     publish:dry:
       exec: dart pub publish --dry-run
       packageFilters:

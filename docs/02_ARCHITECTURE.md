@@ -44,7 +44,9 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   └── flutter_mfa_qr/            ← OtpQrScanner (mobile_scanner)
 │       └── example/
 ├── tool/
-│   ├── coverage_gate.dart         ← parses lcov, enforces thresholds per package
+│   ├── test.sh                    ← every test run (VM + Chrome), optional coverage gates
+│   ├── coverage_gate.dart         ← parses lcov (BRDA), enforces thresholds per package
+│   ├── forbidden_apis.sh          ← security grep (Random(), print, weak crypto, native logging)
 │   ├── check_no_flutter_in_core.sh
 │   └── check_no_material_in_ui.sh
 ├── docs/                          ← this pack + adr/ + security/ + cookbook/
