@@ -56,6 +56,9 @@ melos:
     verify:
       run: melos run format:check && melos run analyze && melos run checks && melos run coverage
       description: Run before every commit (format, analyze, guards, all tests + coverage gates).
+    pigeon:
+      run: cd tool/pigeon && dart pub get && dart run pigeon --input messages.dart && dart format ../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart
+      description: Regenerate the Pigeon channel code (Dart, Kotlin, Swift) from pigeons/messages.dart.
     publish:dry:
       exec: dart pub publish --dry-run
       packageFilters:

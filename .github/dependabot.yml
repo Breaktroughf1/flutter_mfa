@@ -19,6 +19,7 @@ updates:
       - /packages/flutter_mfa/example
       - /packages/flutter_mfa_ui/example
       - /packages/flutter_mfa_qr/example
+      - /tool/pigeon
     schedule: { interval: weekly }
   - package-ecosystem: gradle
     directories:

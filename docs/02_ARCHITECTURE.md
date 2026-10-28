@@ -26,7 +26,6 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   ├── flutter_mfa_platform_interface/
 │   │   ├── lib/flutter_mfa_platform_interface.dart
 │   │   ├── lib/testing.dart       ← InMemoryMfaPlatform
-│   │   ├── pigeons/messages.dart  ← Pigeon schema (source of truth for channels)
 │   │   └── lib/src/{platform,method_channel,messages.g.dart}
 │   ├── flutter_mfa/               ← app-facing plugin: MfaClient + Android/iOS/Web impls
 │   │   ├── lib/flutter_mfa.dart   ← re-exports core public API (single import for apps)
@@ -44,6 +43,7 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   └── flutter_mfa_qr/            ← OtpQrScanner (mobile_scanner)
 │       └── example/
 ├── tool/
+│   ├── pigeon/                    ← Pigeon schema + generator runner (not a workspace member)
 │   ├── test.sh                    ← every test run (VM + Chrome), optional coverage gates
 │   ├── coverage_gate.dart         ← parses lcov (BRDA), enforces thresholds per package
 │   ├── forbidden_apis.sh          ← security grep (Random(), print, weak crypto, native logging)
@@ -81,9 +81,10 @@ Rules (CI-checked with `tool/` scripts):
 
 ```
 MfaClient (facade, public)
- ├─ AccountRepository      ← metadata index + secret records, built on MfaVault
- │    └─ MfaVault          ← Dart wrapper; maps platform errors → VaultException
- │         └─ MfaPlatform  ← platform_interface (Pigeon on mobile, WebVault on web)
+ ├─ AccountRepository      ← metadata index + secret records; owns the index AsyncMutex
+ │    └─ MfaPlatform       ← platform_interface (Pigeon on mobile, WebVault on web); throws VaultException only
+ │                           (M1-11: the planned MfaVault layer was dropped — error mapping moved into
+ │                            MethodChannelMfaPlatform at M1-10, the mutex lives in AccountRepository)
  ├─ CodeTicker             ← codeStream; uses core Totp + Clock
  ├─ SensitiveClipboard     ← MfaPlatform.copySensitive
  ├─ IntegrityGate          ← DeviceIntegrityCheck + app policy
@@ -155,7 +156,7 @@ MfaException (sealed)
     ├── BackupDecryptFailed · BackupUnsupportedVersion · BackupWeakPassphrase
 ```
 Verification *outcomes* are values, not exceptions: `VerificationResult = accepted(step|counter) | rejected(reason: invalid|replayed|malformed)`; only rate-limiting throws.
-Platform error codes are defined once in the Pigeon schema as an enum, mapped once in `MfaVault`.
+Platform error codes are defined once in the Pigeon schema as an enum (`VaultErrorCode`), mapped once in `MethodChannelMfaPlatform` (M1-10), so every `MfaPlatform` — channel or web — throws only `VaultException`.
 
 ## 7. Backup container format v1 (`.fmfa`)
 
@@ -191,7 +192,7 @@ Plaintext = UTF-8 JSON:
 ## 8. Concurrency and lifecycle
 - `MfaClient` is a plain object created by the app (no global singleton); `MfaClient.create()` async factory performs capability probing and index migration.
 - `codeStream` uses one shared `CodeTicker` per client (one `Timer.periodic`, fan-out to listeners) — not one timer per tile.
-- All vault calls go through `MfaVault`, which serialises index mutations.
+- All index operations go through `AccountRepository`, which reads the current index from the vault under one `AsyncMutex` shared by every client over the same platform instance; a secret is written before its index entry and deleted after it, and orphans are swept on first load. An HOTP account whose counter reached `Hotp.maxCounter` is exhausted (`OtpConfigException`), never persisted out of range.
 - Index schema version stored in the index; migrations are pure Dart functions in core with tests.
 
 ## 9. Extensibility (post-0.2, not built now)

@@ -1,0 +1,4 @@
+# Standalone generator package: no lints dependency, so it does not include
+# the root options; keep the same formatter behaviour.
+formatter:
+  trailing_commas: preserve

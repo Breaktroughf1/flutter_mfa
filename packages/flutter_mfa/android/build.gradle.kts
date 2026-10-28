@@ -73,5 +73,7 @@ kotlin {
 }
 
 dependencies {
+    // Required by the Pigeon-generated channel code (suspend host methods). Apache-2.0.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
