@@ -192,7 +192,7 @@ Plaintext = UTF-8 JSON:
 ## 8. Concurrency and lifecycle
 - `MfaClient` is a plain object created by the app (no global singleton); `MfaClient.create()` async factory performs capability probing and index migration.
 - `codeStream` uses one shared `CodeTicker` per client (one `Timer.periodic`, fan-out to listeners) — not one timer per tile.
-- All index mutations go through `AccountRepository`, which serialises them with one `AsyncMutex`; secrets are written before and deleted before their index entry, and orphans are swept on first load.
+- All index operations go through `AccountRepository`, which reads the current index from the vault under one `AsyncMutex` shared by every client over the same platform instance; a secret is written before its index entry and deleted after it, and orphans are swept on first load. An HOTP account whose counter reached `Hotp.maxCounter` is exhausted (`OtpConfigException`), never persisted out of range.
 - Index schema version stored in the index; migrations are pure Dart functions in core with tests.
 
 ## 9. Extensibility (post-0.2, not built now)
