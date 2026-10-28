@@ -1,0 +1,4 @@
+# Golden images, their test-only fonts (Roboto: Apache-2.0; Noto Sans:
+# OFL-1.1) and the golden test itself: goldens are only valid on the pinned
+# CI image, so they are not part of the published package.
+test/goldens/
