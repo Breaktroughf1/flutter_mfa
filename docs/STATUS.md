@@ -5,7 +5,8 @@ Updated by Claude Code after every task. Newest at the bottom.
 | Date | Task | Status | Commit / PR | Coverage | Notes / deviations |
 |---|---|---|---|---|---|
 | 28 Oct 2026 | — | Docs pack created | — | — | Baseline docs, ADR-0001..0008, CI scaffold |
-| 28 Oct 2026 | M0-01 | Done | this commit | — | Toolchain verified; Android SDK + Xcode unavailable locally (CI only) |
+| 28 Oct 2026 | M0-01 | Done | see git log | — | Toolchain verified; Android SDK + Xcode unavailable locally (CI only) |
+| 28 Oct 2026 | M0-02 | Done | see git log | — | All 5 names unclaimed; D1 confirmed by maintainer |
 
 ## Environment (M0-01)
 Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.
@@ -22,13 +23,15 @@ Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). 
 | Xcode / simulator | **Not available** (Linux) | iOS validated only in CI (`macos-latest`) and on maintainer devices |
 | Chrome | Playwright Chromium (`CHROME_EXECUTABLE=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome`) | Web tests and `--wasm` builds run locally |
 ## Package name availability (M0-02)
+Checked 28 Oct 2026 against `https://pub.dev/api/packages/<name>` (404 = no package with that name exists) and pub.dev search (no confusingly similar `flutter_mfa*` packages found). A name can't be reserved without publishing, so these stay free only until someone claims them. Plan: publish `flutter_mfa_core 0.1.0-dev.1` as soon as M1 is green (G14).
+
 | Package | Available on pub.dev? |
 |---|---|
-| flutter_mfa_core | _ |
-| flutter_mfa_platform_interface | _ |
-| flutter_mfa | _ |
-| flutter_mfa_ui | _ |
-| flutter_mfa_qr | _ |
+| flutter_mfa_core | Yes (404) |
+| flutter_mfa_platform_interface | Yes (404) |
+| flutter_mfa | Yes (404) |
+| flutter_mfa_ui | Yes (404) |
+| flutter_mfa_qr | Yes (404) |
 
 ## Open decisions
-See docs/00_STUDY.md §7. Record outcomes here: D1 _, D2 _, D3 _, D4 Breaktroughf1/flutter_mfa (CODEOWNERS: @NoealRajeev), D5 _, D6 _, D7 DCO (default), D8 Public, D9 _.
+See docs/00_STUDY.md §7. Record outcomes here: D1 **confirmed `flutter_mfa*`** (maintainer, 28 Oct 2026), D2 _, D3 _, D4 Breaktroughf1/flutter_mfa (CODEOWNERS: @NoealRajeev), D5 _, D6 _, D7 DCO (default), D8 Public, D9 _.
