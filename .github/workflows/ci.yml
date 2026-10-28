@@ -60,17 +60,23 @@ jobs:
           fail_ci_if_error: false
 
   min-sdk:
-    name: min-sdk (Flutter 3.35.7, lowest deps)
+    # Proves the floor (NFR-07) in two parts:
+    # 1. our code works on the minimum SDK (newest deps that support it, VM + JS + WASM);
+    # 2. our declared lower bounds still compile (pub downgrade + analyze). Tests are not
+    #    run on downgraded deps: the oldest test tooling (watcher, frontend_server_client,
+    #    browser runner) predates Dart 3.9, which says nothing about our packages.
+    name: min-sdk (Flutter 3.35.7)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
       - uses: ./.github/actions/setup
         with: { flutter-version: "${{ env.FLUTTER_MIN_VERSION }}" }
-      - run: flutter pub downgrade
-      - run: dart analyze --fatal-infos .
-      - run: bash tool/test.sh
+      - name: Tests on the minimum SDK (newest compatible deps)
+        run: flutter pub upgrade && bash tool/test.sh
+      - name: Lower bounds compile (lowest deps)
+        run: flutter pub downgrade && dart analyze --fatal-infos .
 
   goldens:
     name: goldens (pinned image)
@@ -107,9 +113,12 @@ jobs:
           CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
         run: |
           "${{ steps.chrome.outputs.chromedriver-path }}" --port=4444 &
+          # Use the Chrome that matches this chromedriver, not the runner's system Chrome
+          # (they drift apart for a few days after every Chrome stable release).
           flutter drive --driver=test_driver/integration_test.dart \
             --target=integration_test/app_test.dart \
-            -d web-server --browser-name=chrome --headless
+            -d web-server --browser-name=chrome --headless \
+            --chrome-binary="${{ steps.chrome.outputs.chrome-path }}"
 
   android:
     name: android (API ${{ matrix.api-level }})
