@@ -5,6 +5,27 @@
 /// encrypted backup format. Has no Flutter dependency, so the same code runs
 /// on Dart servers and in apps.
 ///
-/// The public API is specified in `docs/03_API_SPEC.md` and is implemented
-/// from milestone M1.
+/// The public API is specified in `docs/03_API_SPEC.md`.
 library;
+
+export 'src/backup/passphrase_check.dart';
+export 'src/codec/base32.dart';
+export 'src/errors/mfa_exception.dart';
+export 'src/limit/attempt_limiter.dart'
+    show
+        AttemptLimiter,
+        AttemptState,
+        AttemptStore,
+        InMemoryAttemptStore,
+        LimiterPolicy;
+export 'src/model/otp_account.dart';
+export 'src/otp/clock.dart';
+export 'src/otp/hotp.dart';
+export 'src/otp/otp_algorithm.dart';
+export 'src/otp/otp_secret.dart';
+export 'src/otp/totp.dart';
+export 'src/uri/otpauth_uri.dart';
+export 'src/util/async_mutex.dart';
+export 'src/verify/hotp_verifier.dart';
+export 'src/verify/totp_verifier.dart';
+export 'src/verify/verification_result.dart';

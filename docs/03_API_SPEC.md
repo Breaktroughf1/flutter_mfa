@@ -19,9 +19,11 @@ final class SystemClock implements Clock { const SystemClock(); }
 /// Opaque secret. Holds a defensive copy; `bytes` returns a copy.
 @immutable
 final class OtpSecret {
-  factory OtpSecret.fromBytes(Uint8List bytes);          // >= 16 bytes or throws OtpConfigException
+  factory OtpSecret.fromBytes(Uint8List bytes);          // 10..256 bytes or throws OtpConfigException (M1-03: 80-bit issuer secrets must import)
+  static const minLength = 10, rfcMinLength = 16, maxLength = 256;
+  bool get meetsRfcMinimum;                              // >= 16 bytes (RFC 4226 R6); flagged by URI compatibility warnings
   factory OtpSecret.fromBase32(String input);            // lenient decode
-  factory OtpSecret.generate({int length = 20, Random? random}); // Random.secure() default
+  factory OtpSecret.generate({int length = 20, Random? random}); // Random.secure() default; 16..256 bytes
   static int recommendedLength(OtpAlgorithm a);          // 20 / 32 / 64
   Uint8List get bytes;
   String toBase32();                                     // upper, no padding
@@ -34,24 +36,26 @@ final class OtpSecret {
 ```dart
 abstract final class Base32 {
   static String encode(List<int> bytes, {bool padding = false});
-  static Uint8List decode(String input); // throws FormatException(message, source, offset)
+  static Uint8List decode(String input); // throws FormatException(message, null, offset): source is never set, the input is a secret (M1-02)
 }
 ```
 
 ### 1.3 Generators
 ```dart
 @immutable
-final class HotpConfig { const HotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6}); }
+final class HotpConfig { const HotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6}); } // validated on use
 
 final class Hotp {
   const Hotp(this.secret, {this.config = const HotpConfig()});
-  String generate(int counter);
+  static const maxCounter = 9007199254740991;  // 2^53-1 on every platform (FR-OTP-01 AC3)
+  String generate(int counter);                // throws OtpConfigException (digits, counter)
 }
 
 @immutable
 final class TotpConfig {
   const TotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6,
-      this.period = const Duration(seconds: 30), this.t0 = 0});
+      this.period = const Duration(seconds: 30), this.t0 = 0});   // period: whole seconds > 0; t0: unix seconds; validated on use
+  HotpConfig get hotp;
 }
 
 final class Totp {
@@ -91,42 +95,56 @@ final class HotpVerifier {
 ```
 Verifiers are `async` only because the limiter store may be remote; the HMAC path itself is synchronous.
 
+As built (M1-07): input normalisation removes ASCII spaces only and requires exactly `digits` ASCII digits (else `malformed`, which still counts as an attempt); `window` 0..10, `lookAhead` 0..100, `resyncWindow` 1..1000 (else `OtpConfigException`); the TOTP/HOTP configuration is validated in the constructor; every candidate in the window is compared (nearest offset wins, no early exit); a match at a step ≤ `lastUsedStep` is `replayed`; with a limiter, check → compute → record is atomic per subject.
+
 ### 1.5 Attempt limiting
 ```dart
 @immutable
 final class LimiterPolicy {
   const LimiterPolicy({this.maxAttempts = 5, this.window = const Duration(minutes: 5),
       this.backoffBase = const Duration(seconds: 1), this.backoffMax = const Duration(minutes: 15),
-      this.lockoutAfter = 20});
+      this.lockoutAfter = 20});   // validated by AttemptLimiter (OtpConfigException field "policy.<name>")
+}
+@immutable
+final class AttemptState {        // defined at M1-06
+  const AttemptState({required int consecutiveFailures, required int windowFailures,
+      required DateTime windowStart, required DateTime lastFailureAt});
+  factory AttemptState.fromJson(Map<String, Object?> json);   // FormatException on bad/unknown-version data
+  Map<String, Object?> toJson();                              // versioned ("v": 1), for server stores
 }
 abstract interface class AttemptStore {
   Future<AttemptState?> read(String subject);
   Future<void> write(String subject, AttemptState state);
-  Future<void> clear(String subject);
+  Future<void> clear(String subject);                          // also the administrative unlock
 }
 final class AttemptLimiter {
   AttemptLimiter({required AttemptStore store, LimiterPolicy policy = const LimiterPolicy(), Clock clock = const SystemClock()});
-  Future<void> ensureAllowed(String subject);     // throws VerificationRateLimited(retryAfter)
+  Future<void> ensureAllowed(String subject);     // throws VerificationRateLimited(retryAfter, lockedOut)
   Future<void> recordFailure(String subject);
   Future<void> recordSuccess(String subject);
 }
-final class InMemoryAttemptStore implements AttemptStore { … }
+final class InMemoryAttemptStore implements AttemptStore { … }   // main library only (not testing.dart)
 ```
+Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity is the store's responsibility (documented).
 
 ### 1.6 otpauth URIs
 ```dart
+enum CompatibilityWarning { nonDefaultAlgorithm, nonDefaultDigits, nonDefaultPeriod, issuerMismatch, shortSecret }
+
 @immutable
 final class OtpAuthUri {
   const OtpAuthUri({required this.type, required this.secret, required this.accountName,
       this.issuer, this.algorithm = OtpAlgorithm.sha1, this.digits = 6,
       this.period = const Duration(seconds: 30), this.counter, this.extras = const {}});
-  factory OtpAuthUri.parse(String uri);          // throws OtpAuthUriException(field, reason)
+  factory OtpAuthUri.parse(String uri);          // throws OtpAuthUriException(field, reason) — a FormatException
   static OtpAuthUri? tryParse(String uri);
-  Uri toUri(); String toString();
-  List<CompatibilityWarning> get compatibilityWarnings; // nonDefaultAlgorithm, nonDefaultDigits, nonDefaultPeriod, issuerMismatch
+  Uri toUri();                                   // contains the secret; validates (throws OtpAuthUriException)
+  @override String toString();                   // REDACTED: "OtpAuthUri(totp, Issuer:account, secret: <redacted 20B>)" (M1-05; the URI holds the secret, S8)
+  List<CompatibilityWarning> get compatibilityWarnings;
   TotpConfig? get totpConfig; HotpConfig? get hotpConfig;
 }
 ```
+Parsing rules (M1-05): label split at the first literal `:` or `%3A`, parts trimmed; known parameter names case-insensitive and must not repeat; unknown parameters kept in `extras`; `counter` on TOTP and `period` on HOTP ignored; `issuer` parameter wins over a different label prefix (warning). Generation rejects colons in issuer/account (Key URI format) and emits only non-default parameters.
 
 ### 1.7 Accounts (shared model used by client, UI, backup)
 ```dart
@@ -134,12 +152,20 @@ enum ProtectionLevel { standard, biometric, hardwareBound }
 
 @immutable
 final class OtpAccount {             // NO secret inside
-  final String id;                   // uuid v4
+  const OtpAccount({required this.id, required this.type, required this.accountName, required this.createdAt,
+      this.issuer, this.algorithm = OtpAlgorithm.sha1, this.digits = 6, this.period = const Duration(seconds: 30),
+      this.counter, this.lastUsedStep, this.protection = ProtectionLevel.standard});
+  factory OtpAccount.fromJson(Map<String, Object?> json);  // strict; FormatException (no input echoed) — M1-08
+  static String generateId({Random? random});               // RFC 9562 UUID v4, Random.secure() default — M1-08
+  final String id;                   // uuid v4; also the vault key of the secret
   final OtpType type; final String? issuer; final String accountName;
   final OtpAlgorithm algorithm; final int digits; final Duration period;
   final int? counter; final int? lastUsedStep;
   final ProtectionLevel protection; final DateTime createdAt;
   String get displayName;            // "Issuer (account)" or account
+  TotpConfig? get totpConfig; HotpConfig? get hotpConfig;
+  OtpAccount copyWith({String? Function()? issuer, String? accountName, int? Function()? counter, int? lastUsedStep, ProtectionLevel? protection});
+  Map<String, Object?> toJson();     // versioned ("v": 1); the single account serialisation (DRY)
 }
 ```
 
@@ -158,10 +184,33 @@ final class BackupCodec {
 ```
 
 ### 1.9 Errors
-As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material.
+As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material. Details fixed at M1-01:
+```dart
+sealed class MfaException implements Exception {}           // value equality; toString = "Type(key: value, …)"
+final class OtpConfigException extends MfaException { final String field; final String reason; } // also used for bad digits (FR-OTP-01 AC2)
+final class OtpAuthUriException extends MfaException implements FormatException {
+  final String field; final String reason;                   // message = "field: reason"; source/offset always null (URI holds the secret)
+}
+final class VerificationRateLimited extends MfaException { final Duration retryAfter; final bool lockedOut; } // lockedOut added at M1-06
+sealed class VaultException extends MfaException {}
+  VaultNotFound() · VaultUserCancelled() · VaultKeyInvalidated() · VaultCorrupted()
+  VaultHardwareUnavailable(HardwareUnavailableReason reason) · VaultUnavailable(VaultUnavailableReason reason) · VaultUnknown(String code)
+enum HardwareUnavailableReason { secureEnclaveUnavailable, strongBoxUnavailable, biometricsNotEnrolled, biometricsUnavailable, unsupportedOnPlatform }
+enum VaultUnavailableReason { insecureContext, hostActivityNotFragmentActivity, storageUnavailable, deviceLocked }
+sealed class BackupException extends MfaException {}
+  BackupDecryptFailed() · BackupUnsupportedVersion(int version) · BackupWeakPassphrase(PassphraseCheck check)
+enum PassphraseCheck { ok, tooShort, tooCommon, lowVariety }
+```
+
+### 1.11 Utilities
+```dart
+/// FIFO async lock used to serialise index read-modify-write (02 §4.1). Exported because flutter_mfa needs it.
+final class AsyncMutex { bool get isLocked; Future<T> protect<T>(FutureOr<T> Function() action); }
+```
+Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/util/`); only the verifiers use it.
 
 ### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
-`FakeClock(DateTime)` with `advance(Duration)`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `InMemoryAttemptStore`, `rfc4226Vectors`, `rfc6238Vectors`.
+`FakeClock(DateTime)` with `advance(Duration)` and a settable `time`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors` (+ `rfc4226Secret`, `rfc6238Seed(OtpAlgorithm)`, `HotpVector`, `TotpVector`). (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
 
 ---
 
