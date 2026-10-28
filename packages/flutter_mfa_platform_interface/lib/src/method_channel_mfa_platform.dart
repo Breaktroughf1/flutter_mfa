@@ -43,16 +43,21 @@ final class MethodChannelMfaPlatform extends MfaPlatform {
 
   @override
   Future<Uint8List?> read(String key, {BiometricPrompt? prompt}) => _guard(
-    () => _api.read(
-      key,
-      prompt == null
-          ? null
-          : PromptMessage(
-              title: prompt.title,
-              subtitle: prompt.subtitle,
-              cancelLabel: prompt.cancelLabel,
-            ),
-    ),
+    () async {
+      final bytes = await _api.read(
+        key,
+        prompt == null
+            ? null
+            : PromptMessage(
+                title: prompt.title,
+                subtitle: prompt.subtitle,
+                cancelLabel: prompt.cancelLabel,
+              ),
+      );
+      // The codec may hand back an unmodifiable view of the engine's
+      // buffer; callers own the result and must be able to wipe it.
+      return bytes == null ? null : Uint8List.fromList(bytes);
+    },
   );
 
   @override

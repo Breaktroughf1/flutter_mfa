@@ -104,6 +104,13 @@ void main() {
     },
   );
 
+  test('read returns a buffer the caller can wipe', () async {
+    host.readResult = Uint8List.fromList([1, 2, 3]).asUnmodifiableView();
+    final bytes = (await platform.read('k'))!;
+    bytes.fillRange(0, bytes.length, 0);
+    expect(bytes, [0, 0, 0]);
+  });
+
   test('forwards every operation with its arguments', () async {
     host.readResult = Uint8List.fromList([1, 2, 3]);
     await platform.write('k', Uint8List(4), ProtectionLevel.hardwareBound);
