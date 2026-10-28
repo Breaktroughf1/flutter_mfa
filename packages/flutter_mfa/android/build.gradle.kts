@@ -9,6 +9,8 @@ buildscript {
     }
 
     dependencies {
+    // Required by the Pigeon-generated channel code (suspend host methods). Apache-2.0.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
         classpath("com.android.tools.build:gradle:9.1.0")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
