@@ -29,8 +29,6 @@ Stream<OtpCode> tickCodes({
   var cancelled = false;
 
   void tick() {
-    // ignore: avoid_print
-    print('tick cancelled=$cancelled');
     final current = totp;
     if (current == null) return;
     controller.add(totpCode(current, clock.now()));
