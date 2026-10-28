@@ -6,8 +6,16 @@ environment:
   sdk: ">=3.9.0 <4.0.0"
 
 # Dart pub workspace (Dart >= 3.6). Globs need Dart >= 3.11 and our floor is 3.9,
-# so members are listed explicitly. Packages are added by M0-04.
-workspace: []
+# so members are listed explicitly.
+workspace:
+  - packages/flutter_mfa_core
+  - packages/flutter_mfa_platform_interface
+  - packages/flutter_mfa
+  - packages/flutter_mfa/example
+  - packages/flutter_mfa_ui
+  - packages/flutter_mfa_ui/example
+  - packages/flutter_mfa_qr
+  - packages/flutter_mfa_qr/example
 
 dev_dependencies:
   lints: ^6.1.0
@@ -31,7 +39,7 @@ melos:
       run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh
       description: Architecture and security guard scripts.
     test:core:
-      run: cd packages/flutter_mfa_core && dart test
+      run: cd packages/flutter_mfa_core && if [ -d test ]; then dart test; else echo "no core tests yet"; fi
       description: Fastest loop for core work (pure Dart, VM).
     test:
       run: melos run test:core && melos run test:flutter
