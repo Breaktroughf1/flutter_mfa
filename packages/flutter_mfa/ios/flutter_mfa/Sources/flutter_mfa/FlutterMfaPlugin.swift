@@ -29,24 +29,34 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
     )
   }
 
+  // Pigeon calls the async handlers on the main actor; Keychain access can
+  // block, so it runs on a background executor.
   func write(key: String, value: FlutterStandardTypedData, level: ProtectionLevelMessage) async throws {
-    try mapped { try vault.write(key: key, value: value.data, level: level) }
+    let vault = self.vault
+    let data = value.data
+    try await Task.detached {
+      try Self.mapped { try vault.write(key: key, value: data, level: level) }
+    }.value
   }
 
   func read(key: String, prompt: PromptMessage?) async throws -> FlutterStandardTypedData? {
-    try mapped { try vault.read(key: key).map { FlutterStandardTypedData(bytes: $0) } }
+    let vault = self.vault
+    let data = try await Task.detached {
+      try Self.mapped { try vault.read(key: key) }
+    }.value
+    return data.map { FlutterStandardTypedData(bytes: $0) }
   }
 
   func delete(key: String) throws {
-    try mapped { try vault.delete(key: key) }
+    try Self.mapped { try vault.delete(key: key) }
   }
 
   func keys() throws -> [String] {
-    try mapped { try vault.keys() }
+    try Self.mapped { try vault.keys() }
   }
 
   func wipe() throws {
-    try mapped { try vault.wipe() }
+    try Self.mapped { try vault.wipe() }
   }
 
   func copySensitive(text: String, expiryMillis: Int64) throws {
@@ -64,7 +74,7 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
     // iOS cannot block screenshots; reported via capabilities (FR-FAC-06).
   }
 
-  private func mapped<T>(_ body: () throws -> T) throws -> T {
+  private static func mapped<T>(_ body: () throws -> T) throws -> T {
     do {
       return try body()
     } catch let failure as VaultFailure {
