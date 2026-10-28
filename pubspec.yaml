@@ -36,7 +36,7 @@ melos:
       run: dart format --output=none --set-exit-if-changed .
       description: Fails if any file is not dart-formatted.
     checks:
-      run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh
+      run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh && bash tool/check_l10n.sh
       description: Architecture and security guard scripts.
     test:core:
       run: cd packages/flutter_mfa_core && if [ -d test ]; then dart test; else echo "no core tests yet"; fi
@@ -56,6 +56,9 @@ melos:
     verify:
       run: melos run format:check && melos run analyze && melos run checks && melos run coverage
       description: Run before every commit (format, analyze, guards, all tests + coverage gates).
+    l10n:
+      run: cd packages/flutter_mfa_ui && flutter gen-l10n
+      description: Regenerate flutter_mfa_ui localizations from lib/l10n/*.arb.
     pigeon:
       run: cd tool/pigeon && dart pub get && dart run pigeon --input messages.dart && dart format ../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart
       description: Regenerate the Pigeon channel code (Dart, Kotlin, Swift) from pigeons/messages.dart.
