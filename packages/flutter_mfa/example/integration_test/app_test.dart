@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mfa_example/main.dart';
+import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -44,6 +45,8 @@ void main() {
 
     await tester.tap(find.text('Add account'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Enter setup key'));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextField, 'Account name'),
       name,
@@ -53,17 +56,17 @@ void main() {
       _secret,
     );
     await tester.tap(find.text('Add'));
-    final tile = find.widgetWithText(ListTile, name);
+    final tile = find.ancestor(
+      of: find.text(name),
+      matching: find.byType(OtpAccountTile),
+    );
     await _pumpUntil(tester, tile);
     expect(tile, findsOneWidget, reason: _screen(tester));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       tile,
       200,
-      scrollable: find.descendant(
-        of: find.byType(ListView),
-        matching: find.byType(Scrollable),
-      ),
+      scrollable: find.byType(Scrollable).first,
     );
     final code = find.descendant(
       of: tile,
@@ -72,9 +75,13 @@ void main() {
     await _pumpUntil(tester, code);
     expect(code, findsOneWidget, reason: _screen(tester));
 
-    await tester.tap(
-      find.descendant(of: tile, matching: find.byTooltip('Remove')),
-    );
+    // Remove it from its detail page.
+    await tester.tap(find.text(name));
+    await _pumpUntil(tester, find.byTooltip('Remove'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Remove'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
     await _pumpUntil(tester, find.text(name), until: false);
     expect(find.text(name), findsNothing, reason: _screen(tester));
 
