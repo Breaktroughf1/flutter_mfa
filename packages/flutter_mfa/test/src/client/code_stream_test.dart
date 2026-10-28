@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_mfa/flutter_mfa.dart';
+import 'package:flutter_mfa/src/client/code_ticker.dart';
 import 'package:flutter_mfa_core/testing.dart';
 import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart';
 import 'package:flutter_mfa_platform_interface/testing.dart';
@@ -95,6 +96,76 @@ void main() {
     await advance(tester, const Duration(seconds: 3));
     expect(codes, hasLength(seen));
     // testWidgets fails if a timer is still pending here.
+  });
+
+  testWidgets('all code streams of a client share one ticker (02 §8)', (
+    tester,
+  ) async {
+    final ticker = CodeTicker(clock);
+    final a = <DateTime>[];
+    final b = <DateTime>[];
+    final subA = ticker.ticks.listen(a.add);
+    final subB = ticker.ticks.listen(b.add);
+    await advance(tester, const Duration(seconds: 3));
+    expect(a, hasLength(3));
+    expect(
+      [for (var i = 0; i < 3; i++) identical(a[i], b[i])],
+      [
+        true,
+        true,
+        true,
+      ],
+      reason: 'one tick fanned out, not one timer per listener',
+    );
+    expect(a.map((t) => t.millisecondsSinceEpoch % 1000), [0, 0, 0]);
+    unawaited(subA.cancel());
+    unawaited(subB.cancel());
+    await tester.pump();
+    // testWidgets fails if the timer is still pending here.
+  });
+
+  testWidgets('a clock before T0 is a stream error, now or at a later tick', (
+    tester,
+  ) async {
+    clock = FakeClock(DateTime.utc(1970, 1, 1, 0, 0, 1, 500));
+    final mfa = await client();
+    final a = await mfa.enrollManual(secretBase32: _secret20, accountName: 'a');
+    final errors = <Object>[];
+    var done = false;
+    final codes = <OtpCode>[];
+    mfa
+        .codeStream(a.id)
+        .listen(codes.add, onError: errors.add, onDone: () => done = true);
+    await tester.pump();
+    expect(codes, hasLength(1));
+
+    clock.time = DateTime.utc(1969, 12, 31, 23, 59, 59); // set backwards
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      errors.single,
+      isA<OtpConfigException>().having((e) => e.field, 'field', 'time'),
+    );
+    expect(done, isTrue);
+
+    errors.clear();
+    mfa
+        .codeStream(a.id)
+        .listen((_) {}, onError: errors.add, onDone: () => done = true);
+    await tester.pump();
+    expect(errors.single, isA<OtpConfigException>());
+  });
+
+  testWidgets('disposing the client closes its live code streams', (
+    tester,
+  ) async {
+    final mfa = await client();
+    final a = await mfa.enrollManual(secretBase32: _secret20, accountName: 'a');
+    var done = false;
+    mfa.codeStream(a.id).listen((_) {}, onDone: () => done = true);
+    await tester.pump();
+    unawaited(mfa.dispose());
+    await tester.pump();
+    expect(done, isTrue);
   });
 
   testWidgets('cancelling before the secret is read emits nothing', (

@@ -19,7 +19,8 @@ import 'mfa_client_options.dart';
 /// secrets, codes or URIs.
 final class MfaClient {
   MfaClient._(this._platform, this._options)
-    : _repository = AccountRepository(_platform);
+    : _repository = AccountRepository(_platform),
+      _ticker = CodeTicker(_options.clock);
 
   /// Creates a client over `MfaPlatform.instance`.
   ///
@@ -38,6 +39,7 @@ final class MfaClient {
   final MfaPlatform _platform;
   final MfaClientOptions _options;
   final AccountRepository _repository;
+  final CodeTicker _ticker;
   final _changes = StreamController<List<OtpAccount>>.broadcast();
   bool _disposed = false;
 
@@ -225,14 +227,16 @@ final class MfaClient {
   /// updated countdown) and exactly once at each step change. The secret is
   /// read once per subscription, so a protected account shows [prompt] once,
   /// not every second; cancel the subscription when the code is off screen.
-  /// Errors (`VaultNotFound`, `VaultUserCancelled`, `VaultKeyInvalidated`,
+  /// All live streams of this client share one timer. Errors
+  /// (`VaultNotFound`, `VaultUserCancelled`, `VaultKeyInvalidated`,
   /// `VaultCorrupted`, or `OtpConfigException` for a counter-based account,
-  /// which has no live code: use [currentCode]) arrive on the stream, which
-  /// then closes.
+  /// which has no live code: use [currentCode], or for a device clock before
+  /// 1970) arrive on the stream, which then closes. [dispose] closes every
+  /// live stream.
   Stream<OtpCode> codeStream(String accountId, {BiometricPrompt? prompt}) {
     _checkOpen();
     return tickCodes(
-      clock: _options.clock,
+      ticker: _ticker,
       load: () async {
         final account = await _repository.get(accountId);
         if (account.type != OtpType.totp) {
@@ -318,6 +322,7 @@ final class MfaClient {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    await _ticker.close();
     await _changes.close();
   }
 
