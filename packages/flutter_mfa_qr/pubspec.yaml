@@ -18,10 +18,12 @@ environment:
 resolution: workspace
 
 dependencies:
+  crypto: ^3.0.6
   flutter:
     sdk: flutter
   flutter_mfa_core: ^0.1.0-dev.1
   flutter_mfa_ui: ^0.1.0-dev.1
+  mobile_scanner: ^7.4.2
 
 dev_dependencies:
   flutter_test:

@@ -13,6 +13,7 @@ import 'src/l10n/generated/mfa_localizations.dart';
 import 'src/theme/mfa_theme.dart';
 
 export 'src/l10n/generated/mfa_localizations.dart';
+export 'src/l10n/mfa_strings.dart';
 export 'src/theme/mfa_theme.dart';
 export 'src/theme/mfa_theme_data.dart';
 export 'src/widgets/enrollment_qr_view.dart' show EnrollmentQrView;

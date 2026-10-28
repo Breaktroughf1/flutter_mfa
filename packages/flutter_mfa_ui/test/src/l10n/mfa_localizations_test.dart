@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
-import 'package:flutter_mfa_ui/src/l10n/mfa_strings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Every message, so a new string without a translation fails coverage.
