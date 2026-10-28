@@ -217,9 +217,9 @@ Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/uti
 ## 2. `flutter_mfa_platform_interface`
 ```dart
 abstract base class MfaPlatform extends PlatformInterface {
-  static MfaPlatform get instance; static set instance(MfaPlatform v);
+  static MfaPlatform get instance; static set instance(MfaPlatform v);   // default: MethodChannelMfaPlatform
   Future<VaultCapabilities> capabilities();
-  Future<void> write(String key, Uint8List value, ProtectionLevel level);
+  Future<void> write(String key, Uint8List value, ProtectionLevel level);  // unsupported level → VaultHardwareUnavailable
   Future<Uint8List?> read(String key, {BiometricPrompt? prompt});
   Future<void> delete(String key);
   Future<List<String>> keys();
@@ -227,12 +227,14 @@ abstract base class MfaPlatform extends PlatformInterface {
   Future<void> copySensitive(String text, {Duration expiry = const Duration(seconds: 30)});
   Future<void> setScreenCaptureProtection(bool enabled);   // Android FLAG_SECURE; no-op elsewhere, reported in capabilities
 }
-@immutable final class VaultCapabilities { bool hardwareBacked, strongBox, secureEnclave, biometricsEnrolled, secureContext, persistentStorage; Set<ProtectionLevel> supportedLevels; }
-@immutable final class BiometricPrompt { String title; String? subtitle; String cancelLabel; }
+@immutable final class VaultCapabilities { bool hardwareBacked, strongBox, secureEnclave, biometricsEnrolled, secureContext, persistentStorage,
+    screenCaptureProtection /* added at M1-10 */; Set<ProtectionLevel> supportedLevels; }
+@immutable final class BiometricPrompt { const BiometricPrompt({required String title, String? subtitle, String cancelLabel = 'Cancel'}); }
+final class MethodChannelMfaPlatform extends MfaPlatform { MethodChannelMfaPlatform({MfaHostApi? api}); }
 ```
-Pigeon schema `pigeons/messages.dart` is the source of truth for the mobile wire format and error codes. `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable capabilities, injectable failures) — used by `flutter_mfa` unit tests and the UI example.
+**Contract (M1-10):** every `MfaPlatform` implementation throws only `VaultException`s. Platform error codes are the `VaultErrorCode` enum in the Pigeon schema and are mapped **once**, in `MethodChannelMfaPlatform` (previously planned in `MfaVault`; moved so the web vault and the channel share one contract). Native error messages/details are discarded; unknown codes → `VaultUnknown(code)`.
 
----
+Pigeon schema `pigeons/messages.dart` is the source of truth for the mobile wire format and error codes (regenerate with `melos run pigeon`). `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable `currentCapabilities`, `failNext(VaultOperation, VaultException)`, simulated biometric prompt via `onBiometricPrompt`, recorded `clipboard` / `screenCaptureProtected`) — used by `flutter_mfa` unit tests and the UI example.
 
 ## 3. `flutter_mfa`
 ```dart

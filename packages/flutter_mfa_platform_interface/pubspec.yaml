@@ -21,9 +21,13 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_mfa_core: ^0.1.0-dev.1
+  meta: ^1.16.0
   plugin_platform_interface: ^2.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   lints: ^6.1.0
+  # Code generator only (BSD-3, Flutter team). 29.x needs Dart 3.11; the
+  # minimum-SDK CI job resolves 26.x. Generated code is committed.
+  pigeon: ">=26.3.0 <30.0.0"

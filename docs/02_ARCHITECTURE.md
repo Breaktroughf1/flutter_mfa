@@ -155,7 +155,7 @@ MfaException (sealed)
     ├── BackupDecryptFailed · BackupUnsupportedVersion · BackupWeakPassphrase
 ```
 Verification *outcomes* are values, not exceptions: `VerificationResult = accepted(step|counter) | rejected(reason: invalid|replayed|malformed)`; only rate-limiting throws.
-Platform error codes are defined once in the Pigeon schema as an enum, mapped once in `MfaVault`.
+Platform error codes are defined once in the Pigeon schema as an enum (`VaultErrorCode`), mapped once in `MethodChannelMfaPlatform` (M1-10), so every `MfaPlatform` — channel or web — throws only `VaultException`.
 
 ## 7. Backup container format v1 (`.fmfa`)
 
