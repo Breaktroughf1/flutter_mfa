@@ -7,4 +7,5 @@
 /packages/flutter_mfa/ios/                         @NoealRajeev
 /packages/flutter_mfa/lib/src/web/                 @NoealRajeev
 /.github/                                          @NoealRajeev
+/tool/                                             @NoealRajeev
 /docs/adr/                                         @NoealRajeev

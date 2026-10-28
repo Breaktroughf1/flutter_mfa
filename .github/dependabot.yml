@@ -1,16 +1,27 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /.github/actions/setup
     schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }
+  # Pub workspace: one root pubspec.lock; members listed so their constraints are updated too.
   - package-ecosystem: pub
     directories:
+      - /
       - /packages/flutter_mfa_core
       - /packages/flutter_mfa_platform_interface
       - /packages/flutter_mfa
       - /packages/flutter_mfa_ui
       - /packages/flutter_mfa_qr
+      - /packages/flutter_mfa/example
+      - /packages/flutter_mfa_ui/example
+      - /packages/flutter_mfa_qr/example
     schedule: { interval: weekly }
   - package-ecosystem: gradle
-    directory: /packages/flutter_mfa/android
+    directories:
+      - /packages/flutter_mfa/android
+      - /packages/flutter_mfa/example/android
     schedule: { interval: monthly }

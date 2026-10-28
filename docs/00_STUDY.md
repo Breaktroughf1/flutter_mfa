@@ -110,7 +110,7 @@ A client-side "verify" that unlocks something on the same device as the secret a
 - **G12.** Proposal subtitle "Seamless MFA Across Devices" — the only cross-device capability in scope is encrypted export/import. No sync service. README must not imply sync.
 - **G13.** Proposal §4 has a stray "(" before "Method". Cosmetic.
 - **G14.** No package-name check was done. `flutter_mfa` did not surface on pub.dev in searches on 28 October 2026, but names cannot be reserved without publishing. → Verify availability at Phase 0; publish `flutter_mfa_core 0.1.0-dev.1` as soon as M1 is green to hold the namespace (§6, decision D1).
-- **G15.** No minimum SDK floor stated. → Dart `>=3.9.0 <4.0.0`, Flutter `>=3.35.0`; Android `minSdk 23` (Keystore AES-GCM, BiometricPrompt via AndroidX); iOS 13.0; Web: secure contexts only (HTTPS/localhost) because WebCrypto requires it.
+- **G15.** No minimum SDK floor stated. → Dart `>=3.9.0 <4.0.0`, Flutter `>=3.35.0`; Android `minSdk 24` (Keystore AES-GCM, BiometricPrompt via AndroidX; Flutter 3.47 rejects ≤ 23); iOS 15.0 (Flutter 3.47 minimum deployment target); Web: secure contexts only (HTTPS/localhost) because WebCrypto requires it.
 - **G16.** Accessibility: a 6–8-box OTP input is a common screen-reader failure (each box announced separately). → Implement as **one** semantic text field with a visual segmented presentation; supports `AutofillHints.oneTimeCode` and paste of the whole code.
 
 ---

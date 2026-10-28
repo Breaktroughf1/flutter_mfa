@@ -2,7 +2,7 @@
 
 ## A. One-time setup (do during M0 — some steps take a day)
 1. **Verified publisher** `breaktroughf1.com` on pub.dev: sign in with the BF1 Google account → *Create publisher* → verify domain via Google Search Console (DNS TXT record on breaktroughf1.com). Add Noeal and Alfred as publisher admins. Both accounts must have 2-step verification on.
-2. **GitHub repo** (decision D4): public, `main` protected — require PR, 1 code-owner review, required status checks (CI `verify`, `test-*`, `coverage`), linear history, signed commits optional, no force-push. Enable secret scanning + push protection, Dependabot alerts, private vulnerability reporting.
+2. **GitHub repo** (decision D4): public, `main` protected — require PR, 1 code-owner review, required status checks (CI jobs `verify`, `test`, `min-sdk (Flutter 3.35.7)`, `goldens`, `web`, `android (API 24)`, `android (API 36)`, `security`, `publish-dry-run`; `ios` runs on main/nightly/`ci:ios`), linear history, signed commits optional, no force-push. Enable secret scanning + push protection, Dependabot alerts, private vulnerability reporting.
 3. **Tag protection / rulesets**: only maintainers can create tags matching `*-v*`.
 4. **GitHub Environment** `pub.dev`: required reviewer = maintainer; deployment branches/tags limited to `*-v*` tags.
 5. **Signing**: maintainers configure SSH or GPG signing for tags (`git tag -s`).
@@ -31,7 +31,7 @@ cd ../flutter_mfa_qr && flutter pub publish
 ```
 After each: pub.dev → package → **Admin** → *Transfer to publisher* `breaktroughf1.com`.
 Then **Admin → Automated publishing → Enable publishing from GitHub Actions**:
-- Repository: `<org>/flutter_mfa`
+- Repository: `Breaktroughf1/flutter_mfa`
 - Tag pattern: `<package_name>-v{{version}}` (e.g. `flutter_mfa_core-v{{version}}`)
 - Require GitHub Actions environment: `pub.dev`
 
