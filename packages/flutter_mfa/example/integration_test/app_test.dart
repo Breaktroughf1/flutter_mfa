@@ -5,6 +5,26 @@ import 'package:integration_test/integration_test.dart';
 
 const _secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'; // RFC 4226/6238 test secret
 
+/// Pumps until [finder] matches (or, with `until: false`, stops matching)
+/// or [timeout] passes; the vault opens
+/// asynchronously (Keystore key creation can take seconds on emulators).
+Future<void> _pumpUntil(
+  WidgetTester tester,
+  Finder finder, {
+  bool until = true,
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (finder.evaluate().isEmpty == until && DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+/// Every visible text, to explain a failure (labels and error messages only;
+/// the app never shows secrets).
+String _screen(WidgetTester tester) =>
+    tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).join(' | ');
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -17,8 +37,10 @@ void main() {
   ) async {
     final name = 'it-${DateTime.now().microsecondsSinceEpoch}';
     await tester.pumpWidget(const ExampleApp());
+    await _pumpUntil(tester, find.text('Add account'));
     await tester.pumpAndSettle();
     expect(find.text(ExampleApp.title), findsOneWidget);
+    expect(find.text('Add account'), findsOneWidget, reason: _screen(tester));
 
     await tester.tap(find.text('Add account'));
     await tester.pumpAndSettle();
@@ -31,23 +53,30 @@ void main() {
       _secret,
     );
     await tester.tap(find.text('Add'));
-    await tester.pumpAndSettle();
-
     final tile = find.widgetWithText(ListTile, name);
-    await tester.scrollUntilVisible(tile, 200);
-    expect(
-      find.descendant(
-        of: tile,
-        matching: find.textContaining(RegExp(r'^\d{3} \d{3}$')),
+    await _pumpUntil(tester, tile);
+    expect(tile, findsOneWidget, reason: _screen(tester));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
       ),
-      findsOneWidget,
     );
+    final code = find.descendant(
+      of: tile,
+      matching: find.textContaining(RegExp(r'^\d{3} \d{3}$')),
+    );
+    await _pumpUntil(tester, code);
+    expect(code, findsOneWidget, reason: _screen(tester));
 
     await tester.tap(
       find.descendant(of: tile, matching: find.byTooltip('Remove')),
     );
-    await tester.pumpAndSettle();
-    expect(find.text(name), findsNothing);
+    await _pumpUntil(tester, find.text(name), until: false);
+    expect(find.text(name), findsNothing, reason: _screen(tester));
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
