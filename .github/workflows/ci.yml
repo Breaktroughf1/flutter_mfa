@@ -75,7 +75,7 @@ jobs:
       - run: dart pub global activate melos && dart pub get
       - run: melos run test:goldens
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: golden-failures, path: packages/flutter_mfa_ui/test/**/failures/ }
 
   web:
