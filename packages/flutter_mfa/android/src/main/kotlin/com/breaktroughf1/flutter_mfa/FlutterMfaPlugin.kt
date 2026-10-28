@@ -1,5 +1,6 @@
 package com.breaktroughf1.flutter_mfa
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -113,20 +114,34 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
             throw e.toFlutterError()
         }
 
-    private companion object {
+    internal companion object {
         const val VAULT_DIR = "flutter_mfa"
 
         fun hasStrongBox(ctx: Context): Boolean =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
                 ctx.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
 
+        /**
+         * Whether strong biometrics are enrolled. Querying needs the app to hold
+         * `USE_BIOMETRIC` (the plugin declares it with biometric gating, M3-05);
+         * without it the answer is `false` rather than a `SecurityException`.
+         */
         fun biometricsEnrolled(ctx: Context): Boolean {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+            if (ctx.checkSelfPermission(Manifest.permission.USE_BIOMETRIC) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                return false
+            }
             val manager = ctx.getSystemService(android.hardware.biometrics.BiometricManager::class.java)
                 ?: return false
-            return manager.canAuthenticate(
-                android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
-            ) == android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS
+            return try {
+                manager.canAuthenticate(
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
+                ) == android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS
+            } catch (e: SecurityException) {
+                false
+            }
         }
     }
 }
