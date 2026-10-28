@@ -125,6 +125,22 @@ void main() {
       );
     });
 
+    test('a hard lockout is flagged and shown in toString', () {
+      const e = VerificationRateLimited(
+        retryAfter: Duration(minutes: 15),
+        lockedOut: true,
+      );
+      expect(e.lockedOut, isTrue);
+      expect(
+        e.toString(),
+        'VerificationRateLimited(retryAfter: 900s, lockedOut: true)',
+      );
+      expect(
+        e,
+        isNot(const VerificationRateLimited(retryAfter: Duration(minutes: 15))),
+      );
+    });
+
     test('sub-second retryAfter is rendered in milliseconds', () {
       expect(
         const VerificationRateLimited(

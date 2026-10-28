@@ -101,21 +101,29 @@ Verifiers are `async` only because the limiter store may be remote; the HMAC pat
 final class LimiterPolicy {
   const LimiterPolicy({this.maxAttempts = 5, this.window = const Duration(minutes: 5),
       this.backoffBase = const Duration(seconds: 1), this.backoffMax = const Duration(minutes: 15),
-      this.lockoutAfter = 20});
+      this.lockoutAfter = 20});   // validated by AttemptLimiter (OtpConfigException field "policy.<name>")
+}
+@immutable
+final class AttemptState {        // defined at M1-06
+  const AttemptState({required int consecutiveFailures, required int windowFailures,
+      required DateTime windowStart, required DateTime lastFailureAt});
+  factory AttemptState.fromJson(Map<String, Object?> json);   // FormatException on bad/unknown-version data
+  Map<String, Object?> toJson();                              // versioned ("v": 1), for server stores
 }
 abstract interface class AttemptStore {
   Future<AttemptState?> read(String subject);
   Future<void> write(String subject, AttemptState state);
-  Future<void> clear(String subject);
+  Future<void> clear(String subject);                          // also the administrative unlock
 }
 final class AttemptLimiter {
   AttemptLimiter({required AttemptStore store, LimiterPolicy policy = const LimiterPolicy(), Clock clock = const SystemClock()});
-  Future<void> ensureAllowed(String subject);     // throws VerificationRateLimited(retryAfter)
+  Future<void> ensureAllowed(String subject);     // throws VerificationRateLimited(retryAfter, lockedOut)
   Future<void> recordFailure(String subject);
   Future<void> recordSuccess(String subject);
 }
-final class InMemoryAttemptStore implements AttemptStore { … }
+final class InMemoryAttemptStore implements AttemptStore { … }   // main library only (not testing.dart)
 ```
+Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity is the store's responsibility (documented).
 
 ### 1.6 otpauth URIs
 ```dart
@@ -173,7 +181,7 @@ final class OtpConfigException extends MfaException { final String field; final 
 final class OtpAuthUriException extends MfaException implements FormatException {
   final String field; final String reason;                   // message = "field: reason"; source/offset always null (URI holds the secret)
 }
-final class VerificationRateLimited extends MfaException { final Duration retryAfter; }
+final class VerificationRateLimited extends MfaException { final Duration retryAfter; final bool lockedOut; } // lockedOut added at M1-06
 sealed class VaultException extends MfaException {}
   VaultNotFound() · VaultUserCancelled() · VaultKeyInvalidated() · VaultCorrupted()
   VaultHardwareUnavailable(HardwareUnavailableReason reason) · VaultUnavailable(VaultUnavailableReason reason) · VaultUnknown(String code)
@@ -192,7 +200,7 @@ final class AsyncMutex { bool get isLocked; Future<T> protect<T>(FutureOr<T> Fun
 Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/util/`); only the verifiers use it.
 
 ### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
-`FakeClock(DateTime)` with `advance(Duration)`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `InMemoryAttemptStore`, `rfc4226Vectors`, `rfc6238Vectors`.
+`FakeClock(DateTime)` with `advance(Duration)`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors`. (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
 
 ---
 

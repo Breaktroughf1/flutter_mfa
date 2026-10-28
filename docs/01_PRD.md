@@ -40,7 +40,7 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 | FR-VER-02 | M | Replay protection (RFC 6238 §5.2) | AC1 Verifier accepts `lastUsedStep`; a code for a step ≤ lastUsedStep is rejected as `replayed`. AC2 Successful result returns the new `lastUsedStep` for the caller to persist. |
 | FR-VER-03 | M | HOTP verification with look-ahead and resync (RFC 4226 §7.4) | AC1 Look-ahead window configurable (default 10). AC2 Success returns next counter. AC3 Resync with two consecutive codes supported. |
 | FR-VER-04 | M | Constant-time code comparison | AC1 Comparison iterates full length regardless of mismatch position (unit test inspects the helper; reviewed in security review). |
-| FR-VER-05 | M | Attempt limiter (RFC 4226 §7.3 throttling) | AC1 `AttemptLimiter` interface + `InMemoryAttemptLimiter`. AC2 Policies: max attempts per window, exponential back-off, hard lockout. AC3 Store abstraction (`AttemptStore`) so servers can persist. AC4 Verifier consults the limiter **before** computing codes. |
+| FR-VER-05 | M | Attempt limiter (RFC 4226 §7.3 throttling) | AC1 `AttemptLimiter` + `InMemoryAttemptStore` (03 §1.5; renamed at M1-06). AC2 Policies: max attempts per window, exponential back-off, hard lockout. AC3 Store abstraction (`AttemptStore`) so servers can persist. AC4 Verifier consults the limiter **before** computing codes. |
 | FR-VER-06 | M | Input normalisation | AC1 Strips spaces; rejects non-digits and wrong length as `malformed` without touching the limiter's success path (still counts as an attempt). |
 
 ### 2.3 otpauth URI — `flutter_mfa_core`

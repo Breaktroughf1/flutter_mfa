@@ -95,16 +95,28 @@ final class OtpAuthUriException extends MfaException
 /// computed (FR-VER-05, S1).
 final class VerificationRateLimited extends MfaException {
   /// Creates an exception telling the caller to wait [retryAfter].
-  const VerificationRateLimited({required this.retryAfter});
+  const VerificationRateLimited({
+    required this.retryAfter,
+    this.lockedOut = false,
+  });
 
   /// How long the subject must wait before the next attempt is allowed.
+  /// When [lockedOut] is true this is only a hint for user messaging.
   final Duration retryAfter;
+
+  /// Whether the subject hit the hard lockout threshold. Waiting does not
+  /// lift it: only a successful verification by another path or an
+  /// administrative reset (clearing the subject in the store) does.
+  final bool lockedOut;
 
   @override
   String get _name => 'VerificationRateLimited';
 
   @override
-  Map<String, Object?> get _details => {'retryAfter': retryAfter};
+  Map<String, Object?> get _details => {
+    'retryAfter': retryAfter,
+    if (lockedOut) 'lockedOut': true,
+  };
 }
 
 /// A secure-vault operation failed (FR-VLT-07).

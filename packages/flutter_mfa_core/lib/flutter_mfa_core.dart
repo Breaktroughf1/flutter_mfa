@@ -11,6 +11,13 @@ library;
 export 'src/backup/passphrase_check.dart';
 export 'src/codec/base32.dart';
 export 'src/errors/mfa_exception.dart';
+export 'src/limit/attempt_limiter.dart'
+    show
+        AttemptLimiter,
+        AttemptState,
+        AttemptStore,
+        InMemoryAttemptStore,
+        LimiterPolicy;
 export 'src/otp/clock.dart';
 export 'src/otp/hotp.dart';
 export 'src/otp/otp_algorithm.dart';
