@@ -259,6 +259,7 @@ final class MfaClient {
   Future<OtpCode> currentCode(String accountId, {BiometricPrompt? prompt});   // HOTP: increments + persists counter
   Stream<OtpCode> codeStream(String accountId, {BiometricPrompt? prompt});    // TOTP only
   Future<void> copyCode(String accountId);                                     // via copySensitive
+  Future<void> copySensitive(String text);                                     // codes or setup keys; clipboardExpiry (M2-08)
 
   // mutation
   Future<OtpAccount> rename(String accountId, {String? issuer, String? accountName});
@@ -287,7 +288,7 @@ typedef IntegrityPolicy = Future<void> Function(IntegrityReport report); // app 
 ```
 `flutter_mfa.dart` re-exports the core public API (not `testing.dart`) plus `BiometricPrompt` and `VaultCapabilities`, so apps need one import.
 
-As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. `codeStream`/`copyCode` (M2-08), `createEnrollment` (M2-10), backup (M3-04) and integrity (M3-08) follow.
+As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. As built at M2-08: `codeStream` (TOTP only; secret read once per subscription; emits on listen, every whole second and once per step change; errors on the stream, which then closes), `copyCode` (HOTP: uses up the next code) and `copySensitive` (additive, so setup keys can be copied sensitively from `EnrollmentQrView.onCopySecret`). `createEnrollment` (M2-10), backup (M3-04) and integrity (M3-08) follow.
 
 ---
 
