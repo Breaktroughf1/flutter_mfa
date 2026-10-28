@@ -29,8 +29,8 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 | FR-OTP-02 | M | TOTP per RFC 6238 | AC1 All 18 RFC 6238 Appendix B vectors pass (SHA1/256/512 × 6 times) using the RFC's per-algorithm seed lengths. AC2 `T0` and `period` configurable; default T0 = 0, period = 30 s. AC3 Time source injectable (`Clock`). |
 | FR-OTP-03 | M | Algorithms SHA-1, SHA-256, SHA-512 | AC1 Enum `OtpAlgorithm`; default SHA-1 for compatibility. |
 | FR-OTP-04 | M | Base32 (RFC 4648) codec | AC1 RFC 4648 §10 test vectors pass. AC2 Decoder accepts lower case, ignores spaces/hyphens, accepts missing padding. AC3 Encoder emits upper case, **no** padding (otpauth convention). AC4 Invalid characters throw `FormatException` with position. |
-| FR-OTP-05 | M | Secret generation | AC1 Uses `Random.secure()` only. AC2 Default 20 bytes (160 bits); minimum 16 bytes (RFC 4226 R6); requests below 16 throw. AC3 Per-algorithm recommended defaults: SHA-1 20 B, SHA-256 32 B, SHA-512 64 B. |
-| FR-OTP-06 | M | Remaining-time and progress helpers | AC1 `secondsRemaining(now)` and `progress(now)` ∈ [0,1) correct at boundaries 0, 29, 30. |
+| FR-OTP-05 | M | Secret generation | AC1 Uses `Random.secure()` only. AC2 Default 20 bytes (160 bits); minimum 16 bytes (RFC 4226 R6); requests below 16 throw. Imported secrets (enrolment from issuers) may be 10–15 bytes and are flagged via `meetsRfcMinimum` / a URI compatibility warning (M1-03 decision). AC3 Per-algorithm recommended defaults: SHA-1 20 B, SHA-256 32 B, SHA-512 64 B. |
+| FR-OTP-06 | M | Remaining-time and progress helpers | AC1 `remaining([at])` (a `Duration`, per 03 §1.3) and `progress([at])` ∈ [0,1) correct at boundaries 0, 29, 30. |
 
 ### 2.2 Verifier — `flutter_mfa_core`
 

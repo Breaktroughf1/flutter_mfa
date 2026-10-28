@@ -36,7 +36,7 @@ Estimated calendar (Claude Code implementing, BF1 reviewing within 1 working day
 |---|---|---|---|---|
 | ✅ | M1-01 | `errors/` sealed hierarchy; `util/constant_time.dart`; `util/mutex.dart` | §6 arch, FR-VER-04 | M0 |
 | ✅ | M1-02 | `codec/base32.dart` + RFC 4648 tests + fuzz | FR-OTP-04 | M1-01 |
-| ☐ | M1-03 | `otp/otp_core.dart` (single HMAC+truncation fn), `Hotp`, `Totp`, configs, `Clock`, `OtpSecret` | FR-OTP-01..06 | M1-02 |
+| ✅ | M1-03 | `otp/otp_core.dart` (single HMAC+truncation fn), `Hotp`, `Totp`, configs, `Clock`, `OtpSecret` | FR-OTP-01..06 | M1-02 |
 | ☐ | M1-04 | `test/vectors/` RFC 4226 + RFC 6238 vector files and tests (verify values against RFC text) | FR-OTP-01/02 | M1-03 |
 | ☐ | M1-05 | `uri/otpauth_uri.dart` parse/generate + compatibility warnings + fuzz | FR-URI-01/02 | M1-02 |
 | ☐ | M1-06 | `limit/` AttemptLimiter, policy, InMemoryAttemptStore | FR-VER-05 | M1-01 |

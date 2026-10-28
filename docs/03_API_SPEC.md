@@ -19,9 +19,11 @@ final class SystemClock implements Clock { const SystemClock(); }
 /// Opaque secret. Holds a defensive copy; `bytes` returns a copy.
 @immutable
 final class OtpSecret {
-  factory OtpSecret.fromBytes(Uint8List bytes);          // >= 16 bytes or throws OtpConfigException
+  factory OtpSecret.fromBytes(Uint8List bytes);          // 10..256 bytes or throws OtpConfigException (M1-03: 80-bit issuer secrets must import)
+  static const minLength = 10, rfcMinLength = 16, maxLength = 256;
+  bool get meetsRfcMinimum;                              // >= 16 bytes (RFC 4226 R6); flagged by URI compatibility warnings
   factory OtpSecret.fromBase32(String input);            // lenient decode
-  factory OtpSecret.generate({int length = 20, Random? random}); // Random.secure() default
+  factory OtpSecret.generate({int length = 20, Random? random}); // Random.secure() default; 16..256 bytes
   static int recommendedLength(OtpAlgorithm a);          // 20 / 32 / 64
   Uint8List get bytes;
   String toBase32();                                     // upper, no padding
@@ -41,17 +43,19 @@ abstract final class Base32 {
 ### 1.3 Generators
 ```dart
 @immutable
-final class HotpConfig { const HotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6}); }
+final class HotpConfig { const HotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6}); } // validated on use
 
 final class Hotp {
   const Hotp(this.secret, {this.config = const HotpConfig()});
-  String generate(int counter);
+  static const maxCounter = 9007199254740991;  // 2^53-1 on every platform (FR-OTP-01 AC3)
+  String generate(int counter);                // throws OtpConfigException (digits, counter)
 }
 
 @immutable
 final class TotpConfig {
   const TotpConfig({this.algorithm = OtpAlgorithm.sha1, this.digits = 6,
-      this.period = const Duration(seconds: 30), this.t0 = 0});
+      this.period = const Duration(seconds: 30), this.t0 = 0});   // period: whole seconds > 0; t0: unix seconds; validated on use
+  HotpConfig get hotp;
 }
 
 final class Totp {
