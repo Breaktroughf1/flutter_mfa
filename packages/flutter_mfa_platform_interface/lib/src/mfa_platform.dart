@@ -45,7 +45,8 @@ abstract base class MfaPlatform extends PlatformInterface {
   Future<void> write(String key, Uint8List value, ProtectionLevel level);
 
   /// The bytes under [key], or `null` if absent. [prompt] is shown when the
-  /// entry is biometric-protected.
+  /// entry is biometric-protected. The caller owns the returned buffer: it is
+  /// modifiable and should be overwritten once used.
   Future<Uint8List?> read(String key, {BiometricPrompt? prompt});
 
   /// Removes [key]; absent keys are ignored.
