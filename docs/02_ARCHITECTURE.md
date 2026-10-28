@@ -26,7 +26,6 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   ├── flutter_mfa_platform_interface/
 │   │   ├── lib/flutter_mfa_platform_interface.dart
 │   │   ├── lib/testing.dart       ← InMemoryMfaPlatform
-│   │   ├── pigeons/messages.dart  ← Pigeon schema (source of truth for channels)
 │   │   └── lib/src/{platform,method_channel,messages.g.dart}
 │   ├── flutter_mfa/               ← app-facing plugin: MfaClient + Android/iOS/Web impls
 │   │   ├── lib/flutter_mfa.dart   ← re-exports core public API (single import for apps)
@@ -44,6 +43,7 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   └── flutter_mfa_qr/            ← OtpQrScanner (mobile_scanner)
 │       └── example/
 ├── tool/
+│   ├── pigeon/                    ← Pigeon schema + generator runner (not a workspace member)
 │   ├── test.sh                    ← every test run (VM + Chrome), optional coverage gates
 │   ├── coverage_gate.dart         ← parses lcov (BRDA), enforces thresholds per package
 │   ├── forbidden_apis.sh          ← security grep (Random(), print, weak crypto, native logging)
