@@ -158,7 +158,30 @@ final class BackupCodec {
 ```
 
 ### 1.9 Errors
-As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material.
+As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material. Details fixed at M1-01:
+```dart
+sealed class MfaException implements Exception {}           // value equality; toString = "Type(key: value, …)"
+final class OtpConfigException extends MfaException { final String field; final String reason; } // also used for bad digits (FR-OTP-01 AC2)
+final class OtpAuthUriException extends MfaException implements FormatException {
+  final String field; final String reason;                   // message = "field: reason"; source/offset always null (URI holds the secret)
+}
+final class VerificationRateLimited extends MfaException { final Duration retryAfter; }
+sealed class VaultException extends MfaException {}
+  VaultNotFound() · VaultUserCancelled() · VaultKeyInvalidated() · VaultCorrupted()
+  VaultHardwareUnavailable(HardwareUnavailableReason reason) · VaultUnavailable(VaultUnavailableReason reason) · VaultUnknown(String code)
+enum HardwareUnavailableReason { secureEnclaveUnavailable, strongBoxUnavailable, biometricsNotEnrolled, biometricsUnavailable, unsupportedOnPlatform }
+enum VaultUnavailableReason { insecureContext, hostActivityNotFragmentActivity, storageUnavailable, deviceLocked }
+sealed class BackupException extends MfaException {}
+  BackupDecryptFailed() · BackupUnsupportedVersion(int version) · BackupWeakPassphrase(PassphraseCheck check)
+enum PassphraseCheck { ok, tooShort, tooCommon, lowVariety }
+```
+
+### 1.11 Utilities
+```dart
+/// FIFO async lock used to serialise index read-modify-write (02 §4.1). Exported because flutter_mfa needs it.
+final class AsyncMutex { bool get isLocked; Future<T> protect<T>(FutureOr<T> Function() action); }
+```
+Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/util/`); only the verifiers use it.
 
 ### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
 `FakeClock(DateTime)` with `advance(Duration)`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `InMemoryAttemptStore`, `rfc4226Vectors`, `rfc6238Vectors`.

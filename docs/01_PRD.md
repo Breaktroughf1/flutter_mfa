@@ -25,7 +25,7 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 
 | ID | P | Requirement | Acceptance criteria |
 |---|---|---|---|
-| FR-OTP-01 | M | HOTP per RFC 4226 (HMAC + dynamic truncation) | AC1 All 10 RFC 4226 Appendix D vectors pass. AC2 Digits 6, 7, 8 supported; others rejected with `ArgumentError`. AC3 Counter is a 64-bit unsigned big-endian value; counters up to 2^53−1 supported on web (JS number limit) with documented ceiling. |
+| FR-OTP-01 | M | HOTP per RFC 4226 (HMAC + dynamic truncation) | AC1 All 10 RFC 4226 Appendix D vectors pass. AC2 Digits 6, 7, 8 supported; others rejected with `OtpConfigException` (single error model, 02 §6; changed from `ArgumentError` at M1-01). AC3 Counter is a 64-bit unsigned big-endian value; counters up to 2^53−1 supported on web (JS number limit) with documented ceiling. |
 | FR-OTP-02 | M | TOTP per RFC 6238 | AC1 All 18 RFC 6238 Appendix B vectors pass (SHA1/256/512 × 6 times) using the RFC's per-algorithm seed lengths. AC2 `T0` and `period` configurable; default T0 = 0, period = 30 s. AC3 Time source injectable (`Clock`). |
 | FR-OTP-03 | M | Algorithms SHA-1, SHA-256, SHA-512 | AC1 Enum `OtpAlgorithm`; default SHA-1 for compatibility. |
 | FR-OTP-04 | M | Base32 (RFC 4648) codec | AC1 RFC 4648 §10 test vectors pass. AC2 Decoder accepts lower case, ignores spaces/hyphens, accepts missing padding. AC3 Encoder emits upper case, **no** padding (otpauth convention). AC4 Invalid characters throw `FormatException` with position. |

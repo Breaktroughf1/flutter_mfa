@@ -5,6 +5,9 @@
 /// encrypted backup format. Has no Flutter dependency, so the same code runs
 /// on Dart servers and in apps.
 ///
-/// The public API is specified in `docs/03_API_SPEC.md` and is implemented
-/// from milestone M1.
+/// The public API is specified in `docs/03_API_SPEC.md`.
 library;
+
+export 'src/backup/passphrase_check.dart';
+export 'src/errors/mfa_exception.dart';
+export 'src/util/async_mutex.dart';
