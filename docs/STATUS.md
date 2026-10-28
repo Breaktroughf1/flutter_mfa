@@ -7,6 +7,7 @@ Updated by Claude Code after every task. Newest at the bottom.
 | 28 Oct 2026 | — | Docs pack created | — | — | Baseline docs, ADR-0001..0008, CI scaffold |
 | 28 Oct 2026 | M0-01 | Done | see git log | — | Toolchain verified; Android SDK + Xcode unavailable locally (CI only) |
 | 28 Oct 2026 | M0-02 | Done | see git log | — | All 5 names unclaimed; D1 confirmed by maintainer |
+| 28 Oct 2026 | M0-03 | Done | see git log | — | Melos 8.10 (scripts follow 8.x `exec` rules); lints/recommended base kept; `formatter.trailing_commas: preserve` added (maintainer-approved) so `require_trailing_commas` and tall-style format agree; root `pubspec.lock` committed (single workspace lockfile, S15); fixed `.gitignore` inline-comment bug that left golden `failures/` un-ignored; `test` no longer runs core tests twice |
 
 ## Environment (M0-01)
 Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.

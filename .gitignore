@@ -1,6 +1,8 @@
 .dart_tool/
 .packages
 build/
+# pub workspace: a single root pubspec.lock is committed (S15); members never have their own
+packages/**/pubspec.lock
 coverage/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -22,4 +24,5 @@ pubspec_overrides.yaml
 pub-credentials.json
 .env
 .env.*
-**/failures/   # golden diffs
+# golden diffs (gitignore has no inline comments)
+**/failures/

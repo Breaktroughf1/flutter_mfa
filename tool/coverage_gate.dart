@@ -5,7 +5,9 @@ import 'dart:io';
 
 void main(List<String> args) {
   if (args.isEmpty) {
-    stderr.writeln('usage: coverage_gate <lcov.info> [--lines N] [--branches N]');
+    stderr.writeln(
+      'usage: coverage_gate <lcov.info> [--lines N] [--branches N]',
+    );
     exit(2);
   }
   final path = args.first;
@@ -23,7 +25,8 @@ void main(List<String> args) {
   for (final line in file.readAsLinesSync()) {
     if (line.startsWith('SF:')) {
       final src = line.substring(3);
-      skip = src.endsWith('.g.dart') ||
+      skip =
+          src.endsWith('.g.dart') ||
           src.contains('/l10n/generated/') ||
           src.contains('messages.g.dart');
     } else if (skip) {
@@ -45,7 +48,9 @@ void main(List<String> args) {
 
   if (minBranches != null) {
     if (brf == 0) {
-      stdout.writeln('  branches: no branch data in lcov — see ADR-0008 (line gate only)');
+      stdout.writeln(
+        '  branches: no branch data in lcov — see ADR-0008 (line gate only)',
+      );
     } else {
       final brPct = brh * 100 / brf;
       stdout.writeln('  branches ${brPct.toStringAsFixed(2)}% ($brh/$brf)');
@@ -54,8 +59,10 @@ void main(List<String> args) {
   }
 
   if (failed) {
-    stderr.writeln('coverage_gate: FAILED (min lines $minLines%'
-        '${minBranches == null ? '' : ', min branches $minBranches%'})');
+    stderr.writeln(
+      'coverage_gate: FAILED (min lines $minLines%'
+      '${minBranches == null ? '' : ', min branches $minBranches%'})',
+    );
     exit(1);
   }
 }

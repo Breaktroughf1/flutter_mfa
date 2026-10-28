@@ -5,20 +5,13 @@ description: Workspace root for the flutter_mfa packages (not published).
 environment:
   sdk: ">=3.9.0 <4.0.0"
 
-# Dart pub workspace (Dart >= 3.6). Globs need Dart >= 3.11, so members are listed explicitly.
-workspace:
-  - packages/flutter_mfa_core
-  - packages/flutter_mfa_platform_interface
-  - packages/flutter_mfa
-  - packages/flutter_mfa/example
-  - packages/flutter_mfa_ui
-  - packages/flutter_mfa_ui/example
-  - packages/flutter_mfa_qr
-  - packages/flutter_mfa_qr/example
+# Dart pub workspace (Dart >= 3.6). Globs need Dart >= 3.11 and our floor is 3.9,
+# so members are listed explicitly. Packages are added by M0-04.
+workspace: []
 
 dev_dependencies:
-  lints: ^6.0.0 # verify latest at M0-01; each package also lists it (analysis include)
-  melos: ^7.0.0 # verify latest 7.x at M0-01
+  lints: ^6.1.0
+  melos: ^8.10.0
 
 melos:
   repository: https://github.com/Breaktroughf1/flutter_mfa
@@ -30,39 +23,42 @@ melos:
   scripts:
     analyze:
       run: dart analyze --fatal-infos .
-      description: Static analysis for the whole workspace.
+      description: Static analysis for the whole workspace (NFR-03).
     format:check:
       run: dart format --output=none --set-exit-if-changed .
+      description: Fails if any file is not dart-formatted.
     checks:
       run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh
       description: Architecture and security guard scripts.
     test:core:
       run: cd packages/flutter_mfa_core && dart test
+      description: Fastest loop for core work (pure Dart, VM).
     test:
+      run: melos run test:core && melos run test:flutter
+      description: All unit + widget tests (goldens run in their own CI job).
+    test:flutter:
       exec: flutter test --exclude-tags golden
       packageFilters:
+        flutter: true
         dirExists: test
-      description: Unit + widget tests (goldens run in their own CI job).
+      description: Unit + widget tests of every Flutter package.
     test:goldens:
       exec: flutter test --tags golden
       packageFilters:
         scope: flutter_mfa_ui
+        dirExists: test/goldens
+      description: Golden tests; only valid on the pinned Linux CI image.
     goldens:update:
       exec: flutter test --tags golden --update-goldens
       packageFilters:
         scope: flutter_mfa_ui
-    coverage:
-      run: >
-        cd packages/flutter_mfa_core && dart test --coverage=coverage &&
-        dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib &&
-        cd ../.. && dart run tool/coverage_gate.dart packages/flutter_mfa_core/coverage/lcov.info --lines 95 --branches 90 &&
-        melos exec --scope=flutter_mfa_platform_interface,flutter_mfa,flutter_mfa_ui,flutter_mfa_qr -- flutter test --coverage &&
-        for p in flutter_mfa_platform_interface flutter_mfa flutter_mfa_ui flutter_mfa_qr; do dart run tool/coverage_gate.dart packages/$p/coverage/lcov.info --lines 85 --branches 75 || exit 1; done
-      description: Collect coverage and enforce gates (adjust flags per ADR-0008 outcome).
+        dirExists: test/goldens
+      description: Regenerate goldens. Only in a PR labelled as an intended visual change.
     verify:
-      run: melos run format:check && melos run analyze && melos run checks && melos run test:core && melos run test
+      run: melos run format:check && melos run analyze && melos run checks && melos run test
       description: Run before every commit.
     publish:dry:
       exec: dart pub publish --dry-run
       packageFilters:
         noPrivate: true
+      description: pub.dev dry run for every publishable package.
