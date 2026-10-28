@@ -268,6 +268,12 @@ abstract class MfaLocalizations {
   /// **'Scanning needs a secure (HTTPS) page. Enter the setup key instead.'**
   String get cameraInsecureContext;
 
+  /// Shown on the web when the browser has no QR decoder and none was configured.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser can\'t scan QR codes. Enter the setup key instead.'**
+  String get scanUnsupportedBrowser;
+
   /// Action that pastes a code from the clipboard.
   ///
   /// In en, this message translates to:
