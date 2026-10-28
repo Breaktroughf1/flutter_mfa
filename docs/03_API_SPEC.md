@@ -234,7 +234,7 @@ final class MethodChannelMfaPlatform extends MfaPlatform { MethodChannelMfaPlatf
 ```
 **Contract (M1-10):** every `MfaPlatform` implementation throws only `VaultException`s. Platform error codes are the `VaultErrorCode` enum in the Pigeon schema and are mapped **once**, in `MethodChannelMfaPlatform` (previously planned in `MfaVault`; moved so the web vault and the channel share one contract). Native error messages/details are discarded; unknown codes → `VaultUnknown(code)`.
 
-Pigeon schema `pigeons/messages.dart` is the source of truth for the mobile wire format and error codes (regenerate with `melos run pigeon`). `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable `currentCapabilities`, `failNext(VaultOperation, VaultException)`, simulated biometric prompt via `onBiometricPrompt`, recorded `clipboard` / `screenCaptureProtected`) — used by `flutter_mfa` unit tests and the UI example.
+Pigeon schema `tool/pigeon/messages.dart` is the source of truth for the mobile wire format and error codes (regenerate with `melos run pigeon`; it lives outside the workspace because Pigeon needs a newer analyzer than Flutter 3.35 allows). `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable `currentCapabilities`, `failNext(VaultOperation, VaultException)`, simulated biometric prompt via `onBiometricPrompt`, recorded `clipboard` / `screenCaptureProtected`) — used by `flutter_mfa` unit tests and the UI example.
 
 ## 3. `flutter_mfa`
 ```dart

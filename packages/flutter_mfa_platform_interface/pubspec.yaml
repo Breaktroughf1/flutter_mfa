@@ -28,6 +28,3 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lints: ^6.1.0
-  # Code generator only (BSD-3, Flutter team). 29.x needs Dart 3.11; the
-  # minimum-SDK CI job resolves 26.x. Generated code is committed.
-  pigeon: ">=26.3.0 <30.0.0"

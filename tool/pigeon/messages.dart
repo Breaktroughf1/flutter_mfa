@@ -2,19 +2,22 @@
 // vault error codes (02_ARCHITECTURE §4.1, §6). Regenerate with
 // `melos run pigeon`; never edit the generated files by hand.
 //
+// Lives outside the pub workspace: Pigeon needs a newer analyzer than the
+// minimum supported Flutter (3.35) allows, and only generated code ships.
+//
 // Native code is a thin byte vault: no OTP logic, JSON or validation.
 import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(
   PigeonOptions(
-    dartOut: 'lib/src/messages.g.dart',
+    dartOut: '../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart',
     dartPackageName: 'flutter_mfa_platform_interface',
     kotlinOut:
-        '../flutter_mfa/android/src/main/kotlin/com/breaktroughf1/flutter_mfa/Messages.g.kt',
+        '../../packages/flutter_mfa/android/src/main/kotlin/com/breaktroughf1/flutter_mfa/Messages.g.kt',
     kotlinOptions: KotlinOptions(package: 'com.breaktroughf1.flutter_mfa'),
     swiftOut:
-        '../flutter_mfa/ios/flutter_mfa/Sources/flutter_mfa/Messages.g.swift',
-    copyrightHeader: 'pigeons/copyright.txt',
+        '../../packages/flutter_mfa/ios/flutter_mfa/Sources/flutter_mfa/Messages.g.swift',
+    copyrightHeader: 'copyright.txt',
   ),
 )
 /// Protection level requested for an entry.
