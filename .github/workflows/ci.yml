@@ -1,5 +1,6 @@
-# CI for flutter_mfa. Starting point — make green and adapt at M0-07.
-# M4-04: replace every `@vN` with a full commit SHA (keep the tag in a comment).
+# CI for flutter_mfa (ADR-0008, 05_TEST_PLAN.md).
+# Every third-party action is pinned by commit SHA (tag in a comment); Dependabot updates them.
+# Flutter is pinned (goldens and analyzer output must be reproducible). Bump FLUTTER_VERSION in a PR.
 name: ci
 
 on:
@@ -7,7 +8,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "30 20 * * *" # nightly 02:00 IST: full matrix + long fuzz
+    - cron: "30 20 * * *" # nightly 02:00 IST: full matrix incl. iOS + long fuzz
   workflow_dispatch:
 
 permissions:
@@ -15,142 +16,182 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION: "3.47.8"
+  FLUTTER_MIN_VERSION: "3.35.7" # floor in every pubspec (NFR-07)
+  # Property/fuzz iterations read by core tests: 10k on PRs, 200k nightly (05 §1).
+  FMFA_FUZZ_RUNS: ${{ github.event_name == 'schedule' && '200000' || '10000' }}
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    name: verify (format, analyze, guards)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - run: dart pub global activate melos
-      - run: dart pub get
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
       - run: melos run format:check
       - run: melos run analyze
       - run: melos run checks
-      - run: melos run test:core
-      - run: melos run test
 
-  min-sdk:
-    # Proves the lower bound constraints still hold (NFR-07).
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: "3.35.x", channel: stable, cache: true }
-      - run: dart pub get
-      - run: dart pub downgrade
-      - run: dart analyze --fatal-infos .
-      - run: cd packages/flutter_mfa_core && dart test
-
-  coverage:
-    runs-on: ubuntu-latest
-    needs: verify
+  test:
+    name: test (VM + Chrome, coverage gates)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - run: dart pub global activate melos && dart pub global activate coverage
-      - run: dart pub get
-      - run: melos run coverage # hard gate via tool/coverage_gate.dart (ADR-0008)
-      - uses: codecov/codecov-action@v4 # informational only
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
+      - name: Tests + coverage gates (hard gate is tool/coverage_gate.dart)
+        run: melos run coverage
+      - name: Upload coverage (informational only)
         if: env.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: packages/*/coverage/lcov.info
           fail_ci_if_error: false
 
-  goldens:
-    runs-on: ubuntu-24.04 # pinned image: goldens only valid here
+  min-sdk:
+    name: min-sdk (Flutter 3.35.7, lowest deps)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - run: dart pub global activate melos && dart pub get
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_MIN_VERSION }}" }
+      - run: flutter pub downgrade
+      - run: dart analyze --fatal-infos .
+      - run: bash tool/test.sh
+
+  goldens:
+    name: goldens (pinned image)
+    runs-on: ubuntu-24.04 # pinned image: goldens are only valid here (G8)
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
       - run: melos run test:goldens
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: golden-failures, path: packages/flutter_mfa_ui/test/**/failures/ }
 
   web:
-    runs-on: ubuntu-latest
+    name: web (WASM build, integration in Chrome)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - uses: browser-actions/setup-chrome@v1
-      - uses: nanasess/setup-chromedriver@v2
-      - run: dart pub get
-      - name: Web vault tests in Chrome
-        run: cd packages/flutter_mfa && flutter test --platform chrome test/web
-      - name: WASM build compiles
-        run: cd packages/flutter_mfa/example && flutter build web --wasm
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
+      - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        id: chrome
+        with: { chrome-version: stable, install-chromedriver: true }
+      - name: WASM build compiles (NFR-07)
+        working-directory: packages/flutter_mfa/example
+        run: flutter build web --wasm
       - name: Integration (web)
+        working-directory: packages/flutter_mfa/example
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          chromedriver --port=4444 &
-          cd packages/flutter_mfa/example
-          flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --browser-name=chrome --headless
+          "${{ steps.chrome.outputs.chromedriver-path }}" --port=4444 &
+          flutter drive --driver=test_driver/integration_test.dart \
+            --target=integration_test/app_test.dart \
+            -d web-server --browser-name=chrome --headless
 
   android:
-    runs-on: ubuntu-latest
+    name: android (API ${{ matrix.api-level }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        api-level: [23, 35] # update "latest" at M0-01
+        api-level: [24, 36] # floor + latest stable (M0-01)
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with: { distribution: temurin, java-version: "17" }
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
+      - name: Build example APK (also generates the Gradle project)
+        working-directory: packages/flutter_mfa/example
+        run: flutter build apk --debug
+      - name: Native unit tests (JVM)
+        working-directory: packages/flutter_mfa/example/android
+        run: ./gradlew :flutter_mfa:testDebugUnitTest
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
-      - run: dart pub get
-      - name: Native unit tests (JUnit/Robolectric)
-        run: cd packages/flutter_mfa/example/android && ./gradlew :flutter_mfa:testDebugUnitTest
-      - uses: reactivecircus/android-emulator-runner@v2
+      - name: Instrumented + integration tests on emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           target: google_apis
+          disable-animations: true
+          working-directory: packages/flutter_mfa/example
+          # Each line runs in its own shell, so no `cd` here.
           script: |
-            cd packages/flutter_mfa/example/android && ./gradlew :flutter_mfa:connectedDebugAndroidTest
-            cd packages/flutter_mfa/example && flutter test integration_test -d emulator-5554
+            ./android/gradlew -p android :flutter_mfa:connectedDebugAndroidTest
+            flutter test integration_test -d emulator-5554
 
   ios:
-    # Runs on main, nightly, or PRs labelled ci:ios (macOS minutes).
+    name: ios (simulator)
+    # main, nightly, manual, or PRs labelled ci:ios (macOS minutes).
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci:ios')
-    runs-on: macos-latest
+    runs-on: macos-15
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - run: dart pub get
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
       - name: Boot simulator
         run: |
-          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name']))")
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in sorted(d.items(), reverse=True) if 'iOS' in k for x in v if 'iPhone' in x['name']))")
           xcrun simctl boot "$UDID" && echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+      - name: Build example for simulator (Swift Package Manager)
+        working-directory: packages/flutter_mfa/example
+        run: flutter build ios --simulator --debug --no-codesign
       - name: Native XCTest
-        run: cd packages/flutter_mfa/example/ios && pod install && xcodebuild test -workspace Runner.xcworkspace -scheme Runner -destination "id=$SIM_UDID" -only-testing:RunnerTests
+        working-directory: packages/flutter_mfa/example/ios
+        run: xcodebuild test -workspace Runner.xcworkspace -scheme Runner -destination "id=$SIM_UDID" -only-testing:RunnerTests
       - name: Integration (iOS)
-        run: cd packages/flutter_mfa/example && flutter test integration_test -d "$SIM_UDID"
+        working-directory: packages/flutter_mfa/example
+        run: flutter test integration_test -d "$SIM_UDID"
 
   security:
-    runs-on: ubuntu-latest
+    name: security (gitleaks, osv-scanner, forbidden APIs)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: gitleaks/gitleaks-action@v2
-        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
-      - uses: google/osv-scanner-action/osv-scanner-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0, persist-credentials: false }
+      - name: gitleaks (binary, checksum-verified; the action needs a paid licence for org repos)
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tgz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          /tmp/gitleaks git --redact --no-banner --exit-code 1 .
+      - name: osv-scanner (pubspec.lock, gradle)
+        uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
         with:
           scan-args: |-
             --recursive
@@ -158,11 +199,12 @@ jobs:
       - run: bash tool/forbidden_apis.sh
 
   publish-dry-run:
-    runs-on: ubuntu-latest
-    needs: verify
+    name: publish dry-run
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - run: dart pub global activate melos && dart pub get
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: ./.github/actions/setup
+        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
       - run: melos run publish:dry

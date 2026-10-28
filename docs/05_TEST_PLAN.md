@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | Unit | `package:test` / `flutter_test` | all Dart | Linux CI, every PR | must pass |
 | Known-answer (KAT) | unit tests on frozen vectors | core | Linux CI | must pass |
-| Property / fuzz | `package:test` + seeded generators (`glados` optional) | core (base32, URI, OTP, backup) | Linux CI (10k cases PR, 200k nightly) | must pass |
+| Property / fuzz | `package:test` + seeded generators (`glados` optional) | core (base32, URI, OTP, backup) | Linux CI (10k cases PR, 200k nightly; iteration count from env `FMFA_FUZZ_RUNS`, default 10000) | must pass |
 | Widget | `flutter_test` | ui, qr, flutter_mfa (facade with InMemory platform) | Linux CI | must pass |
 | Golden | `flutter_test` `matchesGoldenFile`, tag `golden` | ui | **one** pinned Linux image | must pass; update via `melos run goldens:update` only in a labelled PR |
 | Accessibility | `meetsGuideline(...)` | ui | Linux CI | must pass |
@@ -19,9 +19,9 @@
 | Manual a11y | TalkBack, VoiceOver, keyboard-only web | example | M2 + M4 | report reviewed |
 
 ## 2. Coverage gates (NFR-01/02)
-- Collected with `dart test --coverage` (core) / `flutter test --coverage` (Flutter packages); branch coverage enabled where the toolchain supports it (verify `--branch-coverage` in Phase 0 and record the finding in ADR-0008).
+- Collected by `tool/test.sh --coverage` (`melos run coverage`) with `--branch-coverage` on both `dart test` and `flutter test` — verified at M0-07, see ADR-0008 for what the VM does and does not count as a branch. Browser-only tests live in `test/web/**`.
 - `tool/coverage_gate.dart <lcov> --lines 85 --branches 75` per package; core uses `--lines 95 --branches 90`.
-- Exclusions allowed only for generated files (`*.g.dart`, `messages.g.dart`, l10n output) via `// coverage:ignore-file` in the generator config — not hand-written ignores. Any hand-written `coverage:ignore` requires a code-owner-approved comment.
+- Exclusions allowed only for generated files (`*.g.dart`, l10n output), excluded by path in `tool/coverage_gate.dart` — not hand-written ignores. Any hand-written `coverage:ignore` requires a code-owner-approved comment.
 - Uploaded to Codecov when a token exists, but **the gate is the local script**, so an outage cannot pass a PR.
 
 ## 3. Known-answer vectors (frozen; source: RFC text — verify against the RFC on first commit)

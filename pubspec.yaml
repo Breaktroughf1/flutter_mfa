@@ -48,16 +48,10 @@ melos:
       run: bash tool/test.sh --coverage
       description: All tests with line + branch coverage gates (core 95/90, others 85/75).
     test:goldens:
-      exec: flutter test --tags golden
-      packageFilters:
-        scope: flutter_mfa_ui
-        dirExists: test/goldens
+      run: bash tool/goldens.sh
       description: Golden tests; only valid on the pinned Linux CI image.
     goldens:update:
-      exec: flutter test --tags golden --update-goldens
-      packageFilters:
-        scope: flutter_mfa_ui
-        dirExists: test/goldens
+      run: bash tool/goldens.sh --update
       description: Regenerate goldens. Only in a PR labelled as an intended visual change.
     verify:
       run: melos run format:check && melos run analyze && melos run checks && melos run coverage
