@@ -279,6 +279,7 @@ final class MfaClient {
 }
 
 // OtpCode: declared in flutter_mfa_core since M2-01 (ADR-0013), re-exported here.
+@immutable final class RelyingPartyEnrollment { const RelyingPartyEnrollment({required OtpAuthUri uri, required TotpVerifier verifier}); final OtpAuthUri uri; final TotpVerifier verifier; OtpSecret get secret; }   // toString redacted (M2-10)
 @immutable final class MfaClientOptions { final Clock clock; final MfaLogger logger; final Duration clipboardExpiry; final BiometricPrompt defaultPrompt; /* + integrityCheck, integrityPolicy at M3-08 (additive) */ }
 enum MfaLogLevel { debug, info, warning, error }
 abstract interface class MfaLogger { void log(MfaLogLevel level, String message); }   // receives event names + account ids only (FR-FAC-04)
@@ -288,7 +289,7 @@ typedef IntegrityPolicy = Future<void> Function(IntegrityReport report); // app 
 ```
 `flutter_mfa.dart` re-exports the core public API (not `testing.dart`) plus `BiometricPrompt` and `VaultCapabilities`, so apps need one import.
 
-As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. As built at M2-08: `codeStream` (TOTP only; secret read once per subscription; emits on listen, every whole second and once per step change; errors on the stream, which then closes), `copyCode` (HOTP: uses up the next code) and `copySensitive` (additive, so setup keys can be copied sensitively from `EnrollmentQrView.onCopySecret`). `createEnrollment` (M2-10), backup (M3-04) and integrity (M3-08) follow.
+As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. As built at M2-08: `codeStream` (TOTP only; secret read once per subscription; emits on listen, every whole second and once per step change; errors on the stream, which then closes), `copyCode` (HOTP: uses up the next code) and `copySensitive` (additive, so setup keys can be copied sensitively from `EnrollmentQrView.onCopySecret`). As built at M2-10: `createEnrollment` (static, touches no vault) generates a secret of `OtpSecret.recommendedLength(config.algorithm)` bytes, builds the URI with core's `OtpAuthUri` (an issuer with a colon is `OtpAuthUriException`), refuses empty issuer/account and a non-zero `t0` (`OtpConfigException`), and returns `RelyingPartyEnrollment` (defined here; it composes core types, so the frozen core API is unchanged). Backup (M3-04) and integrity (M3-08) follow.
 
 ---
 

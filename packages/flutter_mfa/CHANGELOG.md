@@ -7,7 +7,11 @@ All notable changes to this package are documented here. The format follows
 ## Unreleased
 
 - `MfaClient.codeStream` (live TOTP codes, secret read once per subscription),
-  `copyCode` and `copySensitive` (sensitive clipboard with expiry).
+  `copyCode` and `copySensitive` (sensitive clipboard with expiry). All live
+  streams of a client share one timer.
+- `MfaClient.createEnrollment` returns a `RelyingPartyEnrollment`: a new
+  secret, its `otpauth://` URI and a `TotpVerifier` for confirming the
+  user's first code.
 
 - iOS: the vault is wiped on the first launch after an install, so a
   reinstalled app does not regain an earlier installation's accounts
