@@ -14,6 +14,10 @@ dependencies:
     sdk: flutter
   flutter_mfa:
     path: ../
+  flutter_mfa_qr:
+    path: ../../flutter_mfa_qr
+  flutter_mfa_ui:
+    path: ../../flutter_mfa_ui
 
 dev_dependencies:
   flutter_driver:
