@@ -1,5 +1,5 @@
 group = "com.breaktroughf1.flutter_mfa"
-version = "1.0-SNAPSHOT"
+version = "0.1.0-dev.1"
 
 buildscript {
     val kotlinVersion = "2.4.0"
@@ -45,6 +45,7 @@ android {
     }
 
     defaultConfig {
+        // Floor: API 24 (NFR-07). Keystore AES-GCM needs 23; Flutter 3.47 requires 24.
         minSdk = 24
     }
 
@@ -73,5 +74,4 @@ kotlin {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.mockito:mockito-core:5.0.0")
 }

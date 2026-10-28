@@ -56,7 +56,7 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 | ID | P | Requirement | Acceptance criteria |
 |---|---|---|---|
 | FR-VLT-01 | M | Store/read/list/delete OTP accounts | AC1 Secret bytes never cross into Dart as `String`; `Uint8List` only, zeroed after use where the API allows. AC2 Metadata (issuer, label, algorithm, digits, period, counter, created-at, protection level) stored separately from the secret. |
-| FR-VLT-02 | M | Android: Keystore AES-256-GCM key; ciphertext in `noBackupFilesDir` | AC1 StrongBox used when available, fallback logged at debug. AC2 Data excluded from backup by location. AC3 Instrumented test proves round-trip on emulator API 23 and latest. |
+| FR-VLT-02 | M | Android: Keystore AES-256-GCM key; ciphertext in `noBackupFilesDir` | AC1 StrongBox used when available, fallback logged at debug. AC2 Data excluded from backup by location. AC3 Instrumented test proves round-trip on emulator API 24 (floor) and latest (36). |
 | FR-VLT-03 | M | iOS: Keychain generic password, `WhenUnlockedThisDeviceOnly`, `kSecAttrSynchronizable = false` | AC1 XCTest round-trip on simulator. AC2 Optional SE envelope when `ProtectionLevel.hardwareBound` and device supports SE; simulator falls back with explicit `HardwareUnavailable` reason. |
 | FR-VLT-04 | M | Web: non-extractable AES-GCM `CryptoKey` in IndexedDB; ciphertext in IndexedDB | AC1 Key generated with `extractable: false`. AC2 Throws `VaultUnavailable(insecureContext)` outside HTTPS/localhost. AC3 Browser test (Chrome) round-trip. AC4 README documents web threat limits. |
 | FR-VLT-05 | M | Protection levels | `standard`, `biometric`, `hardwareBound` (`biometric` + hardware where possible). AC1 Capability query `vault.capabilities()` reports what is achievable on this device. |
@@ -126,7 +126,7 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 | NFR-04 | pub.dev score | 160/160 pub points for every package at release |
 | NFR-05 | Dependencies | Core: `crypto`, `meta`, `collection` only, plus the chosen AEAD/KDF package (ADR-0007). All deps MIT/BSD/Apache-2.0. `dart pub outdated` clean of security advisories. |
 | NFR-06 | Performance | TOTP generation < 1 ms on mid-range Android; PBKDF2 600k export key derivation runs off the UI isolate (`Isolate.run`) |
-| NFR-07 | Platform floors | Dart ≥ 3.9, Flutter ≥ 3.35, Android minSdk 23 / target latest, iOS 13, Web secure context; WASM-compatible web build |
+| NFR-07 | Platform floors | Dart ≥ 3.9, Flutter ≥ 3.35, Android minSdk 24 / target latest, iOS 15, Web secure context; WASM-compatible web build |
 | NFR-08 | API docs | 100 % public API documented (`public_member_api_docs` lint on) |
 | NFR-09 | No secrets in repo | gitleaks in CI; test vectors only |
 | NFR-10 | Supply chain | Actions pinned by SHA; Dependabot for pub + actions; OIDC publishing only |

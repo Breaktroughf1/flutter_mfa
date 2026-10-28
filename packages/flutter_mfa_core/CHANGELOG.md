@@ -6,4 +6,6 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
-- Initial package skeleton.
+## 0.1.0-dev.1
+
+- Initial package skeleton (not yet published).
