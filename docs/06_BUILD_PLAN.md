@@ -70,7 +70,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M2-08 | `CodeTicker` + `MfaClient.codeStream`, `copyCode` + `copySensitive` native (Android/iOS/web) | FR-FAC-02, FR-FAC-05 |
 | ✅ | M2-09 | `flutter_mfa_qr`: `OtpQrScanner`, permission states, web options | FR-QR-01..03 |
 | ✅ | M2-10 | Example: scan screen, account detail, relying-party demo (`createEnrollment` → QR → confirm with `OtpCodeField`) | FR-EX-02, FR-FAC-07 |
-| ☐ | M2-11 | Docs baseline: package READMEs with screenshots (from goldens), cookbook pages: "Add an authenticator", "Enrol users (relying party)", "Verify on a Dart server" | P-Q6 |
+| ✅ | M2-11 | Docs baseline: package READMEs with screenshots (from goldens), cookbook pages: "Add an authenticator", "Enrol users (relying party)", "Verify on a Dart server" | P-Q6 |
 | ☐ | M2-12 | Manual a11y pass #1 → `docs/a11y-report.md` | FR-UI-08 AC2 |
 
 🛑 **Checkpoint M2** — screen recording of example on Android/iOS/web; goldens attached to PR.
