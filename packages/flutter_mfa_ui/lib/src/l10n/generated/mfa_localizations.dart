@@ -273,6 +273,12 @@ abstract class MfaLocalizations {
   /// In en, this message translates to:
   /// **'Paste'**
   String get paste;
+
+  /// Accessible label of a code; digits are separated by spaces so they are read one by one.
+  ///
+  /// In en, this message translates to:
+  /// **'Code {digits}'**
+  String codeLabel(String digits);
 }
 
 class _MfaLocalizationsDelegate

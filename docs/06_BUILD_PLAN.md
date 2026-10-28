@@ -63,7 +63,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M2-01 | `flutter_mfa_ui`: `MfaTheme`, `MfaThemeData`, Material/Cupertino adapters | FR-UI-06 |
 | ✅ | M2-02 | l10n setup (gen-l10n, ARB en/hi/ar), `MfaLocalizations` | FR-UI-07 |
 | ✅ | M2-03 | `OtpCodeField` (single semantic field, segmented paint, paste, autofill) | FR-UI-01 |
-| ☐ | M2-04 | `OtpCodeDisplay`, `OtpCountdownRing`, `MfaStatusBadge` | FR-UI-02/03 |
+| ✅ | M2-04 | `OtpCodeDisplay`, `OtpCountdownRing`, `MfaStatusBadge` | FR-UI-02/03 |
 | ☐ | M2-05 | `OtpAccountTile`, `OtpAccountList` | FR-UI-04 |
 | ☐ | M2-06 | `EnrollmentQrView` (pure-Dart `qr` + CustomPainter) | FR-UI-05 |
 | ☐ | M2-07 | Golden suite (light/dark/RTL/large text) + `meetsGuideline` a11y tests | FR-UI-08 |

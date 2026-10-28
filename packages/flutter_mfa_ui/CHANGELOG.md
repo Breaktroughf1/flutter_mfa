@@ -12,6 +12,8 @@ All notable changes to this package are documented here. The format follows
   when the delegate is not registered.
 - `OtpCodeField`: one accessible text field drawn as digit boxes, with
   paste, one-time-code autofill, numeric keyboard and announced errors.
+- `OtpCodeDisplay` (grouped, read digit by digit, tap to copy, hidden mode),
+  `OtpCountdownRing` and `MfaStatusBadge` (icon and text).
 
 ## 0.1.0-dev.1
 

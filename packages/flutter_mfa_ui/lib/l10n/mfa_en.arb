@@ -125,5 +125,14 @@
   "paste": "Paste",
   "@paste": {
     "description": "Action that pastes a code from the clipboard."
+  },
+  "codeLabel": "Code {digits}",
+  "@codeLabel": {
+    "description": "Accessible label of a code; digits are separated by spaces so they are read one by one.",
+    "placeholders": {
+      "digits": {
+        "type": "String"
+      }
+    }
   }
 }

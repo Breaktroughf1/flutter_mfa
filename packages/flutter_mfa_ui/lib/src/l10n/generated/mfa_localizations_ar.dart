@@ -112,4 +112,9 @@ class MfaLocalizationsAr extends MfaLocalizations {
 
   @override
   String get paste => 'لصق';
+
+  @override
+  String codeLabel(String digits) {
+    return 'الرمز $digits';
+  }
 }
