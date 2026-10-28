@@ -11,4 +11,5 @@ export 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.da
 
 export 'src/client/mfa_client.dart';
 export 'src/client/mfa_client_options.dart';
+export 'src/client/relying_party_enrollment.dart';
 export 'src/logging/mfa_logger.dart';

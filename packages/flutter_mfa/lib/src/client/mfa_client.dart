@@ -7,6 +7,7 @@ import '../logging/mfa_logger.dart';
 import '../repository/account_repository.dart';
 import 'code_ticker.dart';
 import 'mfa_client_options.dart';
+import 'relying_party_enrollment.dart';
 
 /// The single entry point for apps: enrol accounts, list them and produce
 /// codes, with secrets kept in the platform vault (FR-FAC-01).
@@ -47,6 +48,64 @@ final class MfaClient {
   Future<VaultCapabilities> get capabilities {
     _checkOpen();
     return _platform.capabilities();
+  }
+
+  /// Starts enrolling a user in TOTP on the relying-party side (FR-FAC-07).
+  ///
+  /// Generates a new secret of the recommended length for the algorithm in
+  /// [config] (20, 32 or 64 bytes) with a secure random generator, and
+  /// returns its `otpauth://` URI with a `TotpVerifier` for the
+  /// confirm-first-code step. Nothing is stored: keep the secret on your
+  /// server once the first code is confirmed. This touches no vault, so it
+  /// needs no client.
+  ///
+  /// Throws `OtpConfigException` for an empty [issuer] or [accountName],
+  /// an invalid configuration, or a non-zero `TotpConfig.t0`, which
+  /// `otpauth://` URIs cannot carry; `OtpAuthUriException` for an issuer
+  /// containing a colon (the label separator).
+  static RelyingPartyEnrollment createEnrollment({
+    required String issuer,
+    required String accountName,
+    TotpConfig config = const TotpConfig(),
+  }) {
+    final trimmedIssuer = issuer.trim();
+    final trimmedName = accountName.trim();
+    if (trimmedIssuer.isEmpty) {
+      throw const OtpConfigException(
+        field: 'issuer',
+        reason: 'must not be empty',
+      );
+    }
+    if (trimmedName.isEmpty) {
+      throw const OtpConfigException(
+        field: 'accountName',
+        reason: 'must not be empty',
+      );
+    }
+    if (config.t0 != 0) {
+      throw const OtpConfigException(
+        field: 't0',
+        reason: 'must be 0 for an otpauth:// URI',
+      );
+    }
+    final secret = OtpSecret.generate(
+      length: OtpSecret.recommendedLength(config.algorithm),
+    );
+    final uri = OtpAuthUri(
+      type: OtpType.totp,
+      secret: secret,
+      issuer: trimmedIssuer,
+      accountName: trimmedName,
+      algorithm: config.algorithm,
+      digits: config.digits,
+      period: config.period,
+    );
+    // Building the URI validates the label and parameters.
+    uri.toUri();
+    return RelyingPartyEnrollment(
+      uri: uri,
+      verifier: TotpVerifier(totp: Totp(secret, config: config)),
+    );
   }
 
   /// Enrols the account described by an `otpauth://` URI (UC1).
