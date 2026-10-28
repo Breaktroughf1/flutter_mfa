@@ -5,6 +5,7 @@ import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.da
 
 import '../logging/mfa_logger.dart';
 import '../repository/account_repository.dart';
+import 'code_ticker.dart';
 import 'mfa_client_options.dart';
 
 /// The single entry point for apps: enrol accounts, list them and produce
@@ -18,7 +19,8 @@ import 'mfa_client_options.dart';
 /// secrets, codes or URIs.
 final class MfaClient {
   MfaClient._(this._platform, this._options)
-    : _repository = AccountRepository(_platform);
+    : _repository = AccountRepository(_platform),
+      _ticker = CodeTicker(_options.clock);
 
   /// Creates a client over `MfaPlatform.instance`.
   ///
@@ -37,6 +39,7 @@ final class MfaClient {
   final MfaPlatform _platform;
   final MfaClientOptions _options;
   final AccountRepository _repository;
+  final CodeTicker _ticker;
   final _changes = StreamController<List<OtpAccount>>.broadcast();
   bool _disposed = false;
 
@@ -192,32 +195,9 @@ final class MfaClient {
   }) async {
     _checkOpen();
     final account = await _repository.get(accountId);
-    final bytes = await _repository.readSecret(
-      account,
-      prompt ?? _options.defaultPrompt,
-    );
-    final OtpSecret secret;
-    try {
-      secret = OtpSecret.fromBytes(bytes);
-    } on OtpConfigException {
-      throw const VaultCorrupted();
-    } finally {
-      bytes.fillRange(0, bytes.length, 0);
-    }
-
+    final secret = await _readSecret(account, prompt);
     if (account.type == OtpType.totp) {
-      final totp = Totp(
-        secret,
-        config: account.totpConfig!,
-        clock: _options.clock,
-      );
-      final now = _options.clock.now();
-      return OtpCode(
-        value: totp.generate(now),
-        remaining: totp.remaining(now),
-        progress: totp.progress(now),
-        step: totp.stepAt(now),
-      );
+      return totpCode(_totp(account, secret), _options.clock.now());
     }
 
     var used = 0;
@@ -239,6 +219,58 @@ final class MfaClient {
       progress: 0,
       step: used,
     );
+  }
+
+  /// Live codes of time-based account [accountId] (FR-FAC-02).
+  ///
+  /// Emits the current code when listened to, then every second (with the
+  /// updated countdown) and exactly once at each step change. The secret is
+  /// read once per subscription, so a protected account shows [prompt] once,
+  /// not every second; cancel the subscription when the code is off screen.
+  /// All live streams of this client share one timer. Errors
+  /// (`VaultNotFound`, `VaultUserCancelled`, `VaultKeyInvalidated`,
+  /// `VaultCorrupted`, or `OtpConfigException` for a counter-based account,
+  /// which has no live code: use [currentCode], or for a device clock before
+  /// 1970) arrive on the stream, which then closes. [dispose] closes every
+  /// live stream.
+  Stream<OtpCode> codeStream(String accountId, {BiometricPrompt? prompt}) {
+    _checkOpen();
+    return tickCodes(
+      ticker: _ticker,
+      load: () async {
+        final account = await _repository.get(accountId);
+        if (account.type != OtpType.totp) {
+          throw const OtpConfigException(
+            field: 'type',
+            reason: 'live codes need a time-based (TOTP) account',
+          );
+        }
+        return _totp(account, await _readSecret(account, prompt));
+      },
+    );
+  }
+
+  /// Copies the current code of [accountId] with [copySensitive] (FR-FAC-05).
+  ///
+  /// For a counter-based account this generates (and uses up) the next code,
+  /// like [currentCode].
+  Future<void> copyCode(String accountId) async {
+    final code = await currentCode(accountId);
+    await copySensitive(code.value);
+    _log(MfaLogLevel.info, 'copied code of $accountId');
+  }
+
+  /// Copies [text] (a code or a setup key) marked sensitive where the
+  /// platform supports it, and clears it after
+  /// [MfaClientOptions.clipboardExpiry] (FR-FAC-05).
+  ///
+  /// Android 13+ hides sensitive clips from previews and suggestions; iOS
+  /// keeps the clip local (never Universal Clipboard) and expires it; the web
+  /// clears it only when that is possible without a permission prompt. Other
+  /// apps can still read the clipboard until it is cleared.
+  Future<void> copySensitive(String text) {
+    _checkOpen();
+    return _platform.copySensitive(text, expiry: _options.clipboardExpiry);
   }
 
   /// Changes the displayed [issuer] and/or [accountName] of an account.
@@ -290,8 +322,31 @@ final class MfaClient {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    await _ticker.close();
     await _changes.close();
   }
+
+  /// The secret of [account], decrypted after [prompt] for protected
+  /// accounts. The vault's buffer is wiped before returning.
+  Future<OtpSecret> _readSecret(
+    OtpAccount account,
+    BiometricPrompt? prompt,
+  ) async {
+    final bytes = await _repository.readSecret(
+      account,
+      prompt ?? _options.defaultPrompt,
+    );
+    try {
+      return OtpSecret.fromBytes(bytes);
+    } on OtpConfigException {
+      throw const VaultCorrupted();
+    } finally {
+      bytes.fillRange(0, bytes.length, 0);
+    }
+  }
+
+  Totp _totp(OtpAccount account, OtpSecret secret) =>
+      Totp(secret, config: account.totpConfig!, clock: _options.clock);
 
   Future<void> _notify() async {
     if (_changes.hasListener) _changes.add(await _repository.list());
