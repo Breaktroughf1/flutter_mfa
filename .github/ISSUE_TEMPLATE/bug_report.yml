@@ -1,0 +1,34 @@
+name: Bug report
+description: Something doesn't work as documented. For security issues, DO NOT use this form — see SECURITY.md.
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: "⚠️ Never paste real OTP secrets, otpauth URIs, codes or backup files. Use test vectors."
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options: [flutter_mfa_core, flutter_mfa_platform_interface, flutter_mfa, flutter_mfa_ui, flutter_mfa_qr]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: Package version }
+    validations: { required: true }
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: [Android, iOS, Web, Dart server]
+  - type: textarea
+    id: env
+    attributes: { label: "flutter doctor -v / device / OS version" }
+  - type: textarea
+    id: repro
+    attributes: { label: Steps to reproduce (minimal) }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected vs actual }
+    validations: { required: true }

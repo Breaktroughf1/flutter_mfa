@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: pub
+    directories:
+      - /packages/flutter_mfa_core
+      - /packages/flutter_mfa_platform_interface
+      - /packages/flutter_mfa
+      - /packages/flutter_mfa_ui
+      - /packages/flutter_mfa_qr
+    schedule: { interval: weekly }
+  - package-ecosystem: gradle
+    directory: /packages/flutter_mfa/android
+    schedule: { interval: monthly }

@@ -1,0 +1,10 @@
+# Decision D4: BreaktroughF1 code owners
+*                                                   @NoealRajeev
+/packages/flutter_mfa_core/lib/src/otp/            @NoealRajeev
+/packages/flutter_mfa_core/lib/src/verify/         @NoealRajeev
+/packages/flutter_mfa_core/lib/src/backup/         @NoealRajeev
+/packages/flutter_mfa/android/                     @NoealRajeev
+/packages/flutter_mfa/ios/                         @NoealRajeev
+/packages/flutter_mfa/lib/src/web/                 @NoealRajeev
+/.github/                                          @NoealRajeev
+/docs/adr/                                         @NoealRajeev

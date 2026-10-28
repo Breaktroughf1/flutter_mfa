@@ -1,0 +1,25 @@
+.dart_tool/
+.packages
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec_overrides.yaml
+*.iml
+.idea/
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+**/ios/Pods/
+**/ios/.symlinks/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+pub-credentials.json
+.env
+.env.*
+**/failures/   # golden diffs

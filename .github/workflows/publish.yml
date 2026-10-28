@@ -1,0 +1,58 @@
+# Publishes ONE package to pub.dev when its tag is pushed: <package>-v<semver>
+# Requires (per package, on pub.dev Admin tab): automated publishing enabled for this repo,
+# tag pattern "<package>-v{{version}}", required environment "pub.dev".
+# See docs/07_RELEASE_RUNBOOK.md. No credentials are stored — OIDC only.
+name: publish
+
+on:
+  push:
+    tags:
+      - "flutter_mfa_core-v[0-9]+.[0-9]+.[0-9]+*"
+      - "flutter_mfa_platform_interface-v[0-9]+.[0-9]+.[0-9]+*"
+      - "flutter_mfa-v[0-9]+.[0-9]+.[0-9]+*"
+      - "flutter_mfa_ui-v[0-9]+.[0-9]+.[0-9]+*"
+      - "flutter_mfa_qr-v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.p.outputs.package }}
+      version: ${{ steps.p.outputs.version }}
+    steps:
+      - id: p
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "package=${TAG%-v*}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG##*-v}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: resolve
+    runs-on: ubuntu-latest
+    environment: pub.dev # required reviewer approves here
+    permissions:
+      contents: read
+      id-token: write # OIDC token for pub.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1 # provisions the pub.dev OIDC token
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Check pubspec version matches tag
+        working-directory: packages/${{ needs.resolve.outputs.package }}
+        run: |
+          V=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
+          test "$V" = "${{ needs.resolve.outputs.version }}" || { echo "pubspec $V != tag ${{ needs.resolve.outputs.version }}"; exit 1; }
+      - run: dart pub get
+      - name: Verify package
+        working-directory: packages/${{ needs.resolve.outputs.package }}
+        run: |
+          flutter analyze --fatal-infos
+          if [ -d test ]; then flutter test --exclude-tags golden; fi
+          dart pub publish --dry-run
+      - name: Publish
+        working-directory: packages/${{ needs.resolve.outputs.package }}
+        run: dart pub publish --force
