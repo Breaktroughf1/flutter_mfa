@@ -123,6 +123,7 @@ class _OtpCodeDisplayState extends State<OtpCodeDisplay> {
         ),
         if (copied)
           Semantics(
+            container: true,
             liveRegion: true,
             child: Text(
               strings.codeCopied,

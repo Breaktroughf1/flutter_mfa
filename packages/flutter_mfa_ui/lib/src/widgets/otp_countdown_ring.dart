@@ -36,6 +36,7 @@ class OtpCountdownRing extends StatelessWidget {
     final color = warning ? theme.warning : theme.primary;
     final size = MediaQuery.textScalerOf(context).scale(40);
     return Semantics(
+      container: true,
       label: mfaStrings(context).secondsRemaining(seconds),
       excludeSemantics: true,
       child: SizedBox.square(
