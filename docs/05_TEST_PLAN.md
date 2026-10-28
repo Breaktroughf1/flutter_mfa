@@ -4,7 +4,7 @@
 
 | Layer | Tool | Packages | Runs on | Gate |
 |---|---|---|---|---|
-| Unit | `package:test` / `flutter_test` | all Dart | Linux CI, every PR | must pass |
+| Unit | `package:test` / `flutter_test` | all Dart (core also compiled to JS and WASM and run in Chrome) | Linux CI, every PR | must pass |
 | Known-answer (KAT) | unit tests on frozen vectors | core | Linux CI | must pass |
 | Property / fuzz | `package:test` + seeded generators (`glados` optional) | core (base32, URI, OTP, backup) | Linux CI (10k cases PR, 200k nightly; iteration count from env `FMFA_FUZZ_RUNS`, default 10000) | must pass |
 | Widget | `flutter_test` | ui, qr, flutter_mfa (facade with InMemory platform) | Linux CI | must pass |
