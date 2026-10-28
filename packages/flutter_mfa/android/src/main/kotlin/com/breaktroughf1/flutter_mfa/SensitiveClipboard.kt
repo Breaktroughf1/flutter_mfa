@@ -14,8 +14,8 @@ import android.os.PersistableBundle
  *
  * On Android 13+ `EXTRA_IS_SENSITIVE` hides the content from the clipboard
  * preview and keyboard suggestions; older releases honour the same extra on
- * some OEMs. The clip is cleared only if it is still ours, so a later copy by
- * the user is never wiped. Apps targeting older releases can still read the
+ * some OEMs. The clip is cleared only if it is still ours (same timestamp on
+ * API 26+, same text below that), so a later copy by the user is never wiped. Apps targeting older releases can still read the
  * clipboard while the code is on it (documented residual risk S6).
  */
 internal class SensitiveClipboard(context: Context) {
@@ -29,14 +29,21 @@ internal class SensitiveClipboard(context: Context) {
         }
         clipboard.setPrimaryClip(clip)
         val stamp = currentStamp()
-        handler.postDelayed({ clearIfOurs(stamp) }, expiryMillis.coerceAtLeast(0))
+        handler.postDelayed({ clearIfOurs(stamp, text) }, expiryMillis.coerceAtLeast(0))
     }
 
     private fun currentStamp(): Long? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) clipboard.primaryClipDescription?.timestamp else null
 
-    private fun clearIfOurs(stamp: Long?) {
-        if (stamp != null && currentStamp() != stamp) return
+    private fun clearIfOurs(stamp: Long?, text: String) {
+        val stillOurs =
+            if (stamp != null) {
+                currentStamp() == stamp
+            } else {
+                // No clip timestamps before API 26: compare the content instead.
+                clipboard.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString() == text
+            }
+        if (!stillOurs) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             clipboard.clearPrimaryClip()
         } else {
