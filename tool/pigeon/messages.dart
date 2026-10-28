@@ -10,7 +10,8 @@ import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(
   PigeonOptions(
-    dartOut: '../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart',
+    dartOut:
+        '../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart',
     dartPackageName: 'flutter_mfa_platform_interface',
     kotlinOut:
         '../../packages/flutter_mfa/android/src/main/kotlin/com/breaktroughf1/flutter_mfa/Messages.g.kt',
