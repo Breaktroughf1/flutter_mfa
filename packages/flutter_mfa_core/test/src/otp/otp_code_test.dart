@@ -1,5 +1,5 @@
-import 'package:flutter_mfa/flutter_mfa.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_mfa_core/flutter_mfa_core.dart';
+import 'package:test/test.dart';
 
 void main() {
   OtpCode code(String v) => OtpCode(
@@ -26,9 +26,5 @@ void main() {
     expect(code('123456'), code('123456'));
     expect(code('123456').hashCode, code('123456').hashCode);
     expect(code('123456'), isNot(code('654321')));
-  });
-
-  test('the silent logger discards messages', () {
-    const SilentMfaLogger().log(MfaLogLevel.error, 'x');
   });
 }

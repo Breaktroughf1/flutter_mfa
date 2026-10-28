@@ -6,6 +6,13 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `MfaTheme` and `MfaThemeData` (light and dark defaults meeting WCAG AA),
+  with Material and Cupertino adapters in `material.dart` and `cupertino.dart`.
+- `MfaLocalizations` (English, Hindi, Arabic). Widgets fall back to English
+  when the delegate is not registered.
+- `OtpCodeField`: one accessible text field drawn as digit boxes, with
+  paste, one-time-code autofill, numeric keyboard and announced errors.
+
 ## 0.1.0-dev.1
 
 - Initial package skeleton (not yet published).

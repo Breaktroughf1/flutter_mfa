@@ -212,6 +212,11 @@ Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/uti
 ### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
 `FakeClock(DateTime)` with `advance(Duration)` and a settable `time`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors` (+ `rfc4226Secret`, `rfc6238Seed(OtpAlgorithm)`, `HotpVector`, `TotpVector`). (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
 
+### 1.12 Displayed codes (added at M2-01, ADR-0013)
+```dart
+@immutable final class OtpCode { const OtpCode({required String value, required Duration remaining, required double progress, required int step}); String get grouped; } // toString redacted
+```
+
 ---
 
 ## 2. `flutter_mfa_platform_interface`
@@ -272,7 +277,7 @@ final class MfaClient {
   Future<void> dispose();
 }
 
-@immutable final class OtpCode { final String value; final Duration remaining; final double progress; final int step; String get grouped; } // toString redacted (M1-11)
+// OtpCode: declared in flutter_mfa_core since M2-01 (ADR-0013), re-exported here.
 @immutable final class MfaClientOptions { final Clock clock; final MfaLogger logger; final Duration clipboardExpiry; final BiometricPrompt defaultPrompt; /* + integrityCheck, integrityPolicy at M3-08 (additive) */ }
 enum MfaLogLevel { debug, info, warning, error }
 abstract interface class MfaLogger { void log(MfaLogLevel level, String message); }   // receives event names + account ids only (FR-FAC-04)
@@ -289,7 +294,10 @@ As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `a
 ## 4. `flutter_mfa_ui`
 ```dart
 class MfaTheme extends InheritedWidget { static MfaThemeData of(BuildContext); }
-class MfaThemeData { factory MfaThemeData.fromMaterial(ThemeData t) /* in material_adapter.dart */; factory MfaThemeData.fromCupertino(...); … }
+class MfaThemeData { const MfaThemeData(...); factory MfaThemeData.light(); factory MfaThemeData.dark(); MfaThemeData copyWith(...); … }
+// Adapters (ADR-0013), separate libraries so the main library never imports a design system:
+//   package:flutter_mfa_ui/material.dart  → extension on ThemeData { MfaThemeData toMfaTheme(); }
+//   package:flutter_mfa_ui/cupertino.dart → extension on CupertinoThemeData { MfaThemeData toMfaTheme({Brightness? brightness}); }
 
 class OtpCodeField extends StatefulWidget {
   const OtpCodeField({super.key, this.length = 6, required this.onCompleted, this.onChanged,

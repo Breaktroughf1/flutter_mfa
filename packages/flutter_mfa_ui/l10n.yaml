@@ -1,0 +1,9 @@
+# Regenerate with `melos run l10n`; the output is committed (published packages
+# need it) and `tool/check_l10n.sh` fails CI when it is stale.
+arb-dir: lib/l10n
+template-arb-file: mfa_en.arb
+output-dir: lib/src/l10n/generated
+output-localization-file: mfa_localizations.dart
+output-class: MfaLocalizations
+nullable-getter: true
+format: true

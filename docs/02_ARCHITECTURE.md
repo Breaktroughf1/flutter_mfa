@@ -37,7 +37,7 @@ flutter_mfa/                       ← git root, Dart pub workspace root (publis
 │   │   ├── ios/flutter_mfa/Tests/
 │   │   └── example/               ← THE example app (Android/iOS/Web) + integration_test/
 │   ├── flutter_mfa_ui/            ← widgets on `widgets` layer, MfaTheme, l10n (ARB)
-│   │   ├── lib/l10n/{app_en.arb,app_hi.arb,app_ar.arb}
+│   │   ├── lib/l10n/{mfa_en.arb,mfa_hi.arb,mfa_ar.arb} → lib/src/l10n/generated/ (committed)
 │   │   ├── test/goldens/
 │   │   └── example/               ← widget gallery
 │   └── flutter_mfa_qr/            ← OtpQrScanner (mobile_scanner)

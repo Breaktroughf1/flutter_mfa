@@ -6,7 +6,6 @@ import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.da
 import '../logging/mfa_logger.dart';
 import '../repository/account_repository.dart';
 import 'mfa_client_options.dart';
-import 'otp_code.dart';
 
 /// The single entry point for apps: enrol accounts, list them and produce
 /// codes, with secrets kept in the platform vault (FR-FAC-01).

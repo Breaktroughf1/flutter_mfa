@@ -22,6 +22,7 @@ export 'src/model/otp_account.dart';
 export 'src/otp/clock.dart';
 export 'src/otp/hotp.dart';
 export 'src/otp/otp_algorithm.dart';
+export 'src/otp/otp_code.dart';
 export 'src/otp/otp_secret.dart';
 export 'src/otp/totp.dart';
 export 'src/uri/otpauth_uri.dart';
