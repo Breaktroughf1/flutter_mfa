@@ -119,18 +119,22 @@ final class InMemoryAttemptStore implements AttemptStore { … }
 
 ### 1.6 otpauth URIs
 ```dart
+enum CompatibilityWarning { nonDefaultAlgorithm, nonDefaultDigits, nonDefaultPeriod, issuerMismatch, shortSecret }
+
 @immutable
 final class OtpAuthUri {
   const OtpAuthUri({required this.type, required this.secret, required this.accountName,
       this.issuer, this.algorithm = OtpAlgorithm.sha1, this.digits = 6,
       this.period = const Duration(seconds: 30), this.counter, this.extras = const {}});
-  factory OtpAuthUri.parse(String uri);          // throws OtpAuthUriException(field, reason)
+  factory OtpAuthUri.parse(String uri);          // throws OtpAuthUriException(field, reason) — a FormatException
   static OtpAuthUri? tryParse(String uri);
-  Uri toUri(); String toString();
-  List<CompatibilityWarning> get compatibilityWarnings; // nonDefaultAlgorithm, nonDefaultDigits, nonDefaultPeriod, issuerMismatch
+  Uri toUri();                                   // contains the secret; validates (throws OtpAuthUriException)
+  @override String toString();                   // REDACTED: "OtpAuthUri(totp, Issuer:account, secret: <redacted 20B>)" (M1-05; the URI holds the secret, S8)
+  List<CompatibilityWarning> get compatibilityWarnings;
   TotpConfig? get totpConfig; HotpConfig? get hotpConfig;
 }
 ```
+Parsing rules (M1-05): label split at the first literal `:` or `%3A`, parts trimmed; known parameter names case-insensitive and must not repeat; unknown parameters kept in `extras`; `counter` on TOTP and `period` on HOTP ignored; `issuer` parameter wins over a different label prefix (warning). Generation rejects colons in issuer/account (Key URI format) and emits only non-default parameters.
 
 ### 1.7 Accounts (shared model used by client, UI, backup)
 ```dart
