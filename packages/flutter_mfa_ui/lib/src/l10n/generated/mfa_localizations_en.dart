@@ -110,4 +110,17 @@ class MfaLocalizationsEn extends MfaLocalizations {
 
   @override
   String get paste => 'Paste';
+
+  @override
+  String codeLabel(String digits) {
+    return 'Code $digits';
+  }
+
+  @override
+  String get codeUnavailable => 'Code unavailable';
+
+  @override
+  String accountLabel(String issuer, String account) {
+    return '$issuer, $account';
+  }
 }

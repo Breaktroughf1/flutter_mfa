@@ -24,11 +24,15 @@ dependencies:
     sdk: flutter
   flutter_mfa_core: ^0.1.0-dev.1
   intl: ">=0.20.2 <0.21.0"
+  # qr 4 needs Dart 3.11 (our floor is 3.9) and changed its API; see STATUS M2-06.
+  qr: ^3.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   lints: ^6.1.0
+  # Test only: decodes the rendered QR code back to the enrolment URI.
+  zxing2: ^0.2.4
 
 flutter:
   # Required by `flutter gen-l10n`; the generated code is committed.

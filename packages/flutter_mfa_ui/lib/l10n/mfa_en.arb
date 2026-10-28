@@ -125,5 +125,30 @@
   "paste": "Paste",
   "@paste": {
     "description": "Action that pastes a code from the clipboard."
+  },
+  "codeLabel": "Code {digits}",
+  "@codeLabel": {
+    "description": "Accessible label of a code; digits are separated by spaces so they are read one by one.",
+    "placeholders": {
+      "digits": {
+        "type": "String"
+      }
+    }
+  },
+  "codeUnavailable": "Code unavailable",
+  "@codeUnavailable": {
+    "description": "Shown when the code could not be produced (for example the vault is locked)."
+  },
+  "accountLabel": "{issuer}, {account}",
+  "@accountLabel": {
+    "description": "Accessible label of an account with an issuer.",
+    "placeholders": {
+      "issuer": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
+    }
   }
 }
