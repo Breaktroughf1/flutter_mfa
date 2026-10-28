@@ -95,6 +95,8 @@ final class HotpVerifier {
 ```
 Verifiers are `async` only because the limiter store may be remote; the HMAC path itself is synchronous.
 
+As built (M1-07): input normalisation removes ASCII spaces only and requires exactly `digits` ASCII digits (else `malformed`, which still counts as an attempt); `window` 0..10, `lookAhead` 0..100, `resyncWindow` 1..1000 (else `OtpConfigException`); the TOTP/HOTP configuration is validated in the constructor; every candidate in the window is compared (nearest offset wins, no early exit); a match at a step ≤ `lastUsedStep` is `replayed`; with a limiter, check → compute → record is atomic per subject.
+
 ### 1.5 Attempt limiting
 ```dart
 @immutable
