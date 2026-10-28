@@ -319,14 +319,26 @@ class MfaLocalizations { static const delegate; static const supportedLocales; }
 
 ## 5. `flutter_mfa_qr`
 ```dart
+typedef OtpQrStatusBuilder = Widget Function(BuildContext context, OtpQrScannerStatus status, VoidCallback retry);
 class OtpQrScanner extends StatefulWidget {
   const OtpQrScanner({super.key, required this.onScanned, this.onRejected,
-      this.permissionBuilder, this.overlayBuilder, this.webOptions = const OtpQrWebOptions()});
-  final ValueChanged<OtpAuthUri> onScanned;
-  final ValueChanged<String>? onRejected;    // non-otpauth payloads (never logged)
+      this.permissionBuilder, this.overlayBuilder, this.onOpenSettings,
+      this.webOptions = const OtpQrWebOptions()});
+  final ValueChanged<OtpAuthUri> onScanned;  // once per code in view (debounced)
+  final ValueChanged<String>? onRejected;    // non-otpauth or invalid payloads (never logged; may contain a secret)
+  final OtpQrStatusBuilder? permissionBuilder;
+  final WidgetBuilder? overlayBuilder;       // drawn over the preview
+  final VoidCallback? onOpenSettings;        // app opens the settings; shown when permanently denied
+  final OtpQrWebOptions webOptions;
 }
-@immutable final class OtpQrWebOptions { const OtpQrWebOptions({this.allowRemoteDecoder = false, this.decoderScriptUrl}); }
+enum OtpQrScannerStatus { requesting, denied, permanentlyDenied, unavailable, unsupportedBrowser, insecureContext }
+@immutable final class OtpQrWebOptions {
+  const OtpQrWebOptions({this.allowRemoteDecoder = false, this.decoderScriptUrl});
+  final bool allowRemoteDecoder;   // BarcodeDetector, else zxing-wasm from jsDelivr
+  final Uri? decoderScriptUrl;     // self-hosted @zxing/library UMD (https or same-origin); wins
+}
 ```
+As built in M2-09: `permissionBuilder`/`overlayBuilder` signatures, `onOpenSettings` and `OtpQrScannerStatus` were unspecified and are added here; `decoderScriptUrl` is a `Uri`. `flutter_mfa_ui` also exports `mfaStrings(context)` (the localized strings with the English fallback) for custom builders.
 
 ---
 

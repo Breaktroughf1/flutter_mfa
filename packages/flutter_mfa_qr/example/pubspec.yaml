@@ -16,6 +16,8 @@ dependencies:
     path: ../../flutter_mfa_core
   flutter_mfa_qr:
     path: ../
+  flutter_mfa_ui:
+    path: ../../flutter_mfa_ui
 
 dev_dependencies:
   flutter_test:
