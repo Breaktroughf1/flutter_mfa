@@ -109,6 +109,17 @@ void main() {
     }
   });
 
+  test('failNext with a key only fails calls for that key', () async {
+    vault.failNext(VaultOperation.write, const VaultCorrupted(), key: 'b');
+    await vault.write('a', Uint8List(1), ProtectionLevel.standard);
+    await expectLater(
+      vault.write('b', Uint8List(1), ProtectionLevel.standard),
+      throwsA(const VaultCorrupted()),
+    );
+    await vault.write('b', Uint8List(1), ProtectionLevel.standard);
+    expect(await vault.keys(), unorderedEquals(['a', 'b']));
+  });
+
   test(
     'records sensitive clipboard copies and screen-capture protection',
     () async {

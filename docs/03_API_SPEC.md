@@ -272,12 +272,17 @@ final class MfaClient {
   Future<void> dispose();
 }
 
-@immutable final class OtpCode { final String value; final Duration remaining; final double progress; final int step; String get grouped; }
-@immutable final class MfaClientOptions { final Clock clock; final DeviceIntegrityCheck integrityCheck; final IntegrityPolicy? integrityPolicy; final MfaLogger logger; final Duration clipboardExpiry; }
+@immutable final class OtpCode { final String value; final Duration remaining; final double progress; final int step; String get grouped; } // toString redacted (M1-11)
+@immutable final class MfaClientOptions { final Clock clock; final MfaLogger logger; final Duration clipboardExpiry; final BiometricPrompt defaultPrompt; /* + integrityCheck, integrityPolicy at M3-08 (additive) */ }
+enum MfaLogLevel { debug, info, warning, error }
+abstract interface class MfaLogger { void log(MfaLogLevel level, String message); }   // receives event names + account ids only (FR-FAC-04)
+final class SilentMfaLogger implements MfaLogger { const SilentMfaLogger(); }   // default
 abstract interface class DeviceIntegrityCheck { Future<IntegrityReport> run(); }
 typedef IntegrityPolicy = Future<void> Function(IntegrityReport report); // app decides: warn / block
 ```
-`flutter_mfa.dart` re-exports the core public API (not `testing.dart`) so apps need one import.
+`flutter_mfa.dart` re-exports the core public API (not `testing.dart`) plus `BiometricPrompt` and `VaultCapabilities`, so apps need one import.
+
+As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. `codeStream`/`copyCode` (M2-08), `createEnrollment` (M2-10), backup (M3-04) and integrity (M3-08) follow.
 
 ---
 

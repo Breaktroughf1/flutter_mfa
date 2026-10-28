@@ -81,9 +81,10 @@ Rules (CI-checked with `tool/` scripts):
 
 ```
 MfaClient (facade, public)
- ├─ AccountRepository      ← metadata index + secret records, built on MfaVault
- │    └─ MfaVault          ← Dart wrapper; maps platform errors → VaultException
- │         └─ MfaPlatform  ← platform_interface (Pigeon on mobile, WebVault on web)
+ ├─ AccountRepository      ← metadata index + secret records; owns the index AsyncMutex
+ │    └─ MfaPlatform       ← platform_interface (Pigeon on mobile, WebVault on web); throws VaultException only
+ │                           (M1-11: the planned MfaVault layer was dropped — error mapping moved into
+ │                            MethodChannelMfaPlatform at M1-10, the mutex lives in AccountRepository)
  ├─ CodeTicker             ← codeStream; uses core Totp + Clock
  ├─ SensitiveClipboard     ← MfaPlatform.copySensitive
  ├─ IntegrityGate          ← DeviceIntegrityCheck + app policy
@@ -191,7 +192,7 @@ Plaintext = UTF-8 JSON:
 ## 8. Concurrency and lifecycle
 - `MfaClient` is a plain object created by the app (no global singleton); `MfaClient.create()` async factory performs capability probing and index migration.
 - `codeStream` uses one shared `CodeTicker` per client (one `Timer.periodic`, fan-out to listeners) — not one timer per tile.
-- All vault calls go through `MfaVault`, which serialises index mutations.
+- All index mutations go through `AccountRepository`, which serialises them with one `AsyncMutex`; secrets are written before and deleted before their index entry, and orphans are swept on first load.
 - Index schema version stored in the index; migrations are pure Dart functions in core with tests.
 
 ## 9. Extensibility (post-0.2, not built now)
