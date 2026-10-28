@@ -85,7 +85,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with: { channel: stable, cache: true }
       - uses: browser-actions/setup-chrome@v1
-      - uses: nanasess/setup-chromedriver@v2
+      - uses: nanasess/setup-chromedriver@v3
       - run: dart pub get
       - name: Web vault tests in Chrome
         run: cd packages/flutter_mfa && flutter test --platform chrome test/web
