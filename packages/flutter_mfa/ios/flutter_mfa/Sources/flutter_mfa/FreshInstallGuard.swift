@@ -13,9 +13,12 @@ import Foundation
 final class FreshInstallGuard: @unchecked Sendable {
   static let markerKey = "com.breaktroughf1.flutter_mfa.installed.v1"
 
+  /// One lock for the whole process: an app may run several Flutter engines,
+  /// each with its own plugin instance and guard.
+  private static let processLock = NSLock()
+
   private let vault: KeychainVault
   private let defaults: UserDefaults
-  private let lock = NSLock()
   private var checked = false
 
   init(vault: KeychainVault, defaults: UserDefaults = .standard) {
@@ -26,9 +29,10 @@ final class FreshInstallGuard: @unchecked Sendable {
   /// Wipes leftovers once per installation; throws the vault's failure if the
   /// wipe is not possible yet.
   func ensure() throws {
-    lock.lock()
-    defer { lock.unlock() }
+    Self.processLock.lock()
+    defer { Self.processLock.unlock() }
     if checked { return }
+    // Re-read under the process lock: another guard may have just finished.
     if !defaults.bool(forKey: Self.markerKey) {
       try vault.wipe()
       defaults.set(true, forKey: Self.markerKey)
