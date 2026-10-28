@@ -1,6 +1,6 @@
 # 03 — Public API Specification (target for 0.2.0)
 
-This is the contract. Claude Code implements to it; changes require an ADR or a PR note under "API change" and a CHANGELOG entry. Names are final unless marked *(tentative)*.
+This is the contract. **§1 (`flutter_mfa_core`) and §2 (`flutter_mfa_platform_interface`) are frozen since the M1 checkpoint (ADR-0011).** Claude Code implements to it; changes require an ADR or a PR note under "API change" and a CHANGELOG entry. Names are final unless marked *(tentative)*.
 
 Conventions: immutable value classes (`final` fields, `const` constructors, `==`/`hashCode`, `copyWith`), `@immutable` from `package:meta`. No `dynamic` in public signatures. All `Future`s document their exceptions.
 

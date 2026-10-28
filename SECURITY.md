@@ -7,7 +7,7 @@ During 0.x only the latest minor release receives security fixes.
 Please **do not** open a public issue.
 
 - Preferred: [Report privately via GitHub Security Advisories](https://github.com/Breaktroughf1/flutter_mfa/security/advisories/new)
-- Email: security@breaktroughf1.com  <!-- decision D6: confirm address before publishing -->
+- Email: security@breaktroughf1.com (BreaktroughF1 LLP security team)
 
 Include affected package and version, platform, impact, and reproduction steps using test vectors only — never real secrets.
 

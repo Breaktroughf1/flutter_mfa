@@ -34,6 +34,7 @@ Updated by Claude Code after every task. Newest at the bottom.
 | 28 Oct 2026 | M1-14 | Done | see git log | VM: 17 (`WebVault` over a fake `WebStore`), Chrome: 7 (JS **and** WASM, also on Flutter 3.35.7) | Web vault per ADR-0008: `WebVault` (VM-tested: record format `version‖protection‖nonce‖ct‖tag` = Android's, AAD binds header + key, `standard` only — other levels → `VaultHardwareUnavailable(unsupportedOnPlatform)`, insecure context → `VaultUnavailable(insecureContext)` on every storage call, browser failures → `VaultUnavailable(storageUnavailable)`, `storage.persist()` once → `capabilities.persistentStorage`) over the thin `BrowserWebStore` (`package:web`: IndexedDB `flutter_mfa_v1` stores `keys`/`records`, AES-256-GCM `CryptoKey` with `extractable: false`, read per use, concurrent first writes converge via `add`). `FlutterMfaWeb.registerWith` installs it. Chrome tests assert the stored key is non-extractable AES-GCM, persistence across instances, tamper/AAD → `VaultCorrupted`, wipe deletes the key, and `MfaClient` end to end. `tool/test.sh` now also runs `test/web` under `--wasm`. **Deviations:** (1) clipboard clear is done only when `clipboard-read` is already granted and the content is unchanged (no prompt, never wipes newer content), otherwise the code stays; (2) **security finding:** browsers persist non-extractable key material in the profile, so disk access to the profile recovers secrets. Added to S12 and the plugin README (FR-VLT-04 AC4). |
 | 28 Oct 2026 | M1-15 | Done (Android/iOS/web journeys CI-verified) | see git log | Widget: 6 (in-memory vault, `FakeClock`), integration: 1 (real vault on each platform) | Example app (FR-EX-01) on `MfaClient` only: account list from `watchAccounts`, manual add dialog (issuer, name, Base32 secret, TOTP/HOTP), TOTP codes refresh every second, HOTP code on tap (counter advances), remove, and typed error messages via one exhaustive `switch` on `MfaException`. Widget tests check RFC codes (TOTP at T=59, HOTP counters 0/1), that an invalid secret stores nothing, that remove deletes from the vault, and that an insecure-context vault is explained. The integration test (Android emulator, iOS simulator, `flutter drive` on web) boots → adds → shows a code → removes on the real vault. **Note:** TOTP tiles poll `currentCode` each second until `codeStream` (FR-FAC-02) lands; the tile switches to it then. Copy-to-clipboard waits for the client's copy API. |
 | 28 Oct 2026 | M1-12 fix | Done | see git log | instrumented: +2 | Found by the M1-15 integration test on API 36: `capabilities()` threw `SecurityException` (surfaced as `VaultUnknown`) because `BiometricManager.canAuthenticate` needs `USE_BIOMETRIC`, which the plugin does not declare yet. The probe now checks the permission and catches `SecurityException`, reporting `biometricsEnrolled: false`. **M3-05 must declare `USE_BIOMETRIC` in the plugin manifest** together with biometric gating. A new instrumented test runs the capability probes on the emulators. |
+| 28 Oct 2026 | M1 checkpoint | Decisions applied | see git log | XCTest: +1 | Maintainer delegated the checkpoint decisions ("do what's best"). Applied: API freeze for core + platform interface (ADR-0011); iOS wipes Keychain leftovers on the first launch after a reinstall, fail-closed (ADR-0012, `FreshInstallGuard`, XCTest); web vault threat model and clipboard policy (ADR-0009); web backup KDF via WebCrypto PBKDF2 (ADR-0010, for M3); placeholders filled with company contacts and authorship (D3, D6); D2 and D9 set to the study defaults. **Left to the maintainer by rule:** merging PRs (AUTHORS.md promises human review before merge), publishing `flutter_mfa_core` to hold the name (CLAUDE.md: never publish), verified publisher DNS (D5). |
 
 ## Environment (M0-01)
 Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.
@@ -66,14 +67,14 @@ See docs/00_STUDY.md §7.
 | ID | Outcome |
 |---|---|
 | D1 | **Confirmed `flutter_mfa*`** (maintainer, 28 Oct 2026). All five names unclaimed on pub.dev. |
-| D2 | Open (study §4 recommendation: reviewers / security testers / docs + translations) |
-| D3 | Open: AUTHORS.md draft wording stands until R-01 |
+| D2 | **Study §4 recommendation adopted at the M1 checkpoint:** ARDC roles are reviewers, security testers, and docs + translations. |
+| D3 | **Resolved at the M1 checkpoint:** AUTHORS.md credits Noeal Rajeev Thaleeparambil (co-founder and CTO, BreaktroughF1 LLP) as designer and developer; AI-assisted wording kept. |
 | D4 | `Breaktroughf1/flutter_mfa`, CODEOWNERS `@NoealRajeev` |
 | D5 | Open: verified publisher `breaktroughf1.com` (DNS TXT) blocks the first publish only |
-| D6 | Open: `security@breaktroughf1.com` is in SECURITY.md and the podspec author field but is unconfirmed |
+| D6 | **Resolved at the M1 checkpoint:** company contacts `security@breaktroughf1.com` (SECURITY.md) and `info@breaktroughf1.com` (podspec author, Code of Conduct, AUTHORS). Both mailboxes must exist before the first publish. |
 | D7 | DCO |
 | D8 | Public |
-| D9 | Open (default: English + hi/ar scaffolding) |
+| D9 | **Default adopted at the M1 checkpoint:** English, with Hindi and Arabic scaffolding (M2 l10n). |
 
 ## Maintainer decisions taken at M0 (28 Oct 2026)
 - Commits carry the maintainer identity (author + DCO sign-off: Noeal Rajeev).
@@ -85,10 +86,9 @@ See docs/00_STUDY.md §7.
 ## Placeholders still open (need maintainer input)
 | Where | Placeholder |
 |---|---|
-| `SECURITY.md`, `ios/flutter_mfa.podspec` author | `security@breaktroughf1.com` (D6) |
-| `CODE_OF_CONDUCT.md` | enforcement contact `conduct@breaktroughf1.com` |
-| `AUTHORS.md` | contributor list + AI-assisted wording (D3, R-01) |
-| pub.dev | verified publisher (D5) |
+| pub.dev | verified publisher (D5): maintainer action before the first publish |
+
+Resolved at the M1 checkpoint: D3 (AUTHORS.md) and D6 (company contacts), see the decisions table.
 
 ## Known gaps carried into M1+ (from the kickoff review)
 - ~~**Secret length (before M1-03):**~~ resolved at M1-03 — API says `OtpSecret.fromBytes` needs ≥ 16 B, but the docs' sample/KAT secret `JBSWY3DPEHPK3PXP` is 10 B and many real issuers use 80-bit secrets. Decision to take in M1-03 (default plan: ≥ 16 B for generation and relying-party enrolment; authenticator import accepts ≥ 10 B with a compatibility warning; recorded in the spec).

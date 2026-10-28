@@ -13,7 +13,7 @@ optional Secure Enclave envelope and biometric-bound access control.
                        DESC
   s.homepage         = 'https://github.com/Breaktroughf1/flutter_mfa'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'BreaktroughF1 LLP' => 'security@breaktroughf1.com' }
+  s.author           = { 'BreaktroughF1 LLP' => 'info@breaktroughf1.com' }
   s.source           = { :path => '.' }
   s.source_files     = 'flutter_mfa/Sources/flutter_mfa/**/*.swift'
   s.dependency 'Flutter'
