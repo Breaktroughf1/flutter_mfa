@@ -86,6 +86,37 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a retry offered by a custom builder never starts the camera without a '
+    'decoder',
+    (tester) async {
+      final native = await tester.runAsync(supportsNativeQrDecoding);
+      VoidCallback? retry;
+      OtpQrScannerStatus? shown;
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: OtpQrScanner(
+            onScanned: (_) {},
+            permissionBuilder: (context, status, r) {
+              shown = status;
+              retry = r;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+      if (native!) return; // this browser can decode: nothing to check
+      expect(shown, OtpQrScannerStatus.unsupportedBrowser);
+      retry!();
+      await tester.pump();
+      expect(camera.starts, 0);
+      expect(shown, OtpQrScannerStatus.unsupportedBrowser);
+    },
+  );
+
   testWidgets('a self-hosted decoder script is used when supplied', (
     tester,
   ) async {

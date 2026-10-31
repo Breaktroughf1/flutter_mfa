@@ -25,7 +25,8 @@ final class RelyingPartyEnrollment {
 
   /// Checks the codes of [secret]: pass the user's first code with
   /// `lastUsedStep: null`, then persist `Accepted.nextState` to reject
-  /// replays.
+  /// replays. It throttles attempts only if a limiter was passed to
+  /// `MfaClient.createEnrollment`.
   final TotpVerifier verifier;
 
   /// The shared secret to store, encrypted, with the user's account.
