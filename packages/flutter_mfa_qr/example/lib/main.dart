@@ -86,9 +86,23 @@ class _HomePageState extends State<HomePage> {
 }
 
 /// Scans until a valid `otpauth://` code is found, then returns it.
-class ScanPage extends StatelessWidget {
+class ScanPage extends StatefulWidget {
   /// Creates the scan page.
   const ScanPage({super.key});
+
+  @override
+  State<ScanPage> createState() => _ScanPageState();
+}
+
+class _ScanPageState extends State<ScanPage> {
+  bool _done = false;
+
+  void _return(OtpAuthUri uri) {
+    // Two codes can be detected in one frame; only the first is returned.
+    if (_done) return;
+    _done = true;
+    Navigator.of(context).pop(uri);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +112,7 @@ class ScanPage extends StatelessWidget {
         webOptions: _decoderScript.isEmpty
             ? const OtpQrWebOptions()
             : OtpQrWebOptions(decoderScriptUrl: Uri.parse(_decoderScript)),
-        onScanned: (uri) => Navigator.of(context).pop(uri),
+        onScanned: _return,
         onRejected: (_) => ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
