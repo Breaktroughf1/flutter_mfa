@@ -77,8 +77,13 @@ Future<SignInOutcome> verifySignIn(User user, String code) async {
     );
     switch (result) {
       case Accepted(:final nextState):
-        // Persist BEFORE reporting success, or the same code works twice.
-        await users.saveLastUsedStep(user.id, nextState);
+        // Persist BEFORE reporting success, and only if no concurrent
+        // request already used this step, or the same code works twice:
+        //   UPDATE users SET last_used_step = :next
+        //   WHERE id = :id AND (last_used_step IS NULL OR last_used_step < :next)
+        if (!await users.advanceLastUsedStep(user.id, nextState)) {
+          return SignInOutcome.codeAlreadyUsed; // lost the race: a replay
+        }
         return SignInOutcome.success;
       case Rejected(reason: RejectReason.replayed):
         return SignInOutcome.codeAlreadyUsed;
@@ -93,7 +98,7 @@ Future<SignInOutcome> verifySignIn(User user, String code) async {
 
 What `TotpVerifier` guarantees:
 - **Limits first:** the limiter is consulted before any code is computed. By default, 5 failures per 5 minutes, exponential back-off capped at 15 minutes, and a hard lockout after 20 consecutive failures, which only clearing the subject in your store lifts.
-- **Replays are rejected:** a code for a step at or before `lastUsedStep` is `RejectReason.replayed`. This holds only if you persist `nextState`.
+- **Replays are rejected:** a code for a step at or before `lastUsedStep` is `RejectReason.replayed`. This holds only if you persist `nextState`, conditionally as above. Two requests carrying the same code can otherwise both pass before either write lands.
 - **Constant-time comparison:** every step in the drift window (±1 step by default) is computed and compared.
 - **Strict input:** spaces are stripped; anything that isn't exactly the configured number of ASCII digits is `malformed` and still counts as an attempt.
 
@@ -122,13 +127,15 @@ final class RedisAttemptStore implements AttemptStore {
 }
 ```
 
+`AttemptLimiter` serializes attempts per subject within one process. This sketch is last-writer-wins across processes: two instances failing at the same moment can both read the old state, so one failure is lost and limits are looser under a burst. For strict limits, route each subject to one instance, or make the write conditional on the state you read (Redis `WATCH`/`MULTI` or a Lua script) and retry the attempt when it fails.
+
 `InMemoryAttemptStore` is for a single process and tests only.
 
 ## Checklist
 
 - [ ] Server clock synchronised (NTP). Codes change every 30 s and the window tolerates ±30 s of drift.
 - [ ] Secrets encrypted at rest; the key is not in the same database.
-- [ ] `lastUsedStep` persisted before success is returned.
+- [ ] `lastUsedStep` advanced with a conditional update before success is returned.
 - [ ] Attempt state shared across instances.
 - [ ] Enrolment URIs, secrets and codes never logged. flutter_mfa's own exceptions and `toString`s never contain them.
 - [ ] A recovery path (for example single-use recovery codes) for users who lose their device. Not part of flutter_mfa.
