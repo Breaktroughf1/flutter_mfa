@@ -59,6 +59,9 @@ final class MfaClient {
   /// server once the first code is confirmed. This touches no vault, so it
   /// needs no client.
   ///
+  /// Pass the server's shared [limiter] so confirmation attempts are
+  /// throttled; without one the returned verifier does not limit guesses.
+  ///
   /// Throws `OtpConfigException` for an empty [issuer] or [accountName],
   /// an invalid configuration, or a non-zero `TotpConfig.t0`, which
   /// `otpauth://` URIs cannot carry; `OtpAuthUriException` for an issuer
@@ -67,6 +70,7 @@ final class MfaClient {
     required String issuer,
     required String accountName,
     TotpConfig config = const TotpConfig(),
+    AttemptLimiter? limiter,
   }) {
     final trimmedIssuer = issuer.trim();
     final trimmedName = accountName.trim();
@@ -91,6 +95,11 @@ final class MfaClient {
     final secret = OtpSecret.generate(
       length: OtpSecret.recommendedLength(config.algorithm),
     );
+    // Validates the configuration (OtpConfigException) before the URI.
+    final verifier = TotpVerifier(
+      totp: Totp(secret, config: config),
+      limiter: limiter,
+    );
     final uri = OtpAuthUri(
       type: OtpType.totp,
       secret: secret,
@@ -102,10 +111,7 @@ final class MfaClient {
     );
     // Building the URI validates the label and parameters.
     uri.toUri();
-    return RelyingPartyEnrollment(
-      uri: uri,
-      verifier: TotpVerifier(totp: Totp(secret, config: config)),
-    );
+    return RelyingPartyEnrollment(uri: uri, verifier: verifier);
   }
 
   /// Enrols the account described by an `otpauth://` URI (UC1).
