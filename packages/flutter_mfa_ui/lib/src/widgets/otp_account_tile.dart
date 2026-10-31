@@ -4,6 +4,7 @@ import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import '../l10n/mfa_strings.dart';
 import '../theme/mfa_theme.dart';
 import '../theme/mfa_theme_data.dart';
+import 'mfa_pressable.dart';
 import 'otp_code_display.dart';
 import 'otp_countdown_ring.dart';
 import 'status_glyph.dart';
@@ -53,31 +54,28 @@ class OtpAccountTile extends StatelessWidget {
     final isTotp = account.type == OtpType.totp;
     final stream = codeStream;
 
-    Widget names = Semantics(
+    final Widget names = Semantics(
       container: true,
       label: label,
       button: onTap != null,
       onTap: onTap,
-      excludeSemantics: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(title, style: theme.titleTextStyle),
-          if (issuer != null)
-            Text(account.accountName, style: theme.labelTextStyle),
-        ],
-      ),
-    );
-    names = GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: theme.minTapTarget),
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          heightFactor: 1,
-          child: names,
+      child: MfaPressable(
+        onPressed: onTap,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: theme.minTapTarget),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            heightFactor: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title, style: theme.titleTextStyle),
+                if (issuer != null)
+                  Text(account.accountName, style: theme.labelTextStyle),
+              ],
+            ),
+          ),
         ),
       ),
     );

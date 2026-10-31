@@ -338,11 +338,9 @@ class _ActionButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      excludeSemantics: true,
       onTap: onTap,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
+      child: MfaPressable(
+        onPressed: onTap,
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: theme.minTapTarget,
