@@ -156,6 +156,12 @@ class _OtpQrScannerState extends State<OtpQrScanner>
   }
 
   void _retry() {
+    // Nothing a retry does can change these: the page or browser itself
+    // rules out the camera, so it must never be requested.
+    if (_status == OtpQrScannerStatus.unsupportedBrowser ||
+        _status == OtpQrScannerStatus.insecureContext) {
+      return;
+    }
     setState(() => _status = OtpQrScannerStatus.requesting);
     unawaited(_start());
   }
