@@ -30,7 +30,7 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _enrol(OtpAuthUri uri) async {
-    // A second code seen while the first is being stored is ignored.
+    // Ignored while a code is being stored or the setup key is typed.
     if (_busy) return;
     _busy = true;
     try {
@@ -43,11 +43,19 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _enterManually() async {
+    // The camera keeps running behind the dialog: ignore what it sees so
+    // it cannot enrol a different account while the user types.
+    _busy = true;
     final added = await showDialog<bool>(
       context: context,
       builder: (_) => AddAccountDialog(client: widget.client),
     );
-    if ((added ?? false) && mounted) Navigator.of(context).pop(true);
+    if (!mounted) return;
+    if (added ?? false) {
+      Navigator.of(context).pop(true);
+    } else {
+      _busy = false;
+    }
   }
 
   @override
