@@ -81,7 +81,7 @@ void main() {
     expect(() => enrol(config: const TotpConfig(t0: 30)), field('t0'));
     expect(
       () => enrol(config: const TotpConfig(digits: 5)),
-      throwsA(isA<MfaException>()),
+      field('digits'),
     );
   });
 
@@ -92,6 +92,17 @@ void main() {
         isA<OtpAuthUriException>().having((e) => e.field, 'field', 'issuer'),
       ),
     );
+  });
+
+  test('a supplied limiter throttles confirmation attempts', () async {
+    final limiter = AttemptLimiter(store: InMemoryAttemptStore());
+    final e = MfaClient.createEnrollment(
+      issuer: 'Breaktrough',
+      accountName: 'alice',
+      limiter: limiter,
+    );
+    expect(e.verifier.limiter, same(limiter));
+    expect(enrol().verifier.limiter, isNull);
   });
 
   test('toString never reveals the secret', () {

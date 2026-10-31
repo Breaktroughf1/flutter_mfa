@@ -267,7 +267,7 @@ final class MfaClient {
   Future<void> wipeAll();
 
   // relying-party helpers (client side of enrolment; verify belongs on your server)
-  static RelyingPartyEnrollment createEnrollment({required String issuer, required String accountName, TotpConfig config = const TotpConfig()});
+  static RelyingPartyEnrollment createEnrollment({required String issuer, required String accountName, TotpConfig config = const TotpConfig(), AttemptLimiter? limiter});   // limiter: throttles the returned verifier
 
   // backup
   Future<Uint8List> exportEncrypted(String passphrase, {Iterable<String>? accountIds});
