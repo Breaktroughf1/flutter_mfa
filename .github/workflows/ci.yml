@@ -154,9 +154,13 @@ jobs:
           disable-animations: true
           working-directory: packages/flutter_mfa/example
           # Each line runs in its own shell, so no `cd` here.
+          # On API 24 the `adb install` that `flutter test` runs can hang until
+          # the job times out (seen on several PRs; the APK is built and the
+          # test APK above installs fine). A timeout (exit 124) restarts adb and
+          # runs the tests once more; a real test failure is never retried.
           script: |
             ./android/gradlew -p android :flutter_mfa:connectedDebugAndroidTest
-            flutter test integration_test -d emulator-5554
+            timeout 900 flutter test integration_test -d emulator-5554; rc=$?; if [ "$rc" -eq 124 ]; then echo "flutter test timed out (adb install hang); restarting adb and retrying once"; adb kill-server; adb start-server; adb wait-for-device; flutter test integration_test -d emulator-5554; else exit "$rc"; fi
 
   ios:
     name: ios (simulator)
