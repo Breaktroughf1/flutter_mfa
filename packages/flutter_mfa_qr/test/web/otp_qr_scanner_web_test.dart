@@ -39,6 +39,12 @@ final class _FakeScanner extends MobileScannerPlatform {
   }
 
   @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> pause() async {}
+
+  @override
   Future<void> dispose() async {}
 }
 
