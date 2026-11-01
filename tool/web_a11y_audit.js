@@ -3,14 +3,19 @@
 // Prints and saves the ARIA tree Flutter exposes for each screen, the Tab
 // order, and screenshots, in English (light) and Arabic (dark).
 //
-//   cd packages/flutter_mfa/example && flutter build web --no-web-resources-cdn
-//   python3 -m http.server 8703 -d build/web &
+// From the repository root:
+//   (cd packages/flutter_mfa/example && flutter build web --no-web-resources-cdn)
+//   python3 -m http.server 8703 -d packages/flutter_mfa/example/build/web &
 //   node tool/web_a11y_audit.js /tmp/a11y-out      # needs Playwright + Chromium
+//
+// The output directory is created if it does not exist; APP_URL overrides
+// the address.
 //
 // Uses the RFC 6238 test secret; never point it at a real account.
 const { chromium } = require('playwright');
-const out = process.argv[2];
+const out = process.argv[2] || 'a11y-out';
 const fs = require('fs');
+fs.mkdirSync(out, { recursive: true });
 const log = (...a) => { console.log(...a); fs.appendFileSync(`${out}/audit.txt`, a.join(' ') + '\n'); };
 async function enableSemantics(page) {
   await page.waitForSelector('flt-semantics-placeholder', { state: 'attached', timeout: 30000 });
