@@ -6,6 +6,10 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `MfaClient.exportEncrypted` / `importEncrypted` with `DuplicateStrategy`
+  and `ImportReport`: encrypted backups (format v1), all-or-nothing import,
+  key derivation off the UI thread (FR-BAK-03).
+
 - `MfaClient.codeStream` (live TOTP codes, secret read once per subscription),
   `copyCode` and `copySensitive` (sensitive clipboard with expiry). All live
   streams of a client share one timer.

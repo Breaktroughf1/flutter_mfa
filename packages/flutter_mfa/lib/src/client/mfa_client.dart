@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart' show compute;
 
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart';
 
 import '../logging/mfa_logger.dart';
 import '../repository/account_repository.dart';
+import 'backup_import.dart';
 import 'code_ticker.dart';
 import 'mfa_client_options.dart';
 import 'relying_party_enrollment.dart';
@@ -383,6 +387,106 @@ final class MfaClient {
     await _notify();
   }
 
+  /// An encrypted backup of every account, or of [accountIds] only
+  /// (FR-BAK-01, UC6).
+  ///
+  /// The backup is format v1 (PBKDF2-HMAC-SHA256 with 600 000 iterations,
+  /// AES-256-GCM): store it anywhere, and turn it into text with
+  /// `BackupCodec().armor`. There is no unencrypted export. The passphrase
+  /// is checked against `PassphrasePolicy` before any secret is read, so a
+  /// weak one throws `BackupWeakPassphrase` without biometric prompts.
+  /// Protected accounts then show [MfaClientOptions.defaultPrompt], once
+  /// each. The slow key derivation runs on a background isolate on Android
+  /// and iOS and in WebCrypto on the web, so the UI keeps running.
+  ///
+  /// Protects the secrets against anyone without the passphrase. It does not
+  /// protect against a guessed passphrase beyond the policy, and secret
+  /// bytes copied to the background isolate cannot be wiped there.
+  ///
+  /// Throws `VaultNotFound` for an unknown id in [accountIds],
+  /// `VaultUserCancelled` and other `VaultException`s from reading secrets.
+  Future<Uint8List> exportEncrypted(
+    String passphrase, {
+    Iterable<String>? accountIds,
+  }) async {
+    _checkOpen();
+    final check = PassphrasePolicy.check(passphrase);
+    if (check != PassphraseCheck.ok) throw BackupWeakPassphrase(check);
+    final all = await _repository.list();
+    final List<OtpAccount> selected;
+    if (accountIds == null) {
+      selected = all;
+    } else {
+      final byId = {for (final a in all) a.id: a};
+      selected = [
+        for (final id in {...accountIds})
+          byId[id] ?? (throw const VaultNotFound()),
+      ];
+    }
+    final entries = <BackupEntry>[
+      for (final account in selected)
+        BackupEntry(
+          account: account,
+          secret: await _readSecret(account, null),
+        ),
+    ];
+    final data = await compute(_encryptBackup, (entries, passphrase));
+    _log(MfaLogLevel.info, 'exported ${entries.length} accounts');
+    return data;
+  }
+
+  /// Restores the accounts of a backup made by [exportEncrypted] on any
+  /// platform (FR-BAK-03, UC7).
+  ///
+  /// The import is all or nothing: the backup is decrypted and checked in
+  /// full before anything is stored, and the accounts are then added in one
+  /// change of the index. If anything fails, the secrets already written are
+  /// deleted and the vault is left as it was. Accounts already on the
+  /// device are handled by [onDuplicate] (see [DuplicateStrategy]). Each
+  /// account keeps its protection level; one this device cannot provide
+  /// fails the import with `VaultHardwareUnavailable` rather than storing it
+  /// with weaker protection.
+  ///
+  /// Throws `BackupDecryptFailed` for a wrong passphrase or modified data
+  /// (indistinguishable on purpose), `BackupUnsupportedVersion` for a newer
+  /// format, and `VaultException`s from the vault.
+  Future<ImportReport> importEncrypted(
+    Uint8List data,
+    String passphrase, {
+    DuplicateStrategy onDuplicate = DuplicateStrategy.skip,
+  }) async {
+    _checkOpen();
+    final entries = await compute(_decryptBackup, (data, passphrase));
+    final secrets = [for (final e in entries) e.secret.bytes];
+    try {
+      final report = await _repository.batch((current) {
+        final plan = planImport(
+          current,
+          [for (final e in entries) e.account],
+          onDuplicate,
+          OtpAccount.generateId,
+        );
+        return (
+          add: [for (final (a, i) in plan.add) (a, secrets[i])],
+          remove: plan.remove,
+          result: plan.report,
+        );
+      });
+      _log(
+        MfaLogLevel.info,
+        'imported backup (${report.added.length} added, '
+        '${report.replaced.length} replaced, ${report.skipped.length} '
+        'skipped)',
+      );
+      await _notify();
+      return report;
+    } finally {
+      for (final s in secrets) {
+        s.fillRange(0, s.length, 0);
+      }
+    }
+  }
+
   /// Releases resources; the client cannot be used afterwards.
   Future<void> dispose() async {
     if (_disposed) return;
@@ -424,3 +528,9 @@ final class MfaClient {
     if (_disposed) throw StateError('MfaClient has been disposed');
   }
 }
+
+Future<Uint8List> _encryptBackup((List<BackupEntry>, String) args) =>
+    const BackupCodec().encrypt(args.$1, args.$2);
+
+Future<List<BackupEntry>> _decryptBackup((Uint8List, String) args) =>
+    const BackupCodec().decrypt(args.$1, args.$2);
