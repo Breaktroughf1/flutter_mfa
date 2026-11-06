@@ -14,8 +14,8 @@ if hits=$(grep -rnE "^\s*(import|export)\s+['\"](package:flutter/|dart:(ui|html|
   echo "$hits"; fail=1
 fi
 
-# Dependency allowlist: crypto, meta, collection + the AEAD/KDF package of ADR-0007.
-ALLOWED='^(crypto|meta|collection|cryptography|pointycastle)$'
+# Dependency allowlist: crypto, meta, collection + the AEAD/KDF package of ADR-0007 (cryptography).
+ALLOWED='^(crypto|meta|collection|cryptography)$'
 deps=$(awk '/^dependencies:/{f=1;next} /^[^[:space:]#]/{f=0} f && /^  [a-z_]+:/{sub(":.*","");gsub(" ","");print}' "$CORE/pubspec.yaml")
 for d in $deps; do
   if ! [[ $d =~ $ALLOWED ]]; then
