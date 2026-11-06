@@ -13,3 +13,6 @@ ADR-0007 fixes backup format v1 as PBKDF2-HMAC-SHA256 (600 000 iterations) + AES
 ## Consequences
 + No UI freeze on the web; no extra build artefact for integrators; WebCrypto is a native, audited implementation.
 − Two implementations of the same two primitives. The shared KAT suite is the guard against drift and is mandatory in CI for both.
+
+## Implementation note (M3-02, 6 November 2026)
+`packages/flutter_mfa_core/lib/src/backup/backup_crypto_web.dart`, chosen by `import ... if (dart.library.js_interop)`. If a page has no `crypto.subtle` (not a secure context), the pure-Dart backend is used: identical output and protection, only slower. The KAT suite runs every backend in Chrome under dart2js and dart2wasm.

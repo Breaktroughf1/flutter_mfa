@@ -35,7 +35,7 @@ String hex(List<int> bytes) =>
 
 Future<void> main() async {
   final backup = await sealBackup(
-    defaultBackupCrypto,
+    dartBackupCrypto,
     entries: [entry],
     passphrase: passphrase,
     salt: salt,

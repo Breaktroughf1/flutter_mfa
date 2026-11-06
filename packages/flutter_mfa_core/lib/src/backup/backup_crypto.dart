@@ -3,6 +3,10 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
+import 'backup_crypto_none.dart'
+    if (dart.library.js_interop) 'backup_crypto_web.dart'
+    as platform;
+
 /// The two primitives of backup format v1 (ADR-0007), behind one interface
 /// so a platform can supply its own implementation (WebCrypto on the web,
 /// ADR-0010). Every implementation must pass the frozen known-answer test.
@@ -31,9 +35,17 @@ abstract interface class BackupCrypto {
   );
 }
 
+/// The implementation backups use on this platform: WebCrypto in a browser
+/// that offers it (ADR-0010, off the main thread), otherwise
+/// [dartBackupCrypto]. Both give the same bytes; the frozen known-answer test
+/// runs against each.
+BackupCrypto get defaultBackupCrypto =>
+    platform.platformBackupCrypto() ?? dartBackupCrypto;
+
 /// The pure-Dart implementation (`cryptography`'s `DartPbkdf2` and
-/// `DartAesGcm`), used on the VM and as the reference.
-const BackupCrypto defaultBackupCrypto = _DartBackupCrypto();
+/// `DartAesGcm`): the reference, used on the VM and on Flutter's native
+/// platforms.
+const BackupCrypto dartBackupCrypto = _DartBackupCrypto();
 
 const _tagLength = 16;
 

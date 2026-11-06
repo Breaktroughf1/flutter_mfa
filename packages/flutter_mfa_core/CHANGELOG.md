@@ -9,6 +9,8 @@ All notable changes to this package are documented here. The format follows
 - `BackupCodec` and `BackupEntry`: encrypted backup format v1 (PBKDF2-HMAC-SHA256,
   600 000 iterations, AES-256-GCM with the header authenticated), ASCII armour,
   a frozen known-answer fixture cross-checked against Python (FR-BAK-01).
+  In browsers the key derivation and encryption use WebCrypto, off the main
+  thread (ADR-0010).
 
 - `PassphrasePolicy.check` for backup passphrases (FR-BAK-02): at least 12
   characters, not one of the 10 000 most common passwords (zxcvbn list, also
