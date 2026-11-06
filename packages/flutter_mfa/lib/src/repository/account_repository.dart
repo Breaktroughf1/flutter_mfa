@@ -71,8 +71,9 @@ final class AccountRepository {
   /// secrets are written first (under keys no current account uses), then
   /// the index is saved once; if anything fails before the save, the written
   /// secrets are deleted and the vault is unchanged. Secrets of removed
-  /// accounts are deleted after the save (a failure there leaves an orphan
-  /// that the next first load sweeps). Returns what [plan] returned.
+  /// accounts are deleted after the save; a failure there is not reported,
+  /// since the change is committed, and leaves an orphan that the next first
+  /// load sweeps. Returns what [plan] returned.
   Future<R> batch<R>(
     ({
       List<(OtpAccount, Uint8List)> add,
@@ -115,8 +116,15 @@ final class AccountRepository {
       }
       rethrow;
     }
+    // The change is committed: a failed deletion only leaves an orphan
+    // secret (no index entry), swept on the next first load, and must not
+    // report the committed import as failed.
     for (final id in change.remove) {
-      await _platform.delete(secretKey(id));
+      try {
+        await _platform.delete(secretKey(id));
+      } on Object {
+        // Swept later.
+      }
     }
     return change.result;
   });

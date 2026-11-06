@@ -187,6 +187,29 @@ void main() {
       expect((await mfa.currentCode(accounts.first.id)).value, totpCode);
     });
 
+    test(
+      'a failed clean-up after the commit still reports the import',
+      () async {
+        target.failNext(
+          VaultOperation.delete,
+          const VaultUnavailable(VaultUnavailableReason.storageUnavailable),
+          key: 'acct_${existing.id}',
+        );
+        final report = await mfa.importEncrypted(
+          backup,
+          _passphrase,
+          onDuplicate: DuplicateStrategy.replace,
+        );
+        expect(report.replaced, hasLength(2));
+        expect(await mfa.accounts(), report.replaced);
+        expect(
+          await target.keys(),
+          contains('acct_${existing.id}'),
+          reason: 'left as an orphan for the next sweep',
+        );
+      },
+    );
+
     test('keepBoth stores a second copy with new ids', () async {
       final report = await mfa.importEncrypted(
         backup,
