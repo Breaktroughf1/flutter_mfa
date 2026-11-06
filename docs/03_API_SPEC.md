@@ -174,6 +174,7 @@ final class OtpAccount {             // NO secret inside
 final class BackupEntry { final OtpAccount account; final OtpSecret secret; }
 abstract final class PassphrasePolicy {
   static PassphraseCheck check(String passphrase); // ok | tooShort | tooCommon | lowVariety
+  static const minLength = 12; static const commonPasswordCount = 10000;   // as built at M3-02
 }
 final class BackupCodec {
   const BackupCodec({this.iterations = 600000});

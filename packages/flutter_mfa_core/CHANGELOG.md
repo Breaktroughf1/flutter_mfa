@@ -6,6 +6,11 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `PassphrasePolicy.check` for backup passphrases (FR-BAK-02): at least 12
+  characters, not one of the 10 000 most common passwords (zxcvbn list, also
+  after removing digits, spaces and symbols), and enough variety. Depends on
+  `cryptography` (Apache-2.0) for the backup format (ADR-0007).
+
 ## 0.1.0-dev.1
 
 - TOTP/HOTP generation (RFC 6238 / RFC 4226) verified against all RFC test vectors, on VM, JS and WASM.
