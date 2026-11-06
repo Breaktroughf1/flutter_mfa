@@ -13,4 +13,7 @@ The proposal mentions a "biometrics wrapper" and "Keychain/Secure Enclave" for s
 
 ## Consequences
 + Satisfies MASVS-AUTH-2 intent; resists Frida-style boolean bypass.
-− Host Android activity must be a `FlutterFragmentActivity`. Simulator/emulator cannot exercise all paths → manual device tests at M3/M4.
+− Simulator/emulator cannot exercise all paths → manual device tests at M3/M4.
+
+## Implementation note (M3-05, 6 November 2026; maintainer decision)
+Android wraps instead of encrypting directly with the gated key. An AES key that requires authentication needs a biometric for encryption too, and `MfaPlatform.write` has no prompt. So each entry gets a Keystore **RSA-2048** key (OAEP SHA-256, MGF1-SHA-1) that unlocks only with a strong biometric. A random AES-256-GCM data key encrypts the secret, and the public key wraps the data key without authentication. Reading unwraps inside `BiometricPrompt` + `CryptoObject`. This matches iOS: saving never prompts, and every read does. RSA-2048 (about 112-bit strength) is added to 04 §6 for this use only. The framework `BiometricPrompt` (API 30+) replaces AndroidX, so there is no new dependency and no `FlutterFragmentActivity` requirement; devices below API 30 do not offer the protected levels.

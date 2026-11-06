@@ -8,15 +8,15 @@ import org.junit.runner.RunWith
 
 /**
  * The capability probes behind `capabilities()` must answer, never throw, on a
- * real device (API 24 and 36 in CI). The test app holds no `USE_BIOMETRIC`,
- * like an app that does not use biometric protection.
+ * real device (API 24 and 36 in CI). The emulators have no enrolled
+ * fingerprints, so protected levels are not offered there.
  */
 @RunWith(AndroidJUnit4::class)
 class CapabilitiesInstrumentedTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Test
-    fun biometricsAreReportedAsNotEnrolledWithoutThePermission() {
+    fun biometricsAreReportedAsNotEnrolledWithoutFingerprints() {
         assertFalse(FlutterMfaPlugin.biometricsEnrolled(context))
     }
 

@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
     private var context: Context? = null
     private var crypto: KeystoreCrypto? = null
+    private var protectedKeys: ProtectedKeys = UnsupportedProtectedKeys
     private var vault: FileVault? = null
     private var clipboard: SensitiveClipboard? = null
     private var activity: Activity? = null
@@ -30,7 +31,13 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
         context = ctx
         val keystore = KeystoreCrypto(strongBoxAvailable = hasStrongBox(ctx))
         crypto = keystore
-        vault = FileVault(File(ctx.noBackupFilesDir, VAULT_DIR), keystore)
+        val keys = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            KeystoreProtectedKeys(ctx, hasStrongBox(ctx)) { activity }
+        } else {
+            UnsupportedProtectedKeys
+        }
+        protectedKeys = keys
+        vault = FileVault(File(ctx.noBackupFilesDir, VAULT_DIR), keystore, keys)
         clipboard = SensitiveClipboard(ctx)
         MfaHostApi.setUp(binding.binaryMessenger, this)
     }
@@ -39,6 +46,7 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
         MfaHostApi.setUp(binding.binaryMessenger, null)
         vault = null
         crypto = null
+        protectedKeys = UnsupportedProtectedKeys
         clipboard = null
         context = null
     }
@@ -62,15 +70,25 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
 
     override fun capabilities(): CapabilitiesMessage = vaultCall {
         val ctx = requireNotNull(context)
+        val hardwareBacked = crypto?.isHardwareBacked() ?: false
         CapabilitiesMessage(
-            hardwareBacked = crypto?.isHardwareBacked() ?: false,
+            hardwareBacked = hardwareBacked,
             strongBox = hasStrongBox(ctx),
             secureEnclave = false,
             biometricsEnrolled = biometricsEnrolled(ctx),
             persistentStorage = true,
             screenCaptureProtection = true,
-            // Biometric and hardware-bound levels arrive in M3-05 (fail closed until then).
-            supportedLevels = listOf(ProtectionLevelMessage.STANDARD),
+            // Protected levels need per-operation strong-biometric keys (API 30+),
+            // enrolled biometrics and secure hardware; otherwise they are not offered.
+            supportedLevels = if (hardwareBacked && protectedKeys.available()) {
+                listOf(
+                    ProtectionLevelMessage.STANDARD,
+                    ProtectionLevelMessage.BIOMETRIC,
+                    ProtectionLevelMessage.HARDWARE_BOUND,
+                )
+            } else {
+                listOf(ProtectionLevelMessage.STANDARD)
+            },
         )
     }
 
@@ -78,7 +96,7 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
         withContext(Dispatchers.IO) { vaultCall { requireVault().write(key, value, level) } }
 
     override suspend fun read(key: String, prompt: PromptMessage?): ByteArray? =
-        withContext(Dispatchers.IO) { vaultCall { requireVault().read(key) } }
+        withContext(Dispatchers.IO) { vaultCall { requireVault().read(key, prompt) } }
 
     override fun delete(key: String) = vaultCall { requireVault().delete(key) }
 
@@ -122,8 +140,8 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
                 ctx.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
 
         /**
-         * Whether strong biometrics are enrolled. Querying needs the app to hold
-         * `USE_BIOMETRIC` (the plugin declares it with biometric gating, M3-05);
+         * Whether strong biometrics are enrolled (API 30+, where Class 3 can be
+         * queried). Needs `USE_BIOMETRIC`, which the plugin's manifest declares;
          * without it the answer is `false` rather than a `SecurityException`.
          */
         fun biometricsEnrolled(ctx: Context): Boolean {

@@ -6,6 +6,12 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- Android: `biometric` and `hardwareBound` protection (API 30+): per-account
+  Keystore keys unlocked by a strong biometric through `BiometricPrompt` and
+  a `CryptoObject` for every read; StrongBox for `hardwareBound` when present;
+  new biometric enrolments invalidate the keys (`VaultKeyInvalidated`). Works
+  with any host activity (FR-VLT-05/06).
+
 - `MfaClient.exportEncrypted` / `importEncrypted` with `DuplicateStrategy`
   and `ImportReport`: encrypted backups (format v1), all-or-nothing import,
   key derivation off the UI thread (FR-BAK-03).
