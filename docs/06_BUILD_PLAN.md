@@ -83,7 +83,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 |---|---|---|---|
 | ✅ | M3-01 | ADR-0007 finalised: choose AEAD/KDF package after licence + maintenance check; add dependency | FR-BAK-01 |
 | ☐ | M3-02 | `backup/` BackupCodec v1, armour, PassphrasePolicy (+ bundled common-password list, compressed) | FR-BAK-01/02 |
-| ☐ | M3-03 | Backup KAT generator + Python cross-check + frozen fixture | §3.4 test plan |
+| ✅ | M3-03 | Backup KAT generator + Python cross-check + frozen fixture | §3.4 test plan |
 | ☐ | M3-04 | `MfaClient.exportEncrypted/importEncrypted` (isolate KDF, atomic import, duplicate strategies) | FR-BAK-03 |
 | ☐ | M3-05 | Android biometric + hardwareBound (per-entry keys, BiometricPrompt+CryptoObject, StrongBox, invalidation) | FR-VLT-05/06 |
 | ☐ | M3-06 | iOS biometric + hardwareBound (SecAccessControl, SE envelope) | FR-VLT-05/06 |

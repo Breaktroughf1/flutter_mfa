@@ -8,6 +8,8 @@
 /// The public API is specified in `docs/03_API_SPEC.md`.
 library;
 
+export 'src/backup/backup_codec.dart';
+export 'src/backup/backup_entry.dart';
 export 'src/backup/passphrase_check.dart';
 export 'src/backup/passphrase_policy.dart';
 export 'src/codec/base32.dart';
