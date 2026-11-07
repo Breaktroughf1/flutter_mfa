@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../l10n/mfa_strings.dart';
 import '../theme/mfa_theme.dart';
 import '../theme/mfa_theme_data.dart';
+import 'mfa_pressable.dart';
 
 /// Entry field for a 6–8 digit one-time code (FR-UI-01).
 ///
@@ -182,6 +183,9 @@ class _OtpCodeFieldState extends State<OtpCodeField>
       children: [
         Semantics(
           container: true,
+          // Without it the web announces the field as disabled and skips
+          // it on Tab.
+          enabled: true,
           label: widget.semanticLabel ?? strings.otpCodeFieldLabel,
           hint: strings.otpCodeFieldHint(widget.length),
           // Screen readers activate and focus the field through these, as
@@ -314,10 +318,9 @@ class _PasteToolbar extends StatelessWidget {
         container: true,
         button: true,
         label: label,
-        excludeSemantics: true,
         onTap: onPressed,
-        child: GestureDetector(
-          onTap: onPressed,
+        child: MfaPressable(
+          onPressed: onPressed,
           child: Container(
             constraints: BoxConstraints(
               minHeight: theme.minTapTarget,

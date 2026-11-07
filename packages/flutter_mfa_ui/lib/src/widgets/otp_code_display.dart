@@ -5,6 +5,7 @@ import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 
 import '../l10n/mfa_strings.dart';
 import '../theme/mfa_theme.dart';
+import 'mfa_pressable.dart';
 import 'status_glyph.dart';
 
 /// Shows a one-time code grouped for reading (`123 456`, `1234 5678`)
@@ -108,10 +109,8 @@ class _OtpCodeDisplayState extends State<OtpCodeDisplay> {
           button: copyable,
           onTap: copyable ? _copy : null,
           onTapHint: copyable ? strings.copyCode : null,
-          excludeSemantics: true,
-          child: GestureDetector(
-            onTap: copyable ? _copy : null,
-            behavior: HitTestBehavior.opaque,
+          child: MfaPressable(
+            onPressed: copyable ? _copy : null,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: theme.minTapTarget,

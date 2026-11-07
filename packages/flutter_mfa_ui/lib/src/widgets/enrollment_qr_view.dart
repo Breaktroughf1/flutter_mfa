@@ -4,6 +4,7 @@ import 'package:qr/qr.dart';
 
 import '../l10n/mfa_strings.dart';
 import '../theme/mfa_theme.dart';
+import 'mfa_pressable.dart';
 import 'status_glyph.dart';
 
 /// Shows an `otpauth://` enrolment URI as a QR code, with the setup key for
@@ -91,11 +92,9 @@ class EnrollmentQrView extends StatelessWidget {
                   container: true,
                   button: true,
                   label: strings.copySetupKey,
-                  excludeSemantics: true,
                   onTap: () => copy(uri.secret.toBase32()),
-                  child: GestureDetector(
-                    onTap: () => copy(uri.secret.toBase32()),
-                    behavior: HitTestBehavior.opaque,
+                  child: MfaPressable(
+                    onPressed: () => copy(uri.secret.toBase32()),
                     child: SizedBox.square(
                       dimension: theme.minTapTarget,
                       child: Center(
