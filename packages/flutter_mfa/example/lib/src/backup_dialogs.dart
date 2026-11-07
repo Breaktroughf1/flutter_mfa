@@ -121,6 +121,10 @@ class _ExportBackupDialogState extends State<ExportBackupDialog> {
             ]
           : [
               TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+              TextButton(
                 onPressed: () async {
                   // Encrypted, so an ordinary copy is fine.
                   await Clipboard.setData(ClipboardData(text: armored));
