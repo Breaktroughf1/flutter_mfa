@@ -2,7 +2,7 @@ group = "com.breaktroughf1.flutter_mfa"
 version = "0.2.0"
 
 buildscript {
-    val kotlinVersion = "2.4.0"
+    val kotlinVersion = "2.4.21"
     repositories {
         google()
         mavenCentral()
