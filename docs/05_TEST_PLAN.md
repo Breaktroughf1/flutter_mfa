@@ -63,7 +63,7 @@ Seeds differ per algorithm (the most common implementation bug is reusing the 20
 `""→""`, `"f"→"MY======"`, `"fo"→"MZXQ===="`, `"foo"→"MZXW6==="`, `"foob"→"MZXW6YQ="`, `"fooba"→"MZXW6YTB"`, `"foobar"→"MZXW6YTBOI======"`. Plus otpauth sample: bytes `48 65 6C 6C 6F 21 DE AD BE EF` ↔ `JBSWY3DPEHPK3PXP`.
 
 ### 3.4 Backup v1 KAT
-Generated once by `tool/gen_backup_kat.dart` with salt `00..0f`, nonce `00..0b`, passphrase `correct horse battery staple`, iterations 600000, one TOTP account (secret `JBSWY3DPEHPK3PXP`). The hex output is frozen in `test/vectors/backup_v1.json`. Cross-checked by a Python script using `cryptography` (`tool/crosscheck_backup.py`, not published) so the KAT is not self-referential.
+Generated once by `packages/flutter_mfa_core/tool/gen_backup_kat.dart` with salt `00..0f`, nonce `00..0b`, passphrase `correct horse battery staple`, iterations 600000, one TOTP account (secret `JBSWY3DPEHPK3PXP`). The hex output is frozen in `test/vectors/backup_v1.json`. Cross-checked by a Python script using `cryptography` (`packages/flutter_mfa_core/tool/crosscheck_backup.py`, excluded from the package by `.pubignore`) so the KAT is not self-referential.
 
 ## 4. Test matrix — by requirement
 | Area | Must-have cases |

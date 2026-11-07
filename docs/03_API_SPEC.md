@@ -183,6 +183,9 @@ final class BackupCodec {
   String armor(Uint8List data); Uint8List dearmor(String text);
 }
 ```
+As built at M3-02: `BackupEntry.toString` shows the account but never the secret; `dearmor` ignores whitespace and CRLF and throws `BackupDecryptFailed` for text that is not an armoured backup; `encrypt` throws `OtpConfigException` when `iterations` is outside 210 000..10 000 000; `decrypt` does not apply the passphrase policy, so any backup can be restored.
+```dart
+```
 
 ### 1.9 Errors
 As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material. Details fixed at M1-01:

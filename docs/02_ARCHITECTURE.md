@@ -172,23 +172,24 @@ offset  size  field
 38      n     AES-256-GCM ciphertext ‖ 16-byte tag
 AAD = bytes[0..38)  (entire header)
 ```
-Plaintext = UTF-8 JSON:
+Plaintext = UTF-8 JSON (as built at M3-02: each account is `OtpAccount.toJson()`, the project's single account serialisation, plus its Base32 `secret`):
 ```json
 {
   "format": "flutter_mfa.backup",
   "version": 1,
-  "createdAt": "2026-11-20T10:00:00Z",
+  "createdAt": "2026-11-06T12:00:00.000Z",
   "accounts": [
-    {"type":"totp","issuer":"Example","label":"alice@example.com",
-     "algorithm":"SHA1","digits":6,"period":30,"counter":null,
-     "secret":"JBSWY3DPEHPK3PXP","createdAt":"…"}
+    {"v":1,"id":"f81d4fae-7dec-41d0-a765-00a0c91e6bf6","type":"totp","issuer":"Example",
+     "accountName":"alice@example.com","algorithm":"sha1","digits":6,"periodSeconds":30,
+     "counter":null,"lastUsedStep":null,"protection":"standard",
+     "createdAt":"2026-11-06T00:00:00.000Z","secret":"JBSWY3DPEHPK3PXP"}
   ]
 }
 ```
 - Encoding of the file: raw bytes; optional ASCII armour (`-----BEGIN FLUTTER MFA BACKUP-----` + base64, 64-col) for copy/paste.
 - KDF runs in `Isolate.run` on Flutter, directly on server.
-- Readers reject unknown versions with `BackupUnsupportedVersion`; future versions may add Argon2id (kdf id 0x02).
-- Known-answer test fixture lives in `packages/flutter_mfa_core/test/vectors/backup_v1.json` (generated once by `tool/gen_backup_kat.dart` with fixed salt/nonce, then frozen).
+- Readers reject unknown versions, unknown KDF ids and iteration counts outside 210 000..10 000 000 with `BackupUnsupportedVersion`, before deriving any key (the upper bound stops a crafted file from hanging an import); future versions may add Argon2id (kdf id 0x02). A wrong passphrase, any modified byte and authenticated-but-invalid contents are all `BackupDecryptFailed`.
+- Known-answer test fixture lives in `packages/flutter_mfa_core/test/vectors/backup_v1.json` (generated once by `packages/flutter_mfa_core/tool/gen_backup_kat.dart` with fixed salt/nonce, then frozen; cross-checked by `tool/crosscheck_backup.py` next to it).
 
 ## 8. Concurrency and lifecycle
 - `MfaClient` is a plain object created by the app (no global singleton); `MfaClient.create()` async factory performs capability probing and index migration.
