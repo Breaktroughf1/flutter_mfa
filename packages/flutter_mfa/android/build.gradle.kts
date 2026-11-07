@@ -1,5 +1,5 @@
 group = "com.breaktroughf1.flutter_mfa"
-version = "0.1.0-dev.1"
+version = "0.2.0"
 
 buildscript {
     val kotlinVersion = "2.4.0"

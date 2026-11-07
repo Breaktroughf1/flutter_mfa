@@ -1,7 +1,7 @@
 name: flutter_mfa_qr
 description: >-
   Optional camera QR scanner for otpauth:// enrolment URIs, built for flutter_mfa. No remote decoder is loaded on the web unless you opt in.
-version: 0.1.0-dev.1
+version: 0.2.0
 repository: https://github.com/Breaktroughf1/flutter_mfa/tree/main/packages/flutter_mfa_qr
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues
 topics:
@@ -21,8 +21,8 @@ dependencies:
   crypto: ^3.0.6
   flutter:
     sdk: flutter
-  flutter_mfa_core: ^0.1.0-dev.1
-  flutter_mfa_ui: ^0.1.0-dev.1
+  flutter_mfa_core: ^0.2.0
+  flutter_mfa_ui: ^0.2.0
   mobile_scanner: ^7.4.2
 
 dev_dependencies:

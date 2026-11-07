@@ -109,7 +109,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M4-07 | Dynamic test support: write `docs/security/dynamic-test-guide.md` for ARDC testers (what to attack, how to report) | §9 security |
 | ✅ | M4-08 | `pana` locally for every package → 160/160; fix findings | NFR-04 |
 | ✅ | M4-09 | Dartdoc completeness (`public_member_api_docs`), API reference review | NFR-08 |
-| ☐ | M4-10 | CHANGELOGs → 0.2.0 sections; versions bumped; `melos version` dry run | NFR-11 |
+| ✅ | M4-10 | CHANGELOGs → 0.2.0 sections; versions bumped; `melos version` dry run | NFR-11 |
 | ☐ | M4-11 | Manual a11y pass #2; dynamic security report triaged; all high findings fixed | §9 |
 
 🛑 **Checkpoint M4** — release readiness review against `07_RELEASE_RUNBOOK.md` pre-flight list.

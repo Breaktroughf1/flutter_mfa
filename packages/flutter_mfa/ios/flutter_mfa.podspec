@@ -5,7 +5,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_mfa'
-  s.version          = '0.1.0-dev.1'
+  s.version          = '0.2.0'
   s.summary          = 'Secure vault for the flutter_mfa multi-factor authentication plugin.'
   s.description      = <<-DESC
 iOS implementation of flutter_mfa: Keychain storage (ThisDeviceOnly, never synced),
