@@ -1,7 +1,7 @@
 name: flutter_mfa_ui
 description: >-
   Accessible, design-system independent Flutter widgets for multi-factor authentication: OTP code field, code display with countdown, account list, enrolment QR and status badges.
-version: 0.1.0-dev.1
+version: 0.2.0
 repository: https://github.com/Breaktroughf1/flutter_mfa/tree/main/packages/flutter_mfa_ui
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues
 topics:
@@ -22,7 +22,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_mfa_core: ^0.1.0-dev.1
+  flutter_mfa_core: ^0.2.0
   intl: ">=0.20.2 <0.21.0"
   # qr 4 needs Dart 3.11 (our floor is 3.9) and changed its API; see STATUS M2-06.
   qr: ^3.0.2

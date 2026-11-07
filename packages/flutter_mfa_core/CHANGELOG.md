@@ -4,7 +4,7 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package uses
 [Semantic Versioning](https://semver.org) (0.x: a minor bump may break).
 
-## Unreleased
+## 0.2.0
 
 - `AtomicAttemptStore`: optional atomic per-subject `update` for shared
   attempt stores; `AttemptLimiter` records failures through it, so no failure is

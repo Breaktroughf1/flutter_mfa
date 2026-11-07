@@ -1,7 +1,7 @@
 name: flutter_mfa_core
 description: >-
   Pure Dart MFA core: TOTP/HOTP (RFC 6238/4226), verification with replay protection and rate limiting, otpauth URIs and encrypted backups. Runs on servers and in Flutter.
-version: 0.1.0-dev.1
+version: 0.2.0
 repository: https://github.com/Breaktroughf1/flutter_mfa/tree/main/packages/flutter_mfa_core
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues
 topics:
