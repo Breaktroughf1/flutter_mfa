@@ -50,6 +50,7 @@ class EnrollmentQrView extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Semantics(
+          container: true,
           image: true,
           label: strings.enrollmentQrLabel,
           excludeSemantics: true,
@@ -87,6 +88,7 @@ class EnrollmentQrView extends StatelessWidget {
               if (copy != null) ...[
                 SizedBox(width: theme.spacing),
                 Semantics(
+                  container: true,
                   button: true,
                   label: strings.copySetupKey,
                   excludeSemantics: true,

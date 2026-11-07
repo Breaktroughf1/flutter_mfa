@@ -54,6 +54,7 @@ class OtpAccountTile extends StatelessWidget {
     final stream = codeStream;
 
     Widget names = Semantics(
+      container: true,
       label: label,
       button: onTap != null,
       onTap: onTap,
