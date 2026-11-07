@@ -273,6 +273,24 @@ abstract class MfaLocalizations {
   /// In en, this message translates to:
   /// **'Paste'**
   String get paste;
+
+  /// Accessible label of a code; digits are separated by spaces so they are read one by one.
+  ///
+  /// In en, this message translates to:
+  /// **'Code {digits}'**
+  String codeLabel(String digits);
+
+  /// Shown when the code could not be produced (for example the vault is locked).
+  ///
+  /// In en, this message translates to:
+  /// **'Code unavailable'**
+  String get codeUnavailable;
+
+  /// Accessible label of an account with an issuer.
+  ///
+  /// In en, this message translates to:
+  /// **'{issuer}, {account}'**
+  String accountLabel(String issuer, String account);
 }
 
 class _MfaLocalizationsDelegate

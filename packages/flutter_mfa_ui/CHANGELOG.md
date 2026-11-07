@@ -12,6 +12,11 @@ All notable changes to this package are documented here. The format follows
   when the delegate is not registered.
 - `OtpCodeField`: one accessible text field drawn as digit boxes, with
   paste, one-time-code autofill, numeric keyboard and announced errors.
+- `OtpCodeDisplay` (grouped, read digit by digit, tap to copy, hidden mode),
+  `OtpCountdownRing` and `MfaStatusBadge` (icon and text).
+- `OtpAccountTile` and `OtpAccountList` (driven by `MfaClient.watchAccounts()`).
+- `EnrollmentQrView`: enrolment QR code, grouped setup key with opt-in copy,
+  privacy warning.
 
 ## 0.1.0-dev.1
 

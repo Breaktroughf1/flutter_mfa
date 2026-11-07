@@ -110,4 +110,17 @@ class MfaLocalizationsHi extends MfaLocalizations {
 
   @override
   String get paste => 'पेस्ट करें';
+
+  @override
+  String codeLabel(String digits) {
+    return 'कोड $digits';
+  }
+
+  @override
+  String get codeUnavailable => 'कोड उपलब्ध नहीं है';
+
+  @override
+  String accountLabel(String issuer, String account) {
+    return '$issuer, $account';
+  }
 }

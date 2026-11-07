@@ -307,9 +307,9 @@ class OtpCodeDisplay extends StatelessWidget { const OtpCodeDisplay({required th
 class OtpCountdownRing extends StatelessWidget { const OtpCountdownRing({required this.progress, required this.remaining}); }
 class MfaStatusBadge extends StatelessWidget { const MfaStatusBadge({required this.status}); }
 enum MfaStatus { enrolled, notEnrolled, locked, keyInvalidated, integrityWarning }
-class OtpAccountTile extends StatelessWidget { const OtpAccountTile({required this.account, required this.codeStream, this.onTap, this.onCopy}); }
-class OtpAccountList extends StatelessWidget { … }
-class EnrollmentQrView extends StatelessWidget { const EnrollmentQrView({required this.uri, this.showSecret = true}); }
+class OtpAccountTile extends StatelessWidget { const OtpAccountTile({required this.account, required Stream<OtpCode>? this.codeStream, this.onTap, this.onCopy}); } // null stream: HOTP, "tap to generate"
+class OtpAccountList extends StatelessWidget { const OtpAccountList({required Stream<List<OtpAccount>> accounts, required Stream<OtpCode>? Function(OtpAccount) codeStream, ValueChanged<OtpAccount>? onTap, ValueChanged<OtpAccount>? onCopy, WidgetBuilder? emptyBuilder, WidgetBuilder? errorBuilder, EdgeInsetsGeometry? padding}); } // as built, M2-05
+class EnrollmentQrView extends StatelessWidget { const EnrollmentQrView({required OtpAuthUri uri, bool showSecret = true, ValueChanged<String>? onCopySecret}); } // copy button only with onCopySecret (M2-06)
 class MfaLocalizations { static const delegate; static const supportedLocales; }
 ```
 `material_adapter.dart` and `cupertino_adapter.dart` are the **only** files allowed to import Material/Cupertino (CI script). QR rendering uses `qr` (pure Dart) painted with `CustomPainter` — no Material-dependent QR widget.
