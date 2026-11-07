@@ -107,6 +107,8 @@ void main() {
       Future<void> openAccount() async {
         final label = find.text(name);
         await _pumpUntil(tester, label);
+        // Let the closing dialog's barrier go first, or it swallows the tap.
+        await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           label,
           200,
@@ -198,6 +200,7 @@ void main() {
         await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
         await _pumpUntil(tester, find.text(name), until: false);
         expect(find.text(name), findsNothing, reason: _screen(tester));
+        await tester.pumpAndSettle();
       }
 
       await removeAccount();
