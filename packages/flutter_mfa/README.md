@@ -34,7 +34,7 @@ await client.copyCode(account.id);
 | Relying-party helper (demos and tests) | `MfaClient.createEnrollment` |
 | Vault capabilities | `capabilities` (hardware backing, biometrics, secure context, persistent storage, supported protection levels) |
 
-Secrets stay in the platform vault: Android Keystore (StrongBox when available), iOS Keychain (`ThisDeviceOnly`, excluded from backups) or, on the web, AES-256-GCM under a non-extractable WebCrypto key. Biometric-bound protection levels are being completed in M3. Nothing is logged unless you pass an `MfaLogger`, and even then only event names and account ids.
+Secrets stay in the platform vault: Android Keystore (StrongBox when available), iOS Keychain (`ThisDeviceOnly`, excluded from backups) or, on the web, AES-256-GCM under a non-extractable WebCrypto key. Biometric-bound protection levels are available on Android (see below); iOS follows in M3. Nothing is logged unless you pass an `MfaLogger`, and even then only event names and account ids.
 
 All of `flutter_mfa_core` is re-exported, so one import is enough. Widgets are in [`flutter_mfa_ui`](https://pub.dev/packages/flutter_mfa_ui) and QR scanning is in [`flutter_mfa_qr`](https://pub.dev/packages/flutter_mfa_qr).
 
@@ -42,6 +42,7 @@ Guides: [Add an authenticator to your app](https://github.com/Breaktroughf1/flut
 
 ## Platform notes
 
+- **Android biometric protection** (`biometric`, `hardwareBound`) needs Android 11 (API 30) or later, a strong (Class 3) biometric enrolled, and secure key hardware; `capabilities.supportedLevels` tells you whether this device has them. Any host `Activity` works (no `FlutterFragmentActivity` needed); the plugin declares `USE_BIOMETRIC`. Each protected account has its own Keystore key that unlocks only after a fingerprint or face check, for every code. Saving an account never prompts. Enrolling a new fingerprint or face invalidates these keys: reading then throws `VaultKeyInvalidated`, and the user must restore from an encrypted backup or enrol the account again. `hardwareBound` uses StrongBox when the device has it.
 - **Uninstall removes accounts on every platform.** Android deletes app data on uninstall. iOS keeps Keychain items, so the plugin wipes anything left from an earlier installation before its first vault operation (ADR-0012). Users who reinstall need an encrypted backup to restore their accounts.
 
 ## Web: security limits

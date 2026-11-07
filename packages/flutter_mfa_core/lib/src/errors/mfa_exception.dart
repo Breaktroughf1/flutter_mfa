@@ -203,8 +203,9 @@ enum VaultUnavailableReason {
   /// Web page not served from a secure context (HTTPS or localhost).
   insecureContext,
 
-  /// Android host activity is not a `FlutterFragmentActivity`, so biometric
-  /// prompts cannot be shown.
+  /// Reserved: the Android host activity could not show biometric prompts.
+  /// Not raised since M3-05, which uses the framework prompt that works with
+  /// any activity; kept so the error codes stay stable.
   hostActivityNotFragmentActivity,
 
   /// Platform storage (Keystore, Keychain, IndexedDB) refused access.

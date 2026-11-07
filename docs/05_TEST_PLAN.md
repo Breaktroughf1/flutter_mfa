@@ -73,7 +73,7 @@ Generated once by `packages/flutter_mfa_core/tool/gen_backup_kat.dart` with salt
 | Limiter | N failures → limited; retryAfter grows exponentially and caps; success resets; lockout after threshold; window expiry with FakeClock; concurrent failures (Future.wait) don't lose counts in InMemory store |
 | URI | Google example URIs; percent-encoded labels; issuer in label only / param only / both mismatched; hotp missing counter; lower-case secret with spaces; unknown params preserved; non-otpauth scheme; fuzz 10k |
 | Vault (facade with InMemoryMfaPlatform) | enrol → list → code → remove; index persistence across client re-create; concurrent enrolments don't lose entries; corrupted index → VaultCorrupted surfaced and recoverable via wipe; each VaultException mapped |
-| Android native | round-trip standard; StrongBox fallback; biometric path with Robolectric shadow (unit) + manual device; KeyPermanentlyInvalidated mapping; no file outside noBackupFilesDir |
+| Android native | round-trip standard; StrongBox fallback; biometric entries (as built, M3-05): JVM tests with a software RSA key (same OAEP parameters) for the file layout, no prompt on write, cancel/invalidation mapping, key lifecycle on replace/delete/wipe, failed-write rollback and tampering; instrumented: RSA-OAEP wrap opened by a real Keystore key, fail closed without enrolled biometrics; prompt itself on a manual device (§5.1); no file outside noBackupFilesDir |
 | iOS native | round-trip; `ThisDeviceOnly` attribute asserted via `SecItemCopyMatching` attributes; SE unavailable on simulator → HardwareUnavailable; cancel mapping |
 | Web vault | key non-extractable (`exportKey` rejects); insecure context error; round-trip; AAD swap detection |
 | Backup | KAT; wrong passphrase; truncated file; flipped byte in header/ciphertext/tag; unsupported version; iterations below floor; armor round-trip; duplicate strategies; atomicity (failure mid-import leaves vault unchanged) |
@@ -88,6 +88,15 @@ Generated once by `packages/flutter_mfa_core/tool/gen_backup_kat.dart` with salt
 | Android | Emulator API 24 (x86_64) and latest stable API (36) | Pixel (StrongBox), Samsung (Knox quirks), one low-end device |
 | iOS | Simulator latest iOS, minimum supported iOS | iPhone with Face ID, one with Touch ID |
 | Web | Chrome stable (CI) | Chrome, Safari, Firefox (decoder opt-in path), Edge |
+
+### 5.1 Manual biometric checks (physical devices, M4)
+Run with the example app, one account per protection level offered by `capabilities`.
+1. Enrolling a `biometric` / `hardwareBound` account shows no prompt; showing its code shows the system prompt with the app's title and cancel label.
+2. Cancel, back gesture and timeout each give `VaultUserCancelled`; nothing is shown.
+3. Too many failed attempts (lockout) gives `VaultHardwareUnavailable(biometricsUnavailable)`.
+4. Enrol a new fingerprint/face in Settings: the protected accounts now give `VaultKeyInvalidated`, and restoring from an encrypted backup brings them back.
+5. Android: a device with StrongBox (Pixel) stores `hardwareBound` keys in StrongBox; a device on API 29 or lower offers only `standard`.
+6. iOS (M3-06): same checks with Face ID and Touch ID.
 
 ## 6. Definition of Done for any PR
 1. Linked requirement IDs in the PR description.

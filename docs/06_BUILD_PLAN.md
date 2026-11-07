@@ -85,7 +85,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M3-02 | `backup/` BackupCodec v1, armour, PassphrasePolicy (+ bundled common-password list, compressed) | FR-BAK-01/02 |
 | ✅ | M3-03 | Backup KAT generator + Python cross-check + frozen fixture | §3.4 test plan |
 | ✅ | M3-04 | `MfaClient.exportEncrypted/importEncrypted` (isolate KDF, atomic import, duplicate strategies) | FR-BAK-03 |
-| ☐ | M3-05 | Android biometric + hardwareBound (per-entry keys, BiometricPrompt+CryptoObject, StrongBox, invalidation) | FR-VLT-05/06 |
+| ✅ | M3-05 | Android biometric + hardwareBound (per-entry keys, BiometricPrompt+CryptoObject, StrongBox, invalidation) | FR-VLT-05/06 |
 | ☐ | M3-06 | iOS biometric + hardwareBound (SecAccessControl, SE envelope) | FR-VLT-05/06 |
 | ☐ | M3-07 | Web: capabilities report biometric unsupported; clear errors | FR-VLT-05 |
 | ☐ | M3-08 | Integrity hook: `DeviceIntegrityCheck`, `IntegrityPolicy`, example settings screen | FR-FAC-03 |
