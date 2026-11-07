@@ -83,8 +83,8 @@ Evidence column names the test or document that proves it. This table is copied 
 | Vault (Android) | AES-256-GCM | 96-bit random nonce, 128-bit tag, AAD = key name | Android Keystore |
 | Vault (iOS) | Keychain; optional ECIES P-256 + AES-GCM (Secure Enclave) | — | Security.framework |
 | Vault (Web) | AES-256-GCM | non-extractable CryptoKey | WebCrypto |
-| Backup KDF | PBKDF2-HMAC-SHA256 | 600 000 iter, 16 B salt; read floor 210 000 | AEAD/KDF package per ADR-0007 |
-| Backup AEAD | AES-256-GCM | 12 B nonce, header AAD | same |
+| Backup KDF | PBKDF2-HMAC-SHA256 | 600 000 iter, 16 B salt; read floor 210 000 | `cryptography` `DartPbkdf2` (ADR-0007); WebCrypto on the web (ADR-0010) |
+| Backup AEAD | AES-256-GCM | 12 B nonce, header AAD | `cryptography` `DartAesGcm` (ADR-0007); WebCrypto on the web (ADR-0010) |
 | Compare | constant-time | full-length XOR accumulate | core `util/` |
 
 Forbidden: ECB, CBC without MAC, MD5, custom ciphers, `Random()` (non-secure) anywhere outside `testing.dart`, hard-coded keys/IVs outside test vectors. CI greps for these.
