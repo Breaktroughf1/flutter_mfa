@@ -6,6 +6,11 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- iOS: `biometric` (Keychain item with `.biometryCurrentSet`) and
+  `hardwareBound` (Secure Enclave key wrapping the secret) protection; saving
+  never prompts, re-enrolment gives `VaultKeyInvalidated` (FR-VLT-05/06).
+  Apps need `NSFaceIDUsageDescription`.
+
 - Android: `biometric` and `hardwareBound` protection (API 30+): per-account
   Keystore keys unlocked by a strong biometric through `BiometricPrompt` and
   a `CryptoObject` for every read; StrongBox for `hardwareBound` when present;
