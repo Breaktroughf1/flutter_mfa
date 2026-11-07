@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_example/main.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -114,6 +115,11 @@ void main() {
         await tester.tap(label);
         await _pumpUntil(tester, find.text('Generate code'));
         await tester.pumpAndSettle();
+        expect(
+          find.text('Generate code'),
+          findsOneWidget,
+          reason: _screen(tester),
+        );
       }
 
       Future<void> openSettings() async {
@@ -135,7 +141,22 @@ void main() {
         find.widgetWithText(TextField, 'Secret key (Base32)'),
         _secret,
       );
-      await tester.tap(find.text('Counter-based'));
+      // The dialog scrolls on small screens (320x640 emulators): bring the
+      // choice into view before tapping, and check it took.
+      final counter = find.text('Counter-based');
+      await tester.ensureVisible(counter);
+      await tester.pumpAndSettle();
+      await tester.tap(counter);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<SegmentedButton<OtpType>>(
+              find.byType(SegmentedButton<OtpType>),
+            )
+            .selected,
+        {OtpType.hotp},
+        reason: _screen(tester),
+      );
       await tester.tap(find.text('Add'));
       await openAccount();
       await tester.tap(find.text('Generate code'));
@@ -146,6 +167,8 @@ void main() {
 
       // 2. Export an encrypted backup.
       await openSettings();
+      await tester.ensureVisible(find.text('Export encrypted backup'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Export encrypted backup'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -182,6 +205,8 @@ void main() {
       // 4. Restore it. "Keep" (the default) leaves any other accounts on the
       // device untouched; only the removed one comes back.
       await openSettings();
+      await tester.ensureVisible(find.text('Restore from backup'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Restore from backup'));
       await tester.pumpAndSettle();
       await tester.enterText(

@@ -16,6 +16,10 @@ const _allowed = <String, List<String>>{
   'Apache-2.0': ['Apache License', 'Version 2.0'],
 };
 
+/// Phrases that disqualify a text even when an allowed phrase matches: the
+/// BSD-4-Clause advertising clause, which is not on the allowlist.
+const _forbidden = ['advertising materials mentioning features or use'];
+
 void main() {
   final config = File('.dart_tool/package_config.json');
   if (!config.existsSync()) {
@@ -33,8 +37,10 @@ void main() {
   var checked = 0;
   for (final entry in packages.cast<Map<String, Object?>>()) {
     final name = entry['name']! as String;
+    // Resolve against the absolute URI so `..` segments are normalised and a
+    // package outside the workspace is never mistaken for one inside it.
     final dir = Directory.fromUri(
-      config.uri.resolve(entry['rootUri']! as String),
+      config.absolute.uri.resolve(entry['rootUri']! as String),
     );
     final path = dir.absolute.path;
     if (path.startsWith(Directory.fromUri(root).absolute.path) ||
@@ -52,7 +58,12 @@ void main() {
       failures.add('$name: no licence file');
       continue;
     }
-    final text = file.readAsStringSync();
+    // Collapse line breaks and runs of spaces so wrapped phrases match.
+    final text = file.readAsStringSync().replaceAll(RegExp(r'\s+'), ' ');
+    if (_forbidden.any(text.toLowerCase().contains)) {
+      failures.add('$name: BSD-4-Clause (advertising clause) not allowed');
+      continue;
+    }
     final kind = _allowed.entries
         .where((e) => e.value.every(text.contains))
         .map((e) => e.key)
