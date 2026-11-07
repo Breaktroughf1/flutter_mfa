@@ -68,7 +68,8 @@ final class KeychainVault: @unchecked Sendable {
       guard SecRandomCopyBytes(kSecRandomDefault, idBytes.count, &idBytes) == errSecSuccess else {
         throw VaultFailure(code: .storageUnavailable)
       }
-      let tag = keyTag(Data(idBytes))
+      let id = Data(idBytes)
+      let tag = keyTag(id)
       let publicKey = try createEnclaveKey(tag: tag)
       newKeyTag = tag
       var error: Unmanaged<CFError>?
@@ -139,7 +140,7 @@ final class KeychainVault: @unchecked Sendable {
   func delete(key: String) throws {
     let previous = try? existing(key)
     try delete(itemOnly: key)
-    if let tag = previous??.keyTag { deleteEnclaveKey(tag: tag) }
+    if let tag = previous?.keyTag { deleteEnclaveKey(tag: tag) }
   }
 
   /// All keys with an entry, sorted.
