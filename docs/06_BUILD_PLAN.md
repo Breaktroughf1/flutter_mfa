@@ -88,7 +88,7 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 | ✅ | M3-05 | Android biometric + hardwareBound (per-entry keys, BiometricPrompt+CryptoObject, StrongBox, invalidation) | FR-VLT-05/06 |
 | ✅ | M3-06 | iOS biometric + hardwareBound (SecAccessControl, SE envelope) | FR-VLT-05/06 |
 | ✅ | M3-07 | Web: capabilities report biometric unsupported; clear errors | FR-VLT-05 |
-| ☐ | M3-08 | Integrity hook: `DeviceIntegrityCheck`, `IntegrityPolicy`, example settings screen | FR-FAC-03 |
+| ✅ | M3-08 | Integrity hook: `DeviceIntegrityCheck`, `IntegrityPolicy`, example settings screen | FR-FAC-03 |
 | ☐ | M3-09 | Example: backup/restore screens, protection-level picker, key-invalidated recovery flow | FR-EX-02 |
 | ☐ | M3-10 | Threat model v1 published as `docs/security/threat-model.md` (from `04_SECURITY_DESIGN.md`, updated with as-built details) | P-F6 |
 

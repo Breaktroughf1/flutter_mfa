@@ -258,4 +258,29 @@ void main() {
     expect(find.text('Add account'), findsNothing);
     await unmount(tester);
   });
+
+  testWidgets('settings show the device protection and the integrity status', (
+    tester,
+  ) async {
+    vault.currentCapabilities = const VaultCapabilities(
+      hardwareBacked: true,
+      strongBox: false,
+      secureEnclave: false,
+      biometricsEnrolled: true,
+      secureContext: true,
+      persistentStorage: true,
+      screenCaptureProtection: true,
+      supportedLevels: {ProtectionLevel.standard, ProtectionLevel.biometric},
+    );
+    await boot(tester);
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('Device protection'), findsOneWidget);
+    expect(find.text('Standard, Biometric'), findsOneWidget);
+    expect(find.text('Not checked'), findsOneWidget, reason: 'no detector');
+    await tester.tap(find.byTooltip('Check again'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not checked'), findsOneWidget);
+    await unmount(tester);
+  });
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart';
 
+import '../integrity/device_integrity.dart';
 import '../logging/mfa_logger.dart';
 import '../repository/account_repository.dart';
 import 'backup_import.dart';
@@ -33,12 +34,23 @@ final class MfaClient {
   /// `VaultException` (for example `VaultUnavailable(insecureContext)` on
   /// web). The account index is loaded lazily, so a corrupted index does not
   /// prevent creating a client and calling [wipeAll].
+  ///
+  /// Then runs [MfaClientOptions.integrityCheck] and passes the report to
+  /// [MfaClientOptions.integrityPolicy]; whatever the policy throws is thrown
+  /// here, so an app can refuse to start on a compromised device.
   static Future<MfaClient> create({
     MfaClientOptions options = const MfaClientOptions(),
   }) async {
     final platform = MfaPlatform.instance;
     await platform.capabilities();
-    return MfaClient._(platform, options);
+    final client = MfaClient._(platform, options);
+    try {
+      await client._runIntegrity();
+    } on Object {
+      await client.dispose();
+      rethrow;
+    }
+    return client;
   }
 
   final MfaPlatform _platform;
@@ -485,6 +497,28 @@ final class MfaClient {
         s.fillRange(0, s.length, 0);
       }
     }
+  }
+
+  /// Runs the device integrity check again and applies the policy
+  /// (FR-FAC-03), for example when the app returns to the foreground.
+  ///
+  /// Returns the report, or throws what the policy throws. Detection only:
+  /// see [DeviceIntegrityCheck] for what this does not protect against.
+  Future<IntegrityReport> checkIntegrity() {
+    _checkOpen();
+    return _runIntegrity();
+  }
+
+  Future<IntegrityReport> _runIntegrity() async {
+    final report = await _options.integrityCheck.run();
+    _log(
+      report.verdict == IntegrityVerdict.compromised
+          ? MfaLogLevel.warning
+          : MfaLogLevel.info,
+      'integrity ${report.verdict.name}',
+    );
+    await _options.integrityPolicy(report);
+    return report;
   }
 
   /// Releases resources; the client cannot be used afterwards.

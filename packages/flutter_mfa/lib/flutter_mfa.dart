@@ -13,4 +13,5 @@ export 'src/client/backup_import.dart' show DuplicateStrategy, ImportReport;
 export 'src/client/mfa_client.dart';
 export 'src/client/mfa_client_options.dart';
 export 'src/client/relying_party_enrollment.dart';
+export 'src/integrity/device_integrity.dart';
 export 'src/logging/mfa_logger.dart';
