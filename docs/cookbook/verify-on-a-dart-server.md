@@ -148,7 +148,9 @@ final class RedisAttemptStore implements AtomicAttemptStore {
 }
 ```
 
-With SQL, run `update` in a transaction that locks the row (`SELECT … FOR UPDATE`, then `INSERT … ON CONFLICT DO UPDATE` or `DELETE`). Because `change` can run more than once, it must have no side effects; the limiter's never does.
+With SQL, run `update` in one transaction that holds a lock for the subject, then `INSERT … ON CONFLICT DO UPDATE` or `DELETE`. `SELECT … FOR UPDATE` alone is not enough: it locks nothing when the subject has no row yet, so two first failures can race. Take a lock that exists either way, for example PostgreSQL `SELECT pg_advisory_xact_lock(hashtext('mfa:' || :subject))`, or first create the row (`INSERT … ON CONFLICT DO NOTHING`) and treat a row with no failures as `null`. Because `change` can run more than once, it must have no side effects; the limiter's never does.
+
+What the limiter guarantees with an atomic store: no failure is lost, so back-off and lockout count every failure on every instance. Admission is a plain `read`, so during a burst each instance can let one attempt through before the others' failures land; the window can be exceeded by at most one attempt per instance, and each of those is counted.
 
 A store that implements only `AttemptStore` still works: the limiter then reads and writes. That is last-writer-wins across processes, so two instances failing at the same moment can lose one failure and the limits are looser under a burst. Use it only when each subject is routed to a single instance.
 
