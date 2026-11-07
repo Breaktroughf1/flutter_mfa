@@ -6,6 +6,10 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- Device integrity hook: `DeviceIntegrityCheck`, `NoopIntegrityCheck`,
+  `IntegrityReport`, `IntegrityVerdict`, `IntegrityPolicy` and
+  `MfaClient.checkIntegrity`; `create` applies the policy (FR-FAC-03).
+
 - iOS: `biometric` (Keychain item with `.biometryCurrentSet`) and
   `hardwareBound` (Secure Enclave key wrapping the secret) protection; saving
   never prompts, re-enrolment gives `VaultKeyInvalidated` (FR-VLT-05/06).

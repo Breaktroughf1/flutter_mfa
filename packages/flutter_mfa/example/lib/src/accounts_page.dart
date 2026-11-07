@@ -9,6 +9,7 @@ import 'add_account_dialog.dart';
 import 'error_text.dart';
 import 'relying_party_page.dart';
 import 'scan_page.dart';
+import 'settings_page.dart';
 
 /// Lists the enrolled accounts with live codes (UC3) and adds accounts by
 /// scanning (UC1) or typing the setup key (UC2).
@@ -113,6 +114,16 @@ class _AccountsPageState extends State<AccountsPage> {
       appBar: AppBar(
         title: const Text('flutter_mfa example'),
         actions: [
+          if (client != null)
+            IconButton(
+              tooltip: 'Settings',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => SettingsPage(client: client),
+                ),
+              ),
+            ),
           if (client != null)
             IconButton(
               tooltip: 'Relying-party demo',

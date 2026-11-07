@@ -40,6 +40,10 @@ All of `flutter_mfa_core` is re-exported, so one import is enough. Widgets are i
 
 Guides: [Add an authenticator to your app](https://github.com/Breaktroughf1/flutter_mfa/blob/main/docs/cookbook/add-an-authenticator.md) · [Enrol users (relying party)](https://github.com/Breaktroughf1/flutter_mfa/blob/main/docs/cookbook/enrol-users.md) · [Verify on a Dart server](https://github.com/Breaktroughf1/flutter_mfa/blob/main/docs/cookbook/verify-on-a-dart-server.md). A complete app is in [`example/`](example).
 
+## Device integrity
+
+`MfaClientOptions(integrityCheck: …, integrityPolicy: …)` plugs in a root, jailbreak or tamper detector of your choice. `MfaClient.create` runs it once and gives the `IntegrityReport` to your policy. Return to continue, or throw to refuse to start. `checkIntegrity()` runs it again, for example when the app resumes. The default `NoopIntegrityCheck` reports `unknown`. **This is detection, not prevention** (MASVS resilience): on a device the attacker controls, any in-app check can be bypassed, so use it to warn users or raise the bar, never as your only protection.
+
 ## Platform notes
 
 - **Android biometric protection** (`biometric`, `hardwareBound`) needs Android 11 (API 30) or later, a strong (Class 3) biometric enrolled, and secure key hardware; `capabilities.supportedLevels` tells you whether this device has them. Any host `Activity` works (no `FlutterFragmentActivity` needed); the plugin declares `USE_BIOMETRIC`. Each protected account has its own Keystore key that unlocks only after a fingerprint or face check, for every code. Saving an account never prompts. Enrolling a new fingerprint or face invalidates these keys: reading then throws `VaultKeyInvalidated`, and the user must restore from an encrypted backup or enrol the account again. `hardwareBound` uses StrongBox when the device has it.
