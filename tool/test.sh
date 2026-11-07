@@ -7,6 +7,7 @@
 #                             (NFR-01/02, ADR-0008): core 95/90, others 85/75
 #
 # Layout rules:
+#   pure Dart pkgs   VM tests also run in Chrome via dart2js and dart2wasm.
 #   test/web/**      browser-only tests (`@TestOn('browser')`), run in Chrome.
 #                    Chrome runs produce no coverage, so web-only libraries are
 #                    gated by these tests, not by lcov (ADR-0008).
@@ -48,20 +49,26 @@ run() { # dir, min lines, min branches (empty = no gate, e.g. example apps)
     else
       # shellcheck disable=SC2086
       (cd "$dir" && dart test "${args[@]}" $files)
+      # Pure Dart packages must also be correct when compiled to JS and WASM (NFR-07).
+      if need_chrome "$dir (dart2js/dart2wasm)"; then
+        # shellcheck disable=SC2086
+        (cd "$dir" && dart test -p chrome $files && dart test -p chrome -c dart2wasm $files)
+      fi
     fi
     if [ $gated -eq 1 ]; then
       dart run tool/coverage_gate.dart "$dir/coverage/lcov.info" --lines "$2" --branches "$3"
     fi
   fi
-  if [ -d "$dir/test/web" ]; then
-    if [ -z "${CHROME_EXECUTABLE:-}" ]; then
-      if [ -n "${CI:-}" ]; then echo "ERROR: no Chrome for $dir/test/web"; return 1; fi
-      echo "WARNING: no Chrome found; skipping browser tests in $dir/test/web"
-    else
-      echo "== $dir (chrome)"
-      (cd "$dir" && flutter test --platform chrome test/web)
-    fi
+  if [ -d "$dir/test/web" ] && need_chrome "$dir/test/web"; then
+    (cd "$dir" && flutter test --platform chrome test/web)
   fi
+}
+
+need_chrome() { # label -> 0 if Chrome is available; fails in CI without it
+  if [ -n "${CHROME_EXECUTABLE:-}" ]; then echo "== $1 (chrome)"; return 0; fi
+  if [ -n "${CI:-}" ]; then echo "ERROR: no Chrome for $1"; exit 1; fi
+  echo "WARNING: no Chrome found; skipping $1"
+  return 1
 }
 
 run packages/flutter_mfa_core 95 90

@@ -1,0 +1,13 @@
+# gitleaks configuration (security CI job, NFR-09).
+# Extends the default rules; allowlists only exact, public test values so a
+# real secret anywhere in the repo still fails the job.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public RFC 4226/6238 test secret (ASCII 1234567890...) in Base32, and the Google Key URI sample secret"
+regexTarget = "secret"
+regexes = [
+  '''^(GEZDGNBVGY3TQOJQ)+$''',
+  '''^JBSWY3DPEHPK3PXP$''',
+]
