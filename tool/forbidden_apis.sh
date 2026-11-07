@@ -26,7 +26,7 @@ check 'package:http/|HttpClient\(|\bfetch\(' 'network I/O is not allowed in libr
 # Native vault code: no logging at all (values could leak; levels are reported via capabilities).
 NATIVE=$(ls -d packages/flutter_mfa/android/src/main packages/flutter_mfa/ios/flutter_mfa/Sources 2>/dev/null || true)
 if [ -n "$NATIVE" ]; then
-  check '\bLog\.[a-z]+\(|\bprintln\(|System\.(out|err)|\bNSLog\(|\bprint\(|\bdebugPrint\(|\bos_log\(|Logger\(' \
+  check '\bLog\.(v|d|i|w|e|wtf)\(|\bprintln\(|System\.(out|err)|\bNSLog\(|\bprint\(|\bdebugPrint\(|\bos_log\(|Logger\(' \
     'logging in native vault code' "$NATIVE"
   check 'AES/ECB|AES/CBC|"MD5"|\.md5|kCCAlgorithm|CC_MD5' 'weak native crypto' "$NATIVE"
 fi

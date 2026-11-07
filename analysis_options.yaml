@@ -25,6 +25,8 @@ analyzer:
     - "**/l10n/generated/**"
     - "**/build/**"
     - "**/.dart_tool/**"
+    # Standalone generator package (own resolution, needs Dart 3.11+).
+    - "tool/pigeon/**"
 
 linter:
   rules:

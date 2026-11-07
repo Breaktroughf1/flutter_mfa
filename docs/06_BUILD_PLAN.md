@@ -43,8 +43,8 @@ Estimated calendar (Claude Code implementing, BF1 reviewing within 1 working day
 | ✅ | M1-07 | `verify/` TotpVerifier, HotpVerifier (+resync), input normalisation | FR-VER-01..06 | M1-03, M1-06 |
 | ✅ | M1-08 | `model/` OtpAccount, ProtectionLevel; `testing.dart` fakes | §1.7 API | M1-03 |
 | ✅ | M1-09 | Core `example/main.dart` (server-style verify) + README for core | FR-EX doc | M1-07 |
-| ☐ | M1-10 | Platform interface: `MfaPlatform`, capabilities, `InMemoryMfaPlatform`, Pigeon schema + generated code | §2 API | M1-08 |
-| ☐ | M1-11 | `flutter_mfa`: `MfaVault` (error mapping), `AccountRepository` (index), `MfaClient` enrol/list/currentCode/remove on InMemory platform | FR-VLT-01, FR-FAC-01 | M1-10 |
+| ✅ | M1-10 | Platform interface: `MfaPlatform`, capabilities, `InMemoryMfaPlatform`, Pigeon schema + generated code | §2 API | M1-08 |
+| ✅ | M1-11 | `flutter_mfa`: `MfaVault` (error mapping), `AccountRepository` (index), `MfaClient` enrol/list/currentCode/remove on InMemory platform | FR-VLT-01, FR-FAC-01 | M1-10 |
 | ☐ | M1-12 | Android vault — standard protection (Keystore AES-GCM, noBackupFilesDir), JUnit + instrumented tests | FR-VLT-02 | M1-10 |
 | ☐ | M1-13 | iOS vault — standard protection (Keychain ThisDeviceOnly), XCTest | FR-VLT-03 | M1-10 |
 | ☐ | M1-14 | Web vault — IndexedDB + non-extractable key, browser tests (`flutter test --platform chrome`) | FR-VLT-04 | M1-10 |

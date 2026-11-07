@@ -178,10 +178,13 @@ jobs:
         run: flutter build ios --simulator --debug --no-codesign
       - name: Native XCTest
         working-directory: packages/flutter_mfa/example/ios
-        run: xcodebuild test -workspace Runner.xcworkspace -scheme Runner -destination "id=$SIM_UDID" -only-testing:RunnerTests
+        # No parallel clones: cloning shuts the booted simulator down.
+        run: xcodebuild test -workspace Runner.xcworkspace -scheme Runner -destination "id=$SIM_UDID" -only-testing:RunnerTests -parallel-testing-enabled NO
       - name: Integration (iOS)
         working-directory: packages/flutter_mfa/example
-        run: flutter test integration_test -d "$SIM_UDID"
+        run: |
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          flutter test integration_test -d "$SIM_UDID"
 
   security:
     name: security (gitleaks, osv-scanner, forbidden APIs)

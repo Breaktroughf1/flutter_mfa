@@ -21,6 +21,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_mfa_core: ^0.1.0-dev.1
+  meta: ^1.16.0
   plugin_platform_interface: ^2.1.8
 
 dev_dependencies:

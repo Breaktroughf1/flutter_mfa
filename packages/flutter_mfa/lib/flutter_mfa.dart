@@ -1,5 +1,15 @@
 /// Multi-factor authentication for Flutter.
 ///
-/// `MfaClient` (added in M1-11) is the single entry point for apps; this
-/// library will also re-export the public API of `flutter_mfa_core`.
+/// [MfaClient] is the single entry point for apps. This library also
+/// re-exports the public API of `flutter_mfa_core` (OTP, verifiers, URIs,
+/// models, errors), so apps need one import.
 library;
+
+export 'package:flutter_mfa_core/flutter_mfa_core.dart';
+export 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart'
+    show BiometricPrompt, VaultCapabilities;
+
+export 'src/client/mfa_client.dart';
+export 'src/client/mfa_client_options.dart';
+export 'src/client/otp_code.dart';
+export 'src/logging/mfa_logger.dart';

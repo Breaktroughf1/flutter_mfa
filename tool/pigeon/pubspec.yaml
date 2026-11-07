@@ -1,0 +1,10 @@
+name: flutter_mfa_pigeon
+description: Code generator runner for the flutter_mfa Pigeon channel. Not published; not a workspace member.
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+dev_dependencies:
+  # BSD-3, Flutter team. Pinned so regenerated code is reproducible.
+  pigeon: 29.0.11

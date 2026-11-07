@@ -217,9 +217,9 @@ Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/uti
 ## 2. `flutter_mfa_platform_interface`
 ```dart
 abstract base class MfaPlatform extends PlatformInterface {
-  static MfaPlatform get instance; static set instance(MfaPlatform v);
+  static MfaPlatform get instance; static set instance(MfaPlatform v);   // default: MethodChannelMfaPlatform
   Future<VaultCapabilities> capabilities();
-  Future<void> write(String key, Uint8List value, ProtectionLevel level);
+  Future<void> write(String key, Uint8List value, ProtectionLevel level);  // unsupported level → VaultHardwareUnavailable
   Future<Uint8List?> read(String key, {BiometricPrompt? prompt});
   Future<void> delete(String key);
   Future<List<String>> keys();
@@ -227,12 +227,14 @@ abstract base class MfaPlatform extends PlatformInterface {
   Future<void> copySensitive(String text, {Duration expiry = const Duration(seconds: 30)});
   Future<void> setScreenCaptureProtection(bool enabled);   // Android FLAG_SECURE; no-op elsewhere, reported in capabilities
 }
-@immutable final class VaultCapabilities { bool hardwareBacked, strongBox, secureEnclave, biometricsEnrolled, secureContext, persistentStorage; Set<ProtectionLevel> supportedLevels; }
-@immutable final class BiometricPrompt { String title; String? subtitle; String cancelLabel; }
+@immutable final class VaultCapabilities { bool hardwareBacked, strongBox, secureEnclave, biometricsEnrolled, secureContext, persistentStorage,
+    screenCaptureProtection /* added at M1-10 */; Set<ProtectionLevel> supportedLevels; }
+@immutable final class BiometricPrompt { const BiometricPrompt({required String title, String? subtitle, String cancelLabel = 'Cancel'}); }
+final class MethodChannelMfaPlatform extends MfaPlatform { MethodChannelMfaPlatform({MfaHostApi? api}); }
 ```
-Pigeon schema `pigeons/messages.dart` is the source of truth for the mobile wire format and error codes. `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable capabilities, injectable failures) — used by `flutter_mfa` unit tests and the UI example.
+**Contract (M1-10):** every `MfaPlatform` implementation throws only `VaultException`s. Platform error codes are the `VaultErrorCode` enum in the Pigeon schema and are mapped **once**, in `MethodChannelMfaPlatform` (previously planned in `MfaVault`; moved so the web vault and the channel share one contract). Native error messages/details are discarded; unknown codes → `VaultUnknown(code)`.
 
----
+Pigeon schema `tool/pigeon/messages.dart` is the source of truth for the mobile wire format and error codes (regenerate with `melos run pigeon`; it lives outside the workspace because Pigeon needs a newer analyzer than Flutter 3.35 allows). `lib/testing.dart` exports `InMemoryMfaPlatform` (configurable `currentCapabilities`, `failNext(VaultOperation, VaultException)`, simulated biometric prompt via `onBiometricPrompt`, recorded `clipboard` / `screenCaptureProtected`) — used by `flutter_mfa` unit tests and the UI example.
 
 ## 3. `flutter_mfa`
 ```dart
@@ -270,12 +272,17 @@ final class MfaClient {
   Future<void> dispose();
 }
 
-@immutable final class OtpCode { final String value; final Duration remaining; final double progress; final int step; String get grouped; }
-@immutable final class MfaClientOptions { final Clock clock; final DeviceIntegrityCheck integrityCheck; final IntegrityPolicy? integrityPolicy; final MfaLogger logger; final Duration clipboardExpiry; }
+@immutable final class OtpCode { final String value; final Duration remaining; final double progress; final int step; String get grouped; } // toString redacted (M1-11)
+@immutable final class MfaClientOptions { final Clock clock; final MfaLogger logger; final Duration clipboardExpiry; final BiometricPrompt defaultPrompt; /* + integrityCheck, integrityPolicy at M3-08 (additive) */ }
+enum MfaLogLevel { debug, info, warning, error }
+abstract interface class MfaLogger { void log(MfaLogLevel level, String message); }   // receives event names + account ids only (FR-FAC-04)
+final class SilentMfaLogger implements MfaLogger { const SilentMfaLogger(); }   // default
 abstract interface class DeviceIntegrityCheck { Future<IntegrityReport> run(); }
 typedef IntegrityPolicy = Future<void> Function(IntegrityReport report); // app decides: warn / block
 ```
-`flutter_mfa.dart` re-exports the core public API (not `testing.dart`) so apps need one import.
+`flutter_mfa.dart` re-exports the core public API (not `testing.dart`) plus `BiometricPrompt` and `VaultCapabilities`, so apps need one import.
+
+As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `currentCode`, `rename`, `remove`, `wipeAll`, `dispose`. Errors are delivered through the returned `Future`. The index loads lazily so a corrupted index (`VaultCorrupted`) never blocks `wipeAll`. HOTP counters are persisted before the code is returned. `codeStream`/`copyCode` (M2-08), `createEnrollment` (M2-10), backup (M3-04) and integrity (M3-08) follow.
 
 ---
 
