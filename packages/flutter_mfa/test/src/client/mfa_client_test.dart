@@ -433,6 +433,28 @@ void main() {
       );
     });
 
+    test(
+      'creating a client fails outside a secure context (web over HTTP)',
+      () async {
+        vault.currentCapabilities = const VaultCapabilities(
+          hardwareBacked: false,
+          strongBox: false,
+          secureEnclave: false,
+          biometricsEnrolled: false,
+          secureContext: false,
+          persistentStorage: false,
+          screenCaptureProtection: false,
+          supportedLevels: {},
+        );
+        await expectLater(
+          client(),
+          throwsA(
+            const VaultUnavailable(VaultUnavailableReason.insecureContext),
+          ),
+        );
+      },
+    );
+
     test('unknown ids are VaultNotFound everywhere', () async {
       final mfa = await client();
       await expectLater(

@@ -42,7 +42,12 @@ final class MfaClient {
     MfaClientOptions options = const MfaClientOptions(),
   }) async {
     final platform = MfaPlatform.instance;
-    await platform.capabilities();
+    final capabilities = await platform.capabilities();
+    // Fail closed: a web page outside a secure context gets no vault, so say
+    // so here rather than on the first read.
+    if (!capabilities.secureContext) {
+      throw const VaultUnavailable(VaultUnavailableReason.insecureContext);
+    }
     final client = MfaClient._(platform, options);
     try {
       await client._runIntegrity();
