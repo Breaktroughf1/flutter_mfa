@@ -1,0 +1,129 @@
+{
+  "@@locale": "en",
+  "otpCodeFieldLabel": "One-time code",
+  "@otpCodeFieldLabel": {
+    "description": "Accessible label of the code entry field."
+  },
+  "otpCodeFieldHint": "Enter the {length}-digit code",
+  "@otpCodeFieldHint": {
+    "description": "Accessible hint of the code entry field.",
+    "placeholders": {
+      "length": {
+        "type": "int"
+      }
+    }
+  },
+  "copyCode": "Copy code",
+  "@copyCode": {
+    "description": "Action that copies the current code."
+  },
+  "codeCopied": "Code copied",
+  "@codeCopied": {
+    "description": "Announced after the code was copied."
+  },
+  "showCode": "Show code",
+  "@showCode": {
+    "description": "Action that reveals a hidden code."
+  },
+  "hideCode": "Hide code",
+  "@hideCode": {
+    "description": "Action that hides the code."
+  },
+  "codeHidden": "Code hidden",
+  "@codeHidden": {
+    "description": "Accessible value of a hidden code."
+  },
+  "secondsRemaining": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}}",
+  "@secondsRemaining": {
+    "description": "Time left before the code changes.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "statusEnrolled": "Enrolled",
+  "@statusEnrolled": {
+    "description": "Status: two-factor authentication is set up."
+  },
+  "statusNotEnrolled": "Not enrolled",
+  "@statusNotEnrolled": {
+    "description": "Status: two-factor authentication is not set up."
+  },
+  "statusLocked": "Locked",
+  "@statusLocked": {
+    "description": "Status: too many failed attempts."
+  },
+  "statusKeyInvalidated": "Needs re-enrolment",
+  "@statusKeyInvalidated": {
+    "description": "Status: biometrics changed, the account must be added again."
+  },
+  "statusIntegrityWarning": "Device check warning",
+  "@statusIntegrityWarning": {
+    "description": "Status: the device integrity check reported a problem."
+  },
+  "tapToGenerate": "Tap to generate a code",
+  "@tapToGenerate": {
+    "description": "Shown for counter-based accounts before a code is generated."
+  },
+  "noAccounts": "No accounts yet",
+  "@noAccounts": {
+    "description": "Shown when the account list is empty."
+  },
+  "enrollmentQrLabel": "QR code to add this account to an authenticator app",
+  "@enrollmentQrLabel": {
+    "description": "Accessible label of the enrolment QR code."
+  },
+  "setupKey": "Setup key",
+  "@setupKey": {
+    "description": "Title of the manually typed secret."
+  },
+  "copySetupKey": "Copy setup key",
+  "@copySetupKey": {
+    "description": "Action that copies the setup key."
+  },
+  "setupKeyCopied": "Setup key copied",
+  "@setupKeyCopied": {
+    "description": "Announced after the setup key was copied."
+  },
+  "enrollmentPrivacyWarning": "Keep this private. Anyone who sees or screenshots this QR code or key can generate your sign-in codes.",
+  "@enrollmentPrivacyWarning": {
+    "description": "Warning shown with the enrolment QR code."
+  },
+  "scanHint": "Point the camera at the QR code",
+  "@scanHint": {
+    "description": "Instruction shown while scanning."
+  },
+  "cameraPermissionRequesting": "Waiting for camera permission",
+  "@cameraPermissionRequesting": {
+    "description": "Shown while the camera permission prompt is open."
+  },
+  "cameraPermissionDenied": "Camera access is needed to scan the QR code.",
+  "@cameraPermissionDenied": {
+    "description": "Shown when the camera permission was denied."
+  },
+  "cameraPermissionPermanentlyDenied": "Camera access is turned off. Allow it in Settings to scan.",
+  "@cameraPermissionPermanentlyDenied": {
+    "description": "Shown when the camera permission was denied permanently."
+  },
+  "openSettings": "Open settings",
+  "@openSettings": {
+    "description": "Action that opens the system settings."
+  },
+  "tryAgain": "Try again",
+  "@tryAgain": {
+    "description": "Action that retries."
+  },
+  "cameraUnavailable": "No camera is available. Enter the setup key instead.",
+  "@cameraUnavailable": {
+    "description": "Shown when no camera can be used."
+  },
+  "cameraInsecureContext": "Scanning needs a secure (HTTPS) page. Enter the setup key instead.",
+  "@cameraInsecureContext": {
+    "description": "Shown on the web outside a secure context."
+  },
+  "paste": "Paste",
+  "@paste": {
+    "description": "Action that pastes a code from the clipboard."
+  }
+}
