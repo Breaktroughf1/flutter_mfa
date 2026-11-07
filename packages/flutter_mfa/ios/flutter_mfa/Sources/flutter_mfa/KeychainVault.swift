@@ -148,6 +148,8 @@ final class KeychainVault: @unchecked Sendable {
     query[kSecAttrSynchronizable as String] = kCFBooleanFalse
     query[kSecReturnAttributes as String] = true
     query[kSecMatchLimit as String] = kSecMatchLimitAll
+    // Metadata only, never a prompt, even when protected items match.
+    query[kSecUseAuthenticationContext as String] = Self.nonInteractive()
     var result: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &result)
     if status == errSecItemNotFound { return [] }
@@ -179,9 +181,7 @@ final class KeychainVault: @unchecked Sendable {
     var query = itemQuery(key)
     query[kSecReturnAttributes as String] = true
     query[kSecMatchLimit as String] = kSecMatchLimitOne
-    let context = LAContext()
-    context.interactionNotAllowed = true
-    query[kSecUseAuthenticationContext as String] = context
+    query[kSecUseAuthenticationContext as String] = Self.nonInteractive()
     var result: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &result)
     if status == errSecItemNotFound { return nil }
@@ -207,6 +207,14 @@ final class KeychainVault: @unchecked Sendable {
         level: level, enrolment: Data(bytes[2...]),
         keyTag: keyTag(Data(stored.prefix(Self.keyIdSize))))
     }
+  }
+
+  /// A context that never shows authentication UI: metadata queries must
+  /// not prompt for protected items (listing keys, reading headers).
+  private static func nonInteractive() -> LAContext {
+    let context = LAContext()
+    context.interactionNotAllowed = true
+    return context
   }
 
   /// A re-enrolled biometric invalidates the entry; say so before prompting.
@@ -322,6 +330,7 @@ final class KeychainVault: @unchecked Sendable {
       kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
       kSecReturnAttributes as String: true,
       kSecMatchLimit as String: kSecMatchLimitAll,
+      kSecUseAuthenticationContext as String: Self.nonInteractive(),
     ]
     var result: CFTypeRef?
     guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
