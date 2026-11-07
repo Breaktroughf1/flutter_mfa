@@ -104,10 +104,10 @@ What `TotpVerifier` guarantees:
 
 ## Shared attempt storage
 
-Implement `AttemptStore` on storage every instance shares. `AttemptState.toJson()` and `fromJson()` give you a versioned format:
+Implement `AtomicAttemptStore` on storage every instance shares (ADR-0014). `AttemptState.toJson()` and `fromJson()` give you a versioned format. `update` must change one subject's state atomically across all instances. `AttemptLimiter` records every failure through it, so parallel failures on different instances are all counted:
 
 ```dart
-final class RedisAttemptStore implements AttemptStore {
+final class RedisAttemptStore implements AtomicAttemptStore {
   RedisAttemptStore(this.redis);
 
   final Redis redis;
@@ -124,10 +124,35 @@ final class RedisAttemptStore implements AttemptStore {
 
   @override
   Future<void> clear(String subject) => redis.del('mfa:attempts:$subject');
+
+  /// Optimistic transaction: WATCH the key, compute, MULTI/EXEC; if another
+  /// instance changed the key in between, EXEC fails and we retry.
+  @override
+  Future<AttemptState?> update(
+    String subject,
+    AttemptState? Function(AttemptState? current) change,
+  ) async {
+    final key = 'mfa:attempts:$subject';
+    while (true) {
+      await redis.watch(key);
+      final json = await redis.get(key);
+      final next = change(
+        json == null ? null : AttemptState.fromJson(jsonDecode(json) as Map<String, Object?>),
+      );
+      final committed = await redis.multi((tx) => next == null
+          ? tx.del(key)
+          : tx.set(key, jsonEncode(next.toJson())));
+      if (committed) return next;
+    }
+  }
 }
 ```
 
-`AttemptLimiter` serializes attempts per subject within one process. This sketch is last-writer-wins across processes: two instances failing at the same moment can both read the old state, so one failure is lost and limits are looser under a burst. For strict limits, route each subject to one instance, or make the write conditional on the state you read (Redis `WATCH`/`MULTI` or a Lua script) and retry the attempt when it fails.
+With SQL, run `update` in one transaction that holds a lock for the subject, then `INSERT … ON CONFLICT DO UPDATE` or `DELETE`. `SELECT … FOR UPDATE` alone is not enough: it locks nothing when the subject has no row yet, so two first failures can race. Take a lock that exists either way, for example PostgreSQL `SELECT pg_advisory_xact_lock(hashtext('mfa:' || :subject))`, or first create the row (`INSERT … ON CONFLICT DO NOTHING`) and treat a row with no failures as `null`. Because `change` can run more than once, it must have no side effects; the limiter's never does.
+
+What the limiter guarantees with an atomic store: no failure is lost, so back-off and lockout count every failure on every instance. Admission is a plain `read`, so during a burst each instance can let one attempt through before the others' failures land; the window can be exceeded by at most one attempt per instance, and each of those is counted.
+
+A store that implements only `AttemptStore` still works: the limiter then reads and writes. That is last-writer-wins across processes, so two instances failing at the same moment can lose one failure and the limits are looser under a burst. Use it only when each subject is routed to a single instance.
 
 `InMemoryAttemptStore` is for a single process and tests only.
 
@@ -136,7 +161,7 @@ final class RedisAttemptStore implements AttemptStore {
 - [ ] Server clock synchronised (NTP). Codes change every 30 s and the window tolerates ±30 s of drift.
 - [ ] Secrets encrypted at rest; the key is not in the same database.
 - [ ] `lastUsedStep` advanced with a conditional update before success is returned.
-- [ ] Attempt state shared across instances.
+- [ ] Attempt state shared across instances, with an atomic `update` (`AtomicAttemptStore`).
 - [ ] Enrolment URIs, secrets and codes never logged. flutter_mfa's own exceptions and `toString`s never contain them.
 - [ ] A recovery path (for example single-use recovery codes) for users who lose their device. Not part of flutter_mfa.
 

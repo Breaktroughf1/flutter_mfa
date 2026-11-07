@@ -142,9 +142,10 @@ final class AttemptState {
 ///
 /// Servers should back this with shared storage (Redis, SQL) so limits hold
 /// across instances and restarts; client-side limits are advisory because a
-/// device holder can reset them (ADR-0002). Stores used by several processes
-/// should make read-then-write atomic per subject, or accept that parallel
-/// requests to different processes may slightly exceed the limits.
+/// device holder can reset them (ADR-0002). A store shared by several
+/// processes should implement [AtomicAttemptStore]; otherwise parallel
+/// failures in different processes can overwrite each other, and the limits
+/// are looser under a burst.
 abstract interface class AttemptStore {
   /// The state of [subject], or `null` if it has no recorded failures.
   Future<AttemptState?> read(String subject);
@@ -156,12 +157,51 @@ abstract interface class AttemptStore {
   Future<void> clear(String subject);
 }
 
+/// An [AttemptStore] that can change one subject's state atomically
+/// (ADR-0014), so no failure is lost across processes sharing the store.
+///
+/// [AttemptLimiter] records failures with [update] when its store implements
+/// this interface, and with [read] then [write] otherwise. Admission
+/// ([AttemptLimiter.ensureAllowed]) is still a plain [read]: requests on
+/// different processes can pass it together before any of their failures is
+/// recorded, so a burst can exceed [LimiterPolicy.maxAttempts] by up to one
+/// attempt per process. Every such attempt is counted.
+abstract interface class AtomicAttemptStore implements AttemptStore {
+  /// Applies [change] to the current state of [subject] (`null` when it has
+  /// none), stores the result (`null` clears it) and returns it.
+  ///
+  /// Must be atomic with respect to every other [update], [write] and
+  /// [clear] of the same subject, across all processes using the store, for
+  /// example with Redis `WATCH`/`MULTI` or a SQL transaction that locks the
+  /// row. The store may call [change] more than once (retrying after a lost
+  /// race), so [change] must have no side effects.
+  Future<AttemptState?> update(
+    String subject,
+    AttemptState? Function(AttemptState? current) change,
+  );
+}
+
 /// Process-local [AttemptStore] kept in memory.
 ///
 /// Suitable for tests, single-instance servers and local step-up; state is
 /// lost on restart and grows with the number of subjects that failed.
-final class InMemoryAttemptStore implements AttemptStore {
+final class InMemoryAttemptStore implements AtomicAttemptStore {
   final _states = <String, AttemptState>{};
+
+  @override
+  Future<AttemptState?> update(
+    String subject,
+    AttemptState? Function(AttemptState? current) change,
+  ) async {
+    // Synchronous between read and write, so atomic within the isolate.
+    final next = change(_states[subject]);
+    if (next == null) {
+      _states.remove(subject);
+    } else {
+      _states[subject] = next;
+    }
+    return next;
+  }
 
   @override
   Future<AttemptState?> read(String subject) async => _states[subject];
@@ -245,18 +285,27 @@ final class AttemptLimiter {
 
   Future<void> _recordFailure(String subject) async {
     final now = clock.now();
-    final state = await store.read(subject);
-    final windowOpen =
-        state != null && now.isBefore(state.windowStart.add(policy.window));
-    await store.write(
-      subject,
-      AttemptState(
+    AttemptState failed(AttemptState? state) {
+      final windowOpen =
+          state != null && now.isBefore(state.windowStart.add(policy.window));
+      return AttemptState(
         consecutiveFailures: (state?.consecutiveFailures ?? 0) + 1,
         windowFailures: windowOpen ? state.windowFailures + 1 : 1,
         windowStart: windowOpen ? state.windowStart : now,
-        lastFailureAt: now,
-      ),
-    );
+        // Monotonic: a process whose clock lags must not shorten the
+        // back-off another process set.
+        lastFailureAt: state != null && state.lastFailureAt.isAfter(now)
+            ? state.lastFailureAt
+            : now,
+      );
+    }
+
+    final store = this.store;
+    if (store is AtomicAttemptStore) {
+      await store.update(subject, failed);
+    } else {
+      await store.write(subject, failed(await store.read(subject)));
+    }
   }
 
   Duration _backoff(int failures) {

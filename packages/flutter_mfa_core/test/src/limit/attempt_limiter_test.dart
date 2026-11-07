@@ -387,4 +387,141 @@ void main() {
       expect(await s.read('a'), isNull);
     });
   });
+
+  group('AtomicAttemptStore (ADR-0014)', () {
+    test('the in-memory store applies updates and clears on null', () async {
+      final store = InMemoryAttemptStore();
+      expect(store, isA<AtomicAttemptStore>());
+      final t = DateTime.utc(2026, 11, 7);
+      final first = AttemptState(
+        consecutiveFailures: 1,
+        windowFailures: 1,
+        windowStart: t,
+        lastFailureAt: t,
+      );
+      expect(
+        await store.update('s', (current) {
+          expect(current, isNull);
+          return first;
+        }),
+        first,
+      );
+      expect(await store.read('s'), first);
+      expect(await store.update('s', (_) => null), isNull);
+      expect(await store.read('s'), isNull);
+    });
+
+    test(
+      'the limiter records failures through update, so parallel limiters '
+      'sharing one store lose no failure',
+      () async {
+        final store = _RacyAtomicStore();
+        final clock = (_Clock()..value = DateTime.utc(2026, 11, 7));
+        // Two limiters model two server processes: no shared in-process lock.
+        final a = AttemptLimiter(store: store, clock: clock);
+        final b = AttemptLimiter(store: store, clock: clock);
+        await Future.wait([
+          for (var i = 0; i < 10; i++)
+            (i.isEven ? a : b).recordFailure('alice'),
+        ]);
+        final state = await store.read('alice');
+        expect(state!.consecutiveFailures, 10);
+        expect(store.updates, 10);
+        expect(store.writes, 0, reason: 'never read-then-write');
+      },
+    );
+
+    test(
+      'a process with a lagging clock does not move lastFailureAt back',
+      () async {
+        final store = InMemoryAttemptStore();
+        final t = DateTime.utc(2026, 11, 7, 12);
+        await AttemptLimiter(
+          store: store,
+          clock: (_Clock()..value = t),
+        ).recordFailure('carol');
+        await AttemptLimiter(
+          store: store,
+          clock: (_Clock()..value = t.subtract(const Duration(seconds: 5))),
+        ).recordFailure('carol');
+        final state = (await store.read('carol'))!;
+        expect(state.consecutiveFailures, 2);
+        expect(state.lastFailureAt, t);
+      },
+    );
+
+    test('a plain store still works through read and write', () async {
+      final store = _PlainStore();
+      final limiter = AttemptLimiter(
+        store: store,
+        clock: (_Clock()..value = DateTime.utc(2026, 11, 7)),
+      );
+      await limiter.recordFailure('bob');
+      await limiter.recordFailure('bob');
+      expect((await store.read('bob'))!.consecutiveFailures, 2);
+    });
+  });
+}
+
+/// A shared store whose plain read/write would race (it yields between
+/// them), but whose update is atomic: a model of Redis WATCH/MULTI.
+final class _RacyAtomicStore implements AtomicAttemptStore {
+  final _states = <String, AttemptState>{};
+  var updates = 0;
+  var writes = 0;
+  Future<void> _tail = Future.value();
+
+  @override
+  Future<AttemptState?> read(String subject) async {
+    await Future<void>.delayed(Duration.zero);
+    return _states[subject];
+  }
+
+  @override
+  Future<void> write(String subject, AttemptState state) async {
+    writes++;
+    await Future<void>.delayed(Duration.zero);
+    _states[subject] = state;
+  }
+
+  @override
+  Future<void> clear(String subject) async => _states.remove(subject);
+
+  @override
+  Future<AttemptState?> update(
+    String subject,
+    AttemptState? Function(AttemptState? current) change,
+  ) {
+    final previous = _tail;
+    final done = Completer<AttemptState?>();
+    _tail = done.future.then((_) {});
+    unawaited(
+      previous.then((_) async {
+        await Future<void>.delayed(Duration.zero);
+        updates++;
+        final next = change(_states[subject]);
+        if (next == null) {
+          _states.remove(subject);
+        } else {
+          _states[subject] = next;
+        }
+        done.complete(next);
+      }),
+    );
+    return done.future;
+  }
+}
+
+final class _PlainStore implements AttemptStore {
+  final _states = <String, AttemptState>{};
+
+  @override
+  Future<AttemptState?> read(String subject) async => _states[subject];
+
+  @override
+  Future<void> write(String subject, AttemptState state) async =>
+      _states[subject] = state;
+
+  @override
+  Future<void> clear(String subject) async => _states.remove(subject);
 }

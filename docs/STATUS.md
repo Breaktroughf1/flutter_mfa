@@ -63,6 +63,7 @@ Updated by Claude Code after every task. Newest at the bottom.
 | 7 Nov 2026 | M3-08 | Done | see git log | 4 unit tests (default, create + check, blocking policy, report value/printing); example widget test for the settings page | FR-FAC-03. Defined the undefined `IntegrityReport` as a verdict (`trusted`, `suspicious`, `compromised`, `unknown`) plus short signal names (no device data), with `NoopIntegrityCheck` → `unknown` and `allowAllIntegrity` as the default policy. **Decision:** `MfaClient.create` runs the check and policy once (a throwing policy makes `create` throw and disposes the client), and `checkIntegrity()` re-runs them on demand; this closes the last undefined types from the M0 list except `CompatibilityWarning`. Only the verdict name is logged. Example: a Settings page (app-bar action) shows hardware backing, biometrics, the protection levels on this device, and the integrity verdict with a re-check button and the detection-not-prevention note. |
 | 7 Nov 2026 | M3-09 | Done | see git log | 3 example widget tests (protection picker stores the chosen level; export with a too-short then a valid passphrase, restore with a wrong then the right passphrase and keep both; key-invalidated card with removal) | FR-EX-02. Add-account dialog: protection picker limited to `capabilities.supportedLevels`. Settings: export (passphrase twice, `PassphrasePolicy` failures explained, armoured text copied with an ordinary clipboard write since it is encrypted) and restore (paste armour, passphrase, duplicate strategy, import summary). Account detail: a recovery card for `VaultKeyInvalidated` with "Restore from backup" (preselects replace) and "Remove account". Backup errors added to `error_text.dart`. **Note:** the example stores backups as text the user copies; it adds no file-picker dependency. The scan path still enrols at `standard` (the picker is on the typed-key path only). Widget tests drive the real codec through `runAsync`, since its isolate does not advance fake time. |
 | 7 Nov 2026 | M3-10 | Done | see git log | — | `docs/security/threat-model.md` v1 (P-F6), as built through M3. It covers assets, trust boundaries and data flows, per-platform storage as built, adversaries T1–T8 (T8 is new: crafted files and QR codes), S1–S18 updated to the code, and the risks found during M1–M3: S19 crafted backup (iteration cap), S20 partial import, S21 duplicate matching, S22 unwipeable copies (isolate, Base32 JSON), S23 accounts lost after a biometric change, S24 iOS delete+add replace, S25 prompts while listing, S26 example passphrase UX. Assumptions and open items before 1.0: the manual device pass, ARDC dynamic testing, the atomic `AttemptStore.update` ADR (M4) and an optional downgrade on import. |
+| 7 Nov 2026 | M4-00 (ADR-0014) | Done | see git log | 3 tests (in-memory update and clear; two limiters sharing a racy store lose no failure through `update`; plain store still uses read/write) | Maintainer decision 5 at the M3 checkpoint. `AtomicAttemptStore` is a new optional interface, so existing `AttemptStore` implementations keep compiling (ADR-0011 allows additive changes). `AttemptLimiter` records failures through `update` when available. `InMemoryAttemptStore` implements it. The cookbook shows Redis WATCH/MULTI with retry and SQL `FOR UPDATE`. Threat model S1 is updated. |
 
 ## Environment (M0-01)
 Verified 28 Oct 2026 in the Claude Code cloud container (Ubuntu 24.04, x86_64). Sources: Flutter release manifest, pub.dev API, developer.android.com.
@@ -110,6 +111,16 @@ See docs/00_STUDY.md §7.
 - `formatter.trailing_commas: preserve` added so `require_trailing_commas` stays.
 - Coverage gates are hard 85/75 (core 95/90) from day one: no staged 70 % threshold at M1.
 - Branch: the session's designated branch `claude/determined-wright-aqfz9k` is used instead of `chore/M0-setup` (the harness only permits pushes there).
+
+## Maintainer decisions taken at the M3 checkpoint (7 Nov 2026)
+
+All six recommendations were accepted ("go with your recommendations, start M4"):
+1. The threat model (#35) goes to ARDC for review; the maintainer arranges it.
+2. The real-device biometric pass (05 §5.1) runs before #31/#32 are merged; the maintainer runs it.
+3. Import keeps failing closed when a protection level is missing; no downgrade option for now.
+4. Android API 24–29 offers no biometric levels.
+5. ADR-0014 (atomic `AttemptStore.update`) is the first M4 task.
+6. The example's scan path gets the protection picker in M4.
 
 ## Maintainer decisions taken at the M2 checkpoint (6 Nov 2026)
 The maintainer replied "go", accepting every recommendation in the M2 checkpoint report:

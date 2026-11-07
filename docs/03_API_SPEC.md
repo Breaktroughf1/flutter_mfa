@@ -117,15 +117,18 @@ abstract interface class AttemptStore {
   Future<void> write(String subject, AttemptState state);
   Future<void> clear(String subject);                          // also the administrative unlock
 }
+abstract interface class AtomicAttemptStore implements AttemptStore {   // ADR-0014 (additive)
+  Future<AttemptState?> update(String subject, AttemptState? Function(AttemptState? current) change);   // atomic per subject; null clears; change may run more than once
+}
 final class AttemptLimiter {
   AttemptLimiter({required AttemptStore store, LimiterPolicy policy = const LimiterPolicy(), Clock clock = const SystemClock()});
   Future<void> ensureAllowed(String subject);     // throws VerificationRateLimited(retryAfter, lockedOut)
   Future<void> recordFailure(String subject);
   Future<void> recordSuccess(String subject);
 }
-final class InMemoryAttemptStore implements AttemptStore { … }   // main library only (not testing.dart)
+final class InMemoryAttemptStore implements AtomicAttemptStore { … }   // main library only (not testing.dart)
 ```
-Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity is the store's responsibility (documented).
+Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity: failures are recorded through `AtomicAttemptStore.update` when the store implements it (ADR-0014); a plain `AttemptStore` is read-then-write, last-writer-wins across processes (documented). With an atomic store no failure is lost; admission stays a plain read, so across processes a burst can exceed `maxAttempts` by at most one attempt per process, each still counted. `lastFailureAt` never moves backwards.
 
 ### 1.6 otpauth URIs
 ```dart
