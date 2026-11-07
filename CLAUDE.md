@@ -39,7 +39,7 @@ cd packages/flutter_mfa/example && flutter drive --driver=test_driver/integratio
 6. **No new dependencies** without noting licence (MIT/BSD/Apache-2.0 only), last release date, and size in the PR and, if lasting, an ADR line. Core may depend only on `crypto`, `meta`, `collection`, and the AEAD/KDF package chosen in ADR-0007.
 7. **Public API = `03_API_SPEC.md`.** If implementation shows the spec is wrong, stop, explain, propose the change, update the spec in the same PR once approved.
 8. **Every public member has dartdoc** with at least one sentence; security-relevant members say what they protect against and what they don't.
-9. **Platform floors:** Dart >=3.9.0 <4.0.0, Flutter >=3.35.0, Android minSdk 23, iOS 13, web secure contexts. Code must compile to web JS and WASM (`package:web`, `dart:js_interop`; never `dart:html`).
+9. **Platform floors:** Dart >=3.9.0 <4.0.0, Flutter >=3.35.0, Android minSdk 24, iOS 15, web secure contexts (raised from 23/13 at M0-05: current Flutter stable rejects minSdk ≤ 23 and targets iOS ≥ 15). Code must compile to web JS and WASM (`package:web`, `dart:js_interop`; never `dart:html`).
 10. **Never** commit real secrets/PII, never disable a lint to make CI pass without a comment and maintainer approval, never weaken a test to make it pass, never push tags or publish to pub.dev (maintainer does that).
 
 ## Style

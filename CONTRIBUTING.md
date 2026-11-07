@@ -8,19 +8,23 @@ Thanks for helping. This is security software, so the bar is deliberately high �
 - Be kind: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Setup
+Requires Flutter stable (CI pins the version in `.github/workflows/ci.yml`; floor 3.35) and, for browser tests, Chrome (or set `CHROME_EXECUTABLE`).
 ```bash
 git clone https://github.com/Breaktroughf1/flutter_mfa && cd flutter_mfa
-dart pub global activate melos
-dart pub get
-melos run verify
+dart pub global activate melos   # Melos 8.x; make sure ~/.pub-cache/bin is on PATH
+flutter pub get                  # resolves the whole pub workspace (one root pubspec.lock)
+melos run verify                 # format, analyze, guard scripts, all tests + coverage gates
 ```
+Useful scripts: `melos run test:core` (fast core loop), `melos run test`, `melos run coverage`, `melos run test:goldens` (only valid on the pinned Linux CI image).
+
+Test layout: tests mirror `lib/src/`; browser-only tests go in `test/web/` with `@TestOn('browser')`; golden tests use the `golden` tag.
 
 ## Workflow
 1. Open or pick an issue; comment that you're working on it.
 2. Branch: `feat/<short-name>`, `fix/<short-name>`, `docs/<short-name>`.
 3. Write tests first for logic in `flutter_mfa_core`.
 4. `melos run verify` must pass. Coverage gates: core ≥ 95 % lines / 90 % branches, other packages ≥ 85 % / 75 %.
-5. Commit with [Conventional Commits](https://www.conventionalcommits.org) and **sign off** every commit (`git commit -s`) — this certifies the [Developer Certificate of Origin](https://developercertificate.org).
+5. Commit with [Conventional Commits](https://www.conventionalcommits.org) and **sign off** every commit (`git commit -s`) — this certifies the [Developer Certificate of Origin](https://developercertificate.org). Scopes: core, platform, plugin, android, ios, web, ui, qr, example, ci, docs.
 6. Open a PR using the template. A code owner must approve; CI must be green.
 
 ## Design rules (summary)

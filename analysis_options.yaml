@@ -1,6 +1,14 @@
 # Shared strict analysis. Each package: `include: ../../analysis_options.yaml`
-# Consider adding package:very_good_analysis or package:lints/recommended as a base at M0 (record the choice).
+# (examples: `../../../analysis_options.yaml`).
+# Base: package:lints/recommended (M0-03 decision, recorded in docs/STATUS.md) plus the
+# stricter rules below. very_good_analysis was not adopted to keep dependencies minimal.
 include: package:lints/recommended.yaml
+
+# Dart >= 3.7 "tall" formatting decides trailing commas itself, which conflicts with
+# `require_trailing_commas`. Preserving existing commas lets both pass
+# (maintainer-approved, 28 Oct 2026).
+formatter:
+  trailing_commas: preserve
 
 analyzer:
   language:
@@ -14,8 +22,9 @@ analyzer:
     discarded_futures: error
   exclude:
     - "**/*.g.dart"
-    - "**/messages.g.dart"
     - "**/l10n/generated/**"
+    - "**/build/**"
+    - "**/.dart_tool/**"
 
 linter:
   rules:

@@ -1,0 +1,20 @@
+name: Set up flutter_mfa workspace
+description: Installs the pinned Flutter SDK and Melos, then resolves the pub workspace.
+inputs:
+  flutter-version:
+    description: Flutter version to install (defaults to the version pinned in ci.yml).
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: stable
+        cache: true
+    - name: Install Melos
+      shell: bash
+      run: dart pub global activate melos 8.10.0
+    - name: Resolve workspace
+      shell: bash
+      run: flutter pub get
