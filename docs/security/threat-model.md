@@ -66,7 +66,7 @@ S1 to S18 are carried over from 04 §4 and updated to match the code. S19 onward
 
 | # | Threat | Adv. | Mitigation as built | Residual risk |
 |---|---|---|---|---|
-| S1 | Guessing codes at the verifier | T1 | `AttemptLimiter` is consulted before any HMAC; exponential back-off and lockout; cookbook shows a shared store | Integrators must keep limiter state on the server and implement `AtomicAttemptStore.update` atomically (ADR-0014; cookbook shows Redis and SQL); a plain `AttemptStore` is last-writer-wins across processes |
+| S1 | Guessing codes at the verifier | T1 | `AttemptLimiter` is consulted before any HMAC; exponential back-off and lockout; cookbook shows a shared store | Integrators must keep limiter state on the server and implement `AtomicAttemptStore.update` atomically (ADR-0014; cookbook shows Redis and SQL); a plain `AttemptStore` is last-writer-wins across processes; even with an atomic store, a burst across N instances can exceed `maxAttempts` by up to N attempts (all counted) |
 | S2 | Replaying a seen code | T1 | `TotpVerifier` rejects steps at or before `lastUsedStep` and returns the next state; cookbook uses compare-and-set | Integrators must persist the new state atomically |
 | S3 | Seed from an OS backup | T3 | Android `noBackupFilesDir`; iOS `ThisDeviceOnly`, not synchronizable | None known |
 | S4 | Seed from a disk image | T3 | Only ciphertext on disk; keys non-exportable (TEE/StrongBox/Keychain/Secure Enclave) | On a jailbroken, unlocked iPhone, `standard` Keychain items are readable (T5) |

@@ -431,6 +431,25 @@ void main() {
       },
     );
 
+    test(
+      'a process with a lagging clock does not move lastFailureAt back',
+      () async {
+        final store = InMemoryAttemptStore();
+        final t = DateTime.utc(2026, 11, 7, 12);
+        await AttemptLimiter(
+          store: store,
+          clock: (_Clock()..value = t),
+        ).recordFailure('carol');
+        await AttemptLimiter(
+          store: store,
+          clock: (_Clock()..value = t.subtract(const Duration(seconds: 5))),
+        ).recordFailure('carol');
+        final state = (await store.read('carol'))!;
+        expect(state.consecutiveFailures, 2);
+        expect(state.lastFailureAt, t);
+      },
+    );
+
     test('a plain store still works through read and write', () async {
       final store = _PlainStore();
       final limiter = AttemptLimiter(
