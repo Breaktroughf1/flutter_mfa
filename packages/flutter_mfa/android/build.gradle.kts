@@ -45,6 +45,7 @@ android {
     }
 
     defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Floor: API 24 (NFR-07). Keystore AES-GCM needs 23; Flutter 3.47 requires 24.
         minSdk = 24
     }
@@ -76,4 +77,7 @@ dependencies {
     // Required by the Pigeon-generated channel code (suspend host methods). Apache-2.0.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("org.jetbrains.kotlin:kotlin-test")
 }
