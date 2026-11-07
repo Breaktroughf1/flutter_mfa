@@ -1,3 +1,4 @@
+import CryptoKit
 import Flutter
 import LocalAuthentication
 import UIKit
@@ -28,13 +29,22 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
     return CapabilitiesMessage(
       hardwareBacked: hardware,
       strongBox: false,
-      secureEnclave: hardware,
+      secureEnclave: SecureEnclave.isAvailable,
       biometricsEnrolled: LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil),
       persistentStorage: true,
       screenCaptureProtection: false,
-      // Biometric and hardware-bound levels arrive in M3-06 (fail closed until then).
-      supportedLevels: [.standard]
+      // Offered only when they can be provided now; never a silent downgrade.
+      supportedLevels: Self.supportedLevels(biometry: Biometry.available, enclave: SecureEnclave.isAvailable)
     )
+  }
+
+  /// Protection levels this device can provide: `biometric` needs an enrolled
+  /// biometric, `hardwareBound` also needs the Secure Enclave.
+  static func supportedLevels(biometry: Bool, enclave: Bool) -> [ProtectionLevelMessage] {
+    var levels: [ProtectionLevelMessage] = [.standard]
+    if biometry { levels.append(.biometric) }
+    if biometry && enclave { levels.append(.hardwareBound) }
+    return levels
   }
 
   // Pigeon calls the async handlers on the main actor; Keychain access can
@@ -57,7 +67,7 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
     let data = try await Task.detached {
       try Self.mapped {
         try freshInstall.ensure()
-        return try vault.read(key: key)
+        return try vault.read(key: key, prompt: prompt)
       }
     }.value
     return data.map { FlutterStandardTypedData(bytes: $0) }
