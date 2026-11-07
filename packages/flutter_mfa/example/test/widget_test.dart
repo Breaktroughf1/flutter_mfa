@@ -424,4 +424,17 @@ void main() {
       await unmount(tester);
     },
   );
+
+  testWidgets('settings can hide the app from screenshots (FR-FAC-06)', (
+    tester,
+  ) async {
+    await boot(tester);
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    expect(vault.screenCaptureProtected, isFalse);
+    await tester.tap(find.text('Hide from screenshots'));
+    await tester.pumpAndSettle();
+    expect(vault.screenCaptureProtected, isTrue);
+    await unmount(tester);
+  });
 }

@@ -267,6 +267,7 @@ final class MfaClient {
   Stream<OtpCode> codeStream(String accountId, {BiometricPrompt? prompt});    // TOTP only
   Future<void> copyCode(String accountId);                                     // via copySensitive
   Future<void> copySensitive(String text);                                     // codes or setup keys; clipboardExpiry (M2-08)
+  Future<void> setScreenCaptureProtection(bool enabled);                       // FR-FAC-06; Android FLAG_SECURE, no-op elsewhere (M4-05)
 
   // mutation
   Future<OtpAccount> rename(String accountId, {String? issuer, String? accountName});

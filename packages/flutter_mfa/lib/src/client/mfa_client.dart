@@ -354,6 +354,23 @@ final class MfaClient {
     return _platform.copySensitive(text, expiry: _options.clipboardExpiry);
   }
 
+  /// Hides the app from screenshots, screen recording and the recent-apps
+  /// preview while [enabled] (FR-FAC-06): Android `FLAG_SECURE` on the
+  /// current activity, kept across activity re-creation.
+  ///
+  /// iOS and the web cannot block screenshots; there this does nothing, and
+  /// `capabilities.screenCaptureProtection` is `false`, so apps can explain
+  /// it or blur their own snapshot. It does not stop a camera pointed at the
+  /// screen or a rooted device.
+  Future<void> setScreenCaptureProtection(bool enabled) async {
+    _checkOpen();
+    await _platform.setScreenCaptureProtection(enabled);
+    _log(
+      MfaLogLevel.info,
+      'screen capture protection ${enabled ? 'on' : 'off'}',
+    );
+  }
+
   /// Changes the displayed [issuer] and/or [accountName] of an account.
   /// `null` leaves a field unchanged.
   Future<OtpAccount> rename(

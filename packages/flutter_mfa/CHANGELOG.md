@@ -6,6 +6,10 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `MfaClient.setScreenCaptureProtection`: hides the app from screenshots and
+  the recent-apps preview on Android (`FLAG_SECURE`); no-op on iOS and the
+  web, as `capabilities.screenCaptureProtection` reports (FR-FAC-06).
+
 - Device integrity hook: `DeviceIntegrityCheck`, `NoopIntegrityCheck`,
   `IntegrityReport`, `IntegrityVerdict`, `IntegrityPolicy` and
   `MfaClient.checkIntegrity`; `create` applies the policy (FR-FAC-03).

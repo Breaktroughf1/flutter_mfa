@@ -20,6 +20,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   VaultCapabilities? _capabilities;
   IntegrityReport? _integrity;
+  bool _hideFromScreenshots = false;
   String? _integrityError;
 
   @override
@@ -51,6 +52,11 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     }
+  }
+
+  Future<void> _setHideFromScreenshots(bool value) async {
+    await widget.client.setScreenCaptureProtection(value);
+    if (mounted) setState(() => _hideFromScreenshots = value);
   }
 
   Future<void> _export() => showDialog<void>(
@@ -115,6 +121,15 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ],
+          if (caps != null && caps.screenCaptureProtection)
+            SwitchListTile(
+              title: const Text('Hide from screenshots'),
+              subtitle: const Text(
+                'Also hides the app in the recent-apps view.',
+              ),
+              value: _hideFromScreenshots,
+              onChanged: _setHideFromScreenshots,
+            ),
           const _Heading('Backup'),
           ListTile(
             leading: const Icon(Icons.upload_outlined),

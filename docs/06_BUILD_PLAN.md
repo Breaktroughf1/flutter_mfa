@@ -100,15 +100,15 @@ Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target)
 
 | ✓ | ID | Task | Req |
 |---|---|---|---|
-| ☐ | M4-01 | Coverage to ≥ 85/75 everywhere; core ≥ 95/90 | NFR-01/02 |
-| ☐ | M4-02 | Logging-leak test across the full journey | FR-FAC-04 |
+| ✅ | M4-01 | Coverage to ≥ 85/75 everywhere; core ≥ 95/90 | NFR-01/02 |
+| ✅ | M4-02 | Logging-leak test across the full journey | FR-FAC-04 |
 | ☐ | M4-03 | Integration tests for full journey on Android, iOS, web in CI | FR-EX-03 |
 | ☐ | M4-04 | Security CI: gitleaks, osv-scanner, forbidden-API grep, license allowlist, Actions pinned by SHA | NFR-09/10 |
-| ☐ | M4-05 | `FLAG_SECURE` option | FR-FAC-06 |
+| ✅ | M4-05 | `FLAG_SECURE` option | FR-FAC-06 |
 | ☐ | M4-06 | MASVS checklist completed with evidence links `docs/security/masvs-checklist.md` | NFR-12 |
 | ☐ | M4-07 | Dynamic test support: write `docs/security/dynamic-test-guide.md` for ARDC testers (what to attack, how to report) | §9 security |
 | ☐ | M4-08 | `pana` locally for every package → 160/160; fix findings | NFR-04 |
-| ☐ | M4-09 | Dartdoc completeness (`public_member_api_docs`), API reference review | NFR-08 |
+| ✅ | M4-09 | Dartdoc completeness (`public_member_api_docs`), API reference review | NFR-08 |
 | ☐ | M4-10 | CHANGELOGs → 0.2.0 sections; versions bumped; `melos version` dry run | NFR-11 |
 | ☐ | M4-11 | Manual a11y pass #2; dynamic security report triaged; all high findings fixed | §9 |
 
