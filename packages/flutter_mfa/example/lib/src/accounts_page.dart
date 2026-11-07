@@ -29,6 +29,10 @@ class _AccountsPageState extends State<AccountsPage> {
   Stream<List<OtpAccount>>? _accounts;
   Object? _startError;
 
+  /// Screen capture protection lasts as long as the client, so its switch
+  /// state lives here rather than in the Settings page.
+  final _hideFromScreenshots = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +58,7 @@ class _AccountsPageState extends State<AccountsPage> {
   @override
   void dispose() {
     unawaited(_client?.dispose());
+    _hideFromScreenshots.dispose();
     super.dispose();
   }
 
@@ -120,7 +125,10 @@ class _AccountsPageState extends State<AccountsPage> {
               icon: const Icon(Icons.settings_outlined),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => SettingsPage(client: client),
+                  builder: (_) => SettingsPage(
+                    client: client,
+                    hideFromScreenshots: _hideFromScreenshots,
+                  ),
                 ),
               ),
             ),

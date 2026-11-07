@@ -7,8 +7,8 @@ All notable changes to this package are documented here. The format follows
 ## 0.2.0
 
 - `AtomicAttemptStore`: optional atomic per-subject `update` for shared
-  attempt stores; `AttemptLimiter` records failures through it, so limits hold
-  exactly across processes. `InMemoryAttemptStore` implements it (ADR-0014).
+  attempt stores; `AttemptLimiter` records failures through it, so no failure is
+  lost across processes. `InMemoryAttemptStore` implements it (ADR-0014).
 
 - `BackupCodec` and `BackupEntry`: encrypted backup format v1 (PBKDF2-HMAC-SHA256,
   600 000 iterations, AES-256-GCM with the header authenticated), ASCII armour,
