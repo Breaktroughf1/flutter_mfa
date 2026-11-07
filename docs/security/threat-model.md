@@ -66,7 +66,7 @@ S1 to S18 are carried over from 04 §4 and updated to match the code. S19 onward
 
 | # | Threat | Adv. | Mitigation as built | Residual risk |
 |---|---|---|---|---|
-| S1 | Guessing codes at the verifier | T1 | `AttemptLimiter` is consulted before any HMAC; exponential back-off and lockout; cookbook shows a shared store | Integrators must keep limiter state on the server; the cookbook's Redis example is last-writer-wins (documented) |
+| S1 | Guessing codes at the verifier | T1 | `AttemptLimiter` is consulted before any HMAC; exponential back-off and lockout; cookbook shows a shared store | Integrators must keep limiter state on the server and implement `AtomicAttemptStore.update` atomically (ADR-0014; cookbook shows Redis and SQL); a plain `AttemptStore` is last-writer-wins across processes |
 | S2 | Replaying a seen code | T1 | `TotpVerifier` rejects steps at or before `lastUsedStep` and returns the next state; cookbook uses compare-and-set | Integrators must persist the new state atomically |
 | S3 | Seed from an OS backup | T3 | Android `noBackupFilesDir`; iOS `ThisDeviceOnly`, not synchronizable | None known |
 | S4 | Seed from a disk image | T3 | Only ciphertext on disk; keys non-exportable (TEE/StrongBox/Keychain/Secure Enclave) | On a jailbroken, unlocked iPhone, `standard` Keychain items are readable (T5) |
@@ -104,5 +104,5 @@ S1 to S18 are carried over from 04 §4 and updated to match the code. S19 onward
 
 1. **Manual device pass** ([05 §5.1](../05_TEST_PLAN.md)). This covers the prompt itself, cancel and lockout mapping, invalidation after a new enrolment, StrongBox, the Secure Enclave, and API ≤ 29 behaviour. Emulators and simulators cannot exercise these.
 2. **Dynamic testing** (ARDC security track, M4). This covers a Frida attempt at S5, backup extraction (S3), clipboard and screenshot checks (S6, S7), and checking that MASVS evidence is ticked in `masvs-checklist.md`.
-3. **Atomic `AttemptStore.update`** (maintainer-approved at M2). It would let a shared limiter avoid last-writer-wins without a store-specific compare-and-set (S1). This is an ADR and an API addition for M4.
-4. **Optional downgrade on import** (S20/S23). Today an account whose level the new device lacks fails the whole import. An explicit opt-in to import at `standard` could be added if integrators ask for it.
+3. ~~Atomic `AttemptStore.update`~~ Done at M4: `AtomicAttemptStore` (ADR-0014).
+4. **Optional downgrade on import** (S20/S23). An account whose level the new device lacks fails the whole import. Maintainer decision at the M3 checkpoint: keep failing closed; add an explicit opt-in only if integrators ask for it.

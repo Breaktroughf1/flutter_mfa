@@ -18,6 +18,7 @@ export 'src/limit/attempt_limiter.dart'
     show
         AttemptLimiter,
         AttemptState,
+        AtomicAttemptStore,
         AttemptStore,
         InMemoryAttemptStore,
         LimiterPolicy;
