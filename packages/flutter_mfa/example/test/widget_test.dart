@@ -435,6 +435,19 @@ void main() {
     await tester.tap(find.text('Hide from screenshots'));
     await tester.pumpAndSettle();
     expect(vault.screenCaptureProtected, isTrue);
+    // Leaving and reopening Settings shows the protection still on.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.widgetWithText(SwitchListTile, 'Hide from screenshots'),
+          )
+          .value,
+      isTrue,
+    );
     await unmount(tester);
   });
 }

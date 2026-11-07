@@ -158,10 +158,14 @@ abstract interface class AttemptStore {
 }
 
 /// An [AttemptStore] that can change one subject's state atomically
-/// (ADR-0014), so limits hold exactly across processes sharing the store.
+/// (ADR-0014), so no failure is lost across processes sharing the store.
 ///
 /// [AttemptLimiter] records failures with [update] when its store implements
-/// this interface, and with [read] then [write] otherwise.
+/// this interface, and with [read] then [write] otherwise. Admission
+/// ([AttemptLimiter.ensureAllowed]) is still a plain [read]: requests on
+/// different processes can pass it together before any of their failures is
+/// recorded, so a burst can exceed [LimiterPolicy.maxAttempts] by up to one
+/// attempt per process. Every such attempt is counted.
 abstract interface class AtomicAttemptStore implements AttemptStore {
   /// Applies [change] to the current state of [subject] (`null` when it has
   /// none), stores the result (`null` clears it) and returns it.
@@ -288,7 +292,11 @@ final class AttemptLimiter {
         consecutiveFailures: (state?.consecutiveFailures ?? 0) + 1,
         windowFailures: windowOpen ? state.windowFailures + 1 : 1,
         windowStart: windowOpen ? state.windowStart : now,
-        lastFailureAt: now,
+        // Monotonic: a process whose clock lags must not shorten the
+        // back-off another process set.
+        lastFailureAt: state != null && state.lastFailureAt.isAfter(now)
+            ? state.lastFailureAt
+            : now,
       );
     }
 
