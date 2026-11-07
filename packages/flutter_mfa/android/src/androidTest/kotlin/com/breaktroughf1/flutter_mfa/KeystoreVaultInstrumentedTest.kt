@@ -9,6 +9,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +25,7 @@ class KeystoreVaultInstrumentedTest {
     @Before
     fun setUp() {
         dir = File(context.noBackupFilesDir, "flutter_mfa_test")
-        vault = FileVault(dir, KeystoreCrypto(strongBoxAvailable = false))
+        vault = FileVault(dir, KeystoreCrypto(strongBoxAvailable = false), UnsupportedProtectedKeys)
         vault.wipe()
     }
 
@@ -37,7 +38,7 @@ class KeystoreVaultInstrumentedTest {
     @Test
     fun roundTripsThroughTheKeystore() {
         vault.write("acct_1", "12345678901234567890".toByteArray(), ProtectionLevelMessage.STANDARD)
-        assertContentEquals("12345678901234567890".toByteArray(), vault.read("acct_1"))
+        assertContentEquals("12345678901234567890".toByteArray(), runBlocking { vault.read("acct_1") })
         assertEquals(listOf("acct_1"), vault.keys())
     }
 
@@ -63,7 +64,7 @@ class KeystoreVaultInstrumentedTest {
         val bytes = file.readBytes()
         bytes[bytes.size - 1] = (bytes[bytes.size - 1].toInt() xor 1).toByte()
         file.writeBytes(bytes)
-        assertEquals(VaultErrorCode.CORRUPTED, assertFailsWith<VaultFailure> { vault.read("a") }.code)
+        assertEquals(VaultErrorCode.CORRUPTED, assertFailsWith<VaultFailure> { runBlocking { vault.read("a") } }.code)
     }
 
     @Test
@@ -73,7 +74,7 @@ class KeystoreVaultInstrumentedTest {
         vault.wipe()
         dir.mkdirs()
         File(dir, "61.bin").writeBytes(copy) // restore the old ciphertext
-        assertEquals(VaultErrorCode.CORRUPTED, assertFailsWith<VaultFailure> { vault.read("a") }.code)
+        assertEquals(VaultErrorCode.CORRUPTED, assertFailsWith<VaultFailure> { runBlocking { vault.read("a") } }.code)
     }
 
     @Test
