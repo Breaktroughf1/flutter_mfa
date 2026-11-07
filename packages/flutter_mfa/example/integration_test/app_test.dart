@@ -135,16 +135,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Enter setup key'));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Account name'),
-        name,
-      );
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Secret key (Base32)'),
-        _secret,
-      );
-      // The dialog scrolls on small screens (320x640 emulators): bring the
-      // choice into view before tapping, and check it took.
+      // Choose the type before typing: once a field has focus the device's
+      // keyboard slides in and moves the dialog while the test taps. The
+      // dialog also scrolls on 320x640 emulators, so bring the choice into
+      // view, and check it took.
       final counter = find.text('Counter-based');
       await tester.ensureVisible(counter);
       await tester.pumpAndSettle();
@@ -158,6 +152,14 @@ void main() {
             .selected,
         {OtpType.hotp},
         reason: _screen(tester),
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Account name'),
+        name,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Secret key (Base32)'),
+        _secret,
       );
       await tester.tap(find.text('Add'));
       await openAccount();
