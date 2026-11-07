@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 
+import 'backup_dialogs.dart';
+
 /// Device protection and integrity status (FR-EX-02, FR-FAC-03).
 class SettingsPage extends StatefulWidget {
   /// Creates the page for [client].
@@ -51,6 +53,23 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _export() => showDialog<void>(
+    context: context,
+    builder: (_) => ExportBackupDialog(client: widget.client),
+  );
+
+  Future<void> _restore() async {
+    final report = await showDialog<ImportReport>(
+      context: context,
+      builder: (_) => RestoreBackupDialog(client: widget.client),
+    );
+    if (report != null && mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(importSummary(report))));
+    }
+  }
+
   static String _level(ProtectionLevel level) => switch (level) {
     ProtectionLevel.standard => 'Standard',
     ProtectionLevel.biometric => 'Biometric',
@@ -96,6 +115,18 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ],
+          const _Heading('Backup'),
+          ListTile(
+            leading: const Icon(Icons.upload_outlined),
+            title: const Text('Export encrypted backup'),
+            subtitle: const Text('Protected by a passphrase you choose'),
+            onTap: _export,
+          ),
+          ListTile(
+            leading: const Icon(Icons.download_outlined),
+            title: const Text('Restore from backup'),
+            onTap: _restore,
+          ),
           const _Heading('Integrity'),
           ListTile(
             title: Text(

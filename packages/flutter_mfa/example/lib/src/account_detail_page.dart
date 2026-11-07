@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 
+import 'add_account_dialog.dart';
+import 'backup_dialogs.dart';
 import 'error_text.dart';
 
 /// One account: its code (live for time-based accounts, on request for
@@ -32,6 +34,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
       ? widget.client.codeStream(_account.id)
       : null;
   OtpCode? _counterCode;
+  bool _invalidated = false;
 
   bool get _isTotp => _account.type == OtpType.totp;
 
@@ -45,6 +48,8 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     try {
       final code = await widget.client.currentCode(_account.id);
       if (mounted) setState(() => _counterCode = code);
+    } on VaultKeyInvalidated {
+      if (mounted) setState(() => _invalidated = true);
     } on MfaException catch (e) {
       _show(errorText(e));
     }
@@ -77,6 +82,20 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
     } on MfaException catch (e) {
       _show(errorText(e));
     }
+  }
+
+  /// Restores this account from a backup, replacing the unreadable entry.
+  Future<void> _restore() async {
+    final report = await showDialog<ImportReport>(
+      context: context,
+      builder: (_) => RestoreBackupDialog(
+        client: widget.client,
+        onDuplicate: DuplicateStrategy.replace,
+      ),
+    );
+    if (report == null || !mounted) return;
+    _show(importSummary(report));
+    Navigator.of(context).pop();
   }
 
   Future<void> _remove() async {
@@ -141,6 +160,12 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
             StreamBuilder<OtpCode>(
               stream: codes,
               builder: (context, snapshot) {
+                if (snapshot.error case VaultKeyInvalidated()) {
+                  return _KeyInvalidatedCard(
+                    onRestore: _restore,
+                    onRemove: _remove,
+                  );
+                }
                 if (snapshot.hasError) {
                   return Text(errorText(snapshot.error!));
                 }
@@ -158,6 +183,8 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
                 );
               },
             )
+          else if (_invalidated)
+            _KeyInvalidatedCard(onRestore: _restore, onRemove: _remove)
           else ...[
             if (_counterCode case final code?)
               OtpCodeDisplay(code: code, onCopy: () => _copy(code)),
@@ -178,7 +205,7 @@ class _AccountDetailPageState extends State<AccountDetailPage> {
           ],
           const SizedBox(height: 32),
           Text(
-            'Protection: ${_account.protection.name}',
+            'Protection: ${protectionLabel(_account.protection)}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -237,4 +264,51 @@ class _RenameDialogState extends State<_RenameDialog> {
       ],
     );
   }
+}
+
+/// Shown when the account's key was invalidated by a biometric change
+/// (FR-VLT-06 AC3): explains why and offers the two ways out.
+class _KeyInvalidatedCard extends StatelessWidget {
+  const _KeyInvalidatedCard({required this.onRestore, required this.onRemove});
+
+  final VoidCallback onRestore;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'This account can no longer be unlocked',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'The fingerprints or faces on this device changed, so the key '
+            'protecting this account was deleted for your safety. Restore '
+            'it from an encrypted backup, or remove it and add it again '
+            'from the service.',
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton(
+                onPressed: onRestore,
+                child: const Text('Restore from backup'),
+              ),
+              OutlinedButton(
+                onPressed: onRemove,
+                child: const Text('Remove account'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }

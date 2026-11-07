@@ -16,6 +16,16 @@ String errorText(Object error) => switch (error) {
   VaultCorrupted() =>
     'Stored data is damaged. Remove the account or wipe the vault.',
   VaultNotFound() => 'That account no longer exists.',
+  BackupWeakPassphrase(check: PassphraseCheck.tooShort) =>
+    'Use at least 12 characters.',
+  BackupWeakPassphrase(check: PassphraseCheck.tooCommon) =>
+    'That passphrase is too common. Choose another.',
+  BackupWeakPassphrase() =>
+    'Use more varied characters, for example several unrelated words.',
+  BackupDecryptFailed() =>
+    'Wrong passphrase, or the backup text is incomplete or damaged.',
+  BackupUnsupportedVersion() =>
+    'This backup was made by a newer version. Update the app.',
   MfaException() => 'Something went wrong ($error).',
   _ => 'Unexpected error.',
 };
