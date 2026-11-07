@@ -43,12 +43,18 @@ type Stats = {
   stars?: number;
 };
 
-async function json(url: string) {
-  const res = await fetch(url, {
-    headers: { Accept: 'application/json' },
-    next: { revalidate: 3600 }, // refresh at most hourly
-  });
-  return res.ok ? res.json() : undefined; // 404 before publish → undefined
+// Never throws: a 404 (not yet published), an HTTP error, a network
+// failure or bad JSON all mean "no data", so each number hides on its own.
+async function json(url: string): Promise<any | undefined> {
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 3600 }, // refresh at most hourly
+    });
+    return res.ok ? await res.json() : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function flutterMfaStats(): Promise<Stats> {
@@ -72,7 +78,7 @@ export async function flutterMfaStats(): Promise<Stats> {
 
 ## Rules
 
-- **Missing means hidden.** If a number is undefined (not yet published, API down), leave that badge out. Never fall back to a typed number.
+- **Missing means hidden.** If a number is undefined (not yet published, API down, network error), leave that badge out. Never fall back to a typed number. Each endpoint fails on its own: one outage must never stop the page rendering.
 - **Revalidate hourly.** pub.dev updates scores after each publish and downloads daily. Hourly is plenty.
 - **One fetch, many places.** Use the same `flutterMfaStats()` for the case study, the open-source page, the docs version label and the JSON-LD.
 - **Other packages.** For the open-source page, the same calls work for `flutter_mfa_core`, `flutter_mfa_ui` and `flutter_mfa_qr`. Show the plugin (`flutter_mfa`) as the headline package.

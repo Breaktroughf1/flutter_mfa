@@ -4,17 +4,17 @@ Every line matches the code on `main`; snippets come from the package READMEs. A
 
 ## Meta description (≤ 160 characters; also Open Graph, Twitter, llms.txt)
 
-> Open-source TOTP/HOTP multi-factor authentication for Flutter: hardware-backed secret storage, biometric protection, QR enrolment and a Dart server verifier.
+> Open-source TOTP/HOTP multi-factor authentication for Flutter: secure secret storage, biometric protection, QR enrolment and a Dart server verifier.
 
 ## Page description
 
-> Flutter MFA is an open-source (MIT) toolkit for time-based and counter-based one-time passwords (TOTP/HOTP, RFC 6238 and 4226) in Flutter apps on Android, iOS and the web. It keeps secrets in the platform's secure hardware (Android Keystore and StrongBox, iOS Keychain and Secure Enclave, WebCrypto on the web), can require a fingerprint or face check for every code, scans otpauth:// QR codes, and backs up accounts with passphrase encryption. The same audited Dart code verifies codes on your server, with replay protection and attempt limiting. Built by BreaktroughF1 LLP with ARDC, CHRIST (Deemed to be University).
+> Flutter MFA is an open-source (MIT) toolkit for time-based and counter-based one-time passwords (TOTP/HOTP, RFC 6238 and 4226) in Flutter apps on Android, iOS and the web. On Android and iOS it keeps secrets under hardware-backed keys (Android Keystore and StrongBox, iOS Keychain and Secure Enclave); on the web it encrypts them with AES-256-GCM under a non-extractable WebCrypto key, without hardware binding. It can require a fingerprint or face check for every code, scans otpauth:// QR codes, and backs up accounts with passphrase encryption. The same audited Dart code verifies codes on your server, with replay protection and attempt limiting. Built by BreaktroughF1 LLP with ARDC, CHRIST (Deemed to be University).
 
 ## Key features
 
 - TOTP and HOTP, verified against every RFC test vector
-- Secrets in hardware-backed storage, never in plain files
-- Optional fingerprint or face check for every code
+- Secrets under hardware-backed keys on Android and iOS; encrypted under a non-extractable WebCrypto key on the web
+- Optional fingerprint or face check for every code (Android and iOS)
 - Scan or type otpauth:// enrolments; show enrolment QR codes
 - Encrypted backup and restore (PBKDF2 + AES-256-GCM)
 - Server verifier with replay protection and attempt limits
@@ -101,8 +101,8 @@ if (result case Accepted(:final nextState)) {
 **The challenge.** Flutter apps that offer authenticator codes had to combine separate packages for code generation, secure storage, QR scanning and UI, each with its own security model, and then write their own server checks.
 
 **Our approach.**
-1. *One toolkit, one security model.* Five small packages: a pure-Dart core that also runs on your server, the plugin with hardware-backed storage, accessible widgets, an optional QR scanner and a platform interface.
-2. *Secure by default.* Hardware-backed storage, optional biometric binding, replay protection and attempt limits, encrypted backups.
+1. *One toolkit, one security model.* Five small packages: a pure-Dart core that also runs on your server, the plugin with secure storage (hardware-backed on Android and iOS), accessible widgets, an optional QR scanner and a platform interface.
+2. *Secure by default.* Hardware-backed storage on Android and iOS, optional biometric binding, replay protection and attempt limits, encrypted backups.
 3. *Docs and examples.* Guides for authenticator apps, user enrolment and server verification, plus a full example app.
 
 **The outcome.** Teams add authenticator codes to Flutter apps, and verify them on a Dart server, with one audited codebase.
@@ -123,7 +123,7 @@ if (result case Accepted(:final nextState)) {
   "codeRepository": "https://github.com/Breaktroughf1/flutter_mfa",
   "programmingLanguage": "Dart",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "featureList": "TOTP and HOTP, hardware-backed secret storage, biometric protection, QR enrolment, encrypted backup, server verifier"
+  "featureList": "TOTP and HOTP, secure secret storage (hardware-backed on Android and iOS), biometric protection, QR enrolment, encrypted backup, server verifier"
 }
 ```
 
