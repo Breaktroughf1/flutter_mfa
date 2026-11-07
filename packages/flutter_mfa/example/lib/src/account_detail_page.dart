@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 
-import 'add_account_dialog.dart';
 import 'backup_dialogs.dart';
 import 'error_text.dart';
+import 'protection.dart';
 
 /// One account: its code (live for time-based accounts, on request for
 /// counter-based ones), copy, rename and remove.

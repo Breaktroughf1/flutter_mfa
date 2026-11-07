@@ -4,6 +4,7 @@ import 'package:flutter_mfa_qr/flutter_mfa_qr.dart';
 
 import 'add_account_dialog.dart';
 import 'error_text.dart';
+import 'protection.dart';
 
 /// Adds an account by scanning its enrolment QR code (UC1), with manual
 /// entry always available.
@@ -34,7 +35,19 @@ class _ScanPageState extends State<ScanPage> {
     if (_busy) return;
     _busy = true;
     try {
-      await widget.client.enrollFromUri(uri.toUri().toString());
+      final protection = await pickProtection(
+        context,
+        widget.client,
+        accountLabel: uri.issuer ?? uri.accountName,
+      );
+      if (protection == null) {
+        _busy = false; // cancelled: scan again
+        return;
+      }
+      await widget.client.enrollFromUri(
+        uri.toUri().toString(),
+        protection: protection,
+      );
       if (mounted) Navigator.of(context).pop(true);
     } on MfaException catch (e) {
       _busy = false;
