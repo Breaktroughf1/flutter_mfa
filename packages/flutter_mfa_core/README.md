@@ -48,7 +48,7 @@ try {
   tooManyAttempts(e.retryAfter, lockedOut: e.lockedOut);
 }
 ```
-A complete, runnable version is in [`example/main.dart`](example/main.dart).
+A complete, runnable version is in [`example/main.dart`](example/main.dart). The [Verify on a Dart server](https://github.com/Breaktroughf1/flutter_mfa/blob/main/docs/cookbook/verify-on-a-dart-server.md) guide covers storage, shared attempt limits and a checklist.
 
 ### What the verifier guarantees
 - **Throttling first.** The limiter is consulted before any code is computed. Check → compute → record is atomic per subject in-process, so a burst of parallel guesses can't exceed the limit.

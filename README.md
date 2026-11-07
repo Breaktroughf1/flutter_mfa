@@ -17,6 +17,15 @@ Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRI
 | [`flutter_mfa_qr`](packages/flutter_mfa_qr) | Optional camera scanner for `otpauth://` QR codes. | _soon_ |
 | [`flutter_mfa_platform_interface`](packages/flutter_mfa_platform_interface) | Platform interface for vault implementations. | _soon_ |
 
+<img src="https://raw.githubusercontent.com/Breaktroughf1/flutter_mfa/main/packages/flutter_mfa_ui/test/goldens/images/gallery_light.png" width="260" align="right" alt="flutter_mfa widgets">
+
+## Guides
+- [Add an authenticator to your app](docs/cookbook/add-an-authenticator.md): scan or type enrolments, keep secrets in the platform vault, show live codes.
+- [Enrol users in two-factor sign-in](docs/cookbook/enrol-users.md): show the enrolment QR code and confirm the first code.
+- [Verify codes on a Dart server](docs/cookbook/verify-on-a-dart-server.md): replay protection, shared attempt limits, storage checklist.
+
+The [example app](packages/flutter_mfa/example) shows all of it on Android, iOS and the web.
+
 ## Platform support
 | Android | iOS | Web | Dart server |
 |---|---|---|---|
