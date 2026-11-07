@@ -109,6 +109,10 @@ class MfaLocalizationsHi extends MfaLocalizations {
       'स्कैन करने के लिए सुरक्षित (HTTPS) पेज चाहिए। इसके बजाय सेटअप कुंजी दर्ज करें।';
 
   @override
+  String get scanUnsupportedBrowser =>
+      'यह ब्राउज़र QR कोड स्कैन नहीं कर सकता। इसके बजाय सेटअप कुंजी दर्ज करें।';
+
+  @override
   String get paste => 'पेस्ट करें';
 
   @override

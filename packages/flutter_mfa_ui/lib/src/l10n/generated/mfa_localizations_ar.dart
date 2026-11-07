@@ -111,6 +111,10 @@ class MfaLocalizationsAr extends MfaLocalizations {
       'يتطلب المسح صفحة آمنة (HTTPS). أدخل مفتاح الإعداد بدلاً من ذلك.';
 
   @override
+  String get scanUnsupportedBrowser =>
+      'لا يمكن لهذا المتصفح مسح رموز QR. أدخل مفتاح الإعداد بدلاً من ذلك.';
+
+  @override
   String get paste => 'لصق';
 
   @override

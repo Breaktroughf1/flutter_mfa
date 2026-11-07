@@ -109,6 +109,10 @@ class MfaLocalizationsEn extends MfaLocalizations {
       'Scanning needs a secure (HTTPS) page. Enter the setup key instead.';
 
   @override
+  String get scanUnsupportedBrowser =>
+      'This browser can\'t scan QR codes. Enter the setup key instead.';
+
+  @override
   String get paste => 'Paste';
 
   @override

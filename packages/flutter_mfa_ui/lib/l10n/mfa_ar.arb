@@ -28,6 +28,7 @@
   "tryAgain": "حاول مرة أخرى",
   "cameraUnavailable": "لا تتوفر كاميرا. أدخل مفتاح الإعداد بدلاً من ذلك.",
   "cameraInsecureContext": "يتطلب المسح صفحة آمنة (HTTPS). أدخل مفتاح الإعداد بدلاً من ذلك.",
+  "scanUnsupportedBrowser": "لا يمكن لهذا المتصفح مسح رموز QR. أدخل مفتاح الإعداد بدلاً من ذلك.",
   "paste": "لصق",
   "codeLabel": "الرمز {digits}",
   "codeUnavailable": "الرمز غير متاح",

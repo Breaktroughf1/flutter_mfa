@@ -122,6 +122,10 @@
   "@cameraInsecureContext": {
     "description": "Shown on the web outside a secure context."
   },
+  "scanUnsupportedBrowser": "This browser can't scan QR codes. Enter the setup key instead.",
+  "@scanUnsupportedBrowser": {
+    "description": "Shown on the web when the browser has no QR decoder and none was configured."
+  },
   "paste": "Paste",
   "@paste": {
     "description": "Action that pastes a code from the clipboard."
