@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 
 import 'error_text.dart';
+import 'protection.dart';
 
 /// Adds an account from a Base32 secret typed by the user (UC2).
 ///
@@ -33,13 +34,8 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
     super.initState();
     // Offer only what this device can provide (never a silent downgrade).
     unawaited(
-      widget.client.capabilities.then((caps) {
-        if (!mounted) return;
-        setState(() {
-          _levels = ProtectionLevel.values
-              .where(caps.supportedLevels.contains)
-              .toList();
-        });
+      supportedProtection(widget.client).then((levels) {
+        if (mounted) setState(() => _levels = levels);
       }, onError: (Object _) {}),
     );
   }
@@ -161,10 +157,3 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
     );
   }
 }
-
-/// A short label for [level], shared by the add dialog and the detail page.
-String protectionLabel(ProtectionLevel level) => switch (level) {
-  ProtectionLevel.standard => 'Standard',
-  ProtectionLevel.biometric => 'Fingerprint or face for every code',
-  ProtectionLevel.hardwareBound => 'Fingerprint or face, secure hardware',
-};
