@@ -545,4 +545,18 @@ void main() {
       }
     });
   });
+
+  test(
+    'screen capture protection is passed to the platform (FR-FAC-06)',
+    () async {
+      final mfa = await client();
+      await mfa.setScreenCaptureProtection(true);
+      expect(vault.screenCaptureProtected, isTrue);
+      await mfa.setScreenCaptureProtection(false);
+      expect(vault.screenCaptureProtected, isFalse);
+      expect(logger.messages, contains('info: screen capture protection off'));
+      await mfa.dispose();
+      expect(() => mfa.setScreenCaptureProtection(true), throwsStateError);
+    },
+  );
 }

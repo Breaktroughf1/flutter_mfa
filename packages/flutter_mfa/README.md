@@ -31,6 +31,7 @@ await client.copyCode(account.id);
 | Enrol (URI or setup key), list, rename, remove, wipe | `enrollFromUri`, `enrollManual`, `accounts`, `watchAccounts`, `rename`, `remove`, `wipeAll` |
 | Codes | `codeStream` (TOTP, one shared timer per client), `currentCode` (HOTP advances and persists the counter first) |
 | Sensitive clipboard | `copyCode`, `copySensitive` |
+| Screen-capture protection | `setScreenCaptureProtection` (Android `FLAG_SECURE`; iOS and the web cannot block screenshots) |
 | Relying-party helper (demos and tests) | `MfaClient.createEnrollment` |
 | Vault capabilities | `capabilities` (hardware backing, biometrics, secure context, persistent storage, supported protection levels) |
 

@@ -8,10 +8,18 @@ import 'backup_dialogs.dart';
 /// Device protection and integrity status (FR-EX-02, FR-FAC-03).
 class SettingsPage extends StatefulWidget {
   /// Creates the page for [client].
-  const SettingsPage({super.key, required this.client});
+  const SettingsPage({
+    super.key,
+    required this.client,
+    required this.hideFromScreenshots,
+  });
 
   /// The client whose vault and integrity check are shown.
   final MfaClient client;
+
+  /// Whether screen capture protection is on. Owned by the caller so the
+  /// switch shows the real state on every visit to this page.
+  final ValueNotifier<bool> hideFromScreenshots;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -51,6 +59,11 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     }
+  }
+
+  Future<void> _setHideFromScreenshots(bool value) async {
+    await widget.client.setScreenCaptureProtection(value);
+    widget.hideFromScreenshots.value = value;
   }
 
   Future<void> _export() => showDialog<void>(
@@ -115,6 +128,18 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ],
+          if (caps != null && caps.screenCaptureProtection)
+            ValueListenableBuilder<bool>(
+              valueListenable: widget.hideFromScreenshots,
+              builder: (context, hidden, _) => SwitchListTile(
+                title: const Text('Hide from screenshots'),
+                subtitle: const Text(
+                  'Also hides the app in the recent-apps view.',
+                ),
+                value: hidden,
+                onChanged: _setHideFromScreenshots,
+              ),
+            ),
           const _Heading('Backup'),
           ListTile(
             leading: const Icon(Icons.upload_outlined),
