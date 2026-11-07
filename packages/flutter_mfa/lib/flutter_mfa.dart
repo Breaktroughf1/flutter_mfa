@@ -9,6 +9,7 @@ export 'package:flutter_mfa_core/flutter_mfa_core.dart';
 export 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart'
     show BiometricPrompt, VaultCapabilities;
 
+export 'src/client/backup_import.dart' show DuplicateStrategy, ImportReport;
 export 'src/client/mfa_client.dart';
 export 'src/client/mfa_client_options.dart';
 export 'src/client/relying_party_enrollment.dart';
