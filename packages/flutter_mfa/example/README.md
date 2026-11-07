@@ -1,12 +1,16 @@
 # flutter_mfa_example
 
-A small authenticator built only on the public `MfaClient` API. It runs on Android, iOS and the web from one codebase (FR-EX-01).
+A small authenticator built only on the public APIs of `flutter_mfa`, `flutter_mfa_ui` and `flutter_mfa_qr`. It runs on Android, iOS and the web from one codebase (FR-EX-01, FR-EX-02).
 
-- Add an account by typing its Base32 secret key, time-based (TOTP) or counter-based (HOTP).
-- See every account's current code. TOTP codes refresh every second; for HOTP, tap the account to generate the next code.
-- Remove accounts. Errors come from the typed `MfaException` hierarchy and are shown as messages (`lib/src/error_text.dart`).
+- **Accounts:** live codes with a countdown (`OtpAccountList` over `MfaClient.codeStream`); tap a code to copy it to the clipboard marked sensitive, cleared after 30 s.
+- **Add an account:** scan its QR code (`OtpQrScanner`) or type the setup key, time-based (TOTP) or counter-based (HOTP).
+- **Account detail:** the code with its countdown, rename, remove. Counter-based codes are generated only on request, because each one uses up a counter value.
+- **Relying-party demo:** plays the service side. It generates a secret with `MfaClient.createEnrollment`, shows it with `EnrollmentQrView` (the setup key is copied sensitively), and confirms the first code typed into `OtpCodeField` with the returned `TotpVerifier`. "Or add it to this app" lets you try the whole loop on one device. In production the secret and the check live on your server.
+- Errors come from the typed `MfaException` hierarchy and are shown as messages (`lib/src/error_text.dart`). The widgets follow the Material theme through `toMfaTheme()` and are localized in English, Hindi and Arabic.
 
-QR scanning, backup and restore arrive in later milestones (M2–M4).
+Backup, restore and protection settings arrive in M3.
+
+Camera: iOS needs the `NSCameraUsageDescription` already in `ios/Runner/Info.plist`. On the web, scanning needs HTTPS (or localhost) and, by default, a browser with a native QR decoder (see the `flutter_mfa_qr` README).
 
 ## Run
 
