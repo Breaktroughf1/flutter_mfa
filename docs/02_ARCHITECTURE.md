@@ -128,11 +128,12 @@ Everything else is Dart:
 **Web (Dart, `package:web` + `dart:js_interop`; WASM-compatible)**
 - Requires `window.isSecureContext`; otherwise `VaultUnavailable(insecureContext)`.
 - IndexedDB database `flutter_mfa_v1`, stores `keys` and `records`.
-- Master key: `crypto.subtle.generateKey({name:'AES-GCM', length:256}, extractable:false, ['encrypt','decrypt'])`, persisted as a `CryptoKey` object in IndexedDB (structured clone keeps it non-extractable).
-- Records: `nonce ‖ ciphertext` with AAD = key name.
-- `biometric` / `hardwareBound` → reported unsupported by `capabilities()`; requesting them throws `HardwareUnavailable` (WebAuthn-PRF-based gating is a post-0.2 candidate).
-- Calls `navigator.storage.persist()` once and exposes the result in capabilities (eviction risk).
-- Clipboard: `navigator.clipboard.writeText` + timed clear best-effort.
+- Master key: `crypto.subtle.generateKey({name:'AES-GCM', length:256}, extractable:false, ['encrypt','decrypt'])`, persisted as a `CryptoKey` object in IndexedDB (structured clone keeps it non-extractable). Read from IndexedDB on every use (no in-memory cache, so a wipe in another tab is never undone); concurrent first writes converge via `add` (first key wins). Never created on read; `wipe()` deletes it.
+- Records (as built, M1-14): `version(1) ‖ protection(1) ‖ nonce(12) ‖ ciphertext ‖ tag(16)`, AAD = `"flutter_mfa.v1:" ‖ header ‖ key` (same format as Android).
+- `biometric` / `hardwareBound` → reported unsupported by `capabilities()`; requesting them throws `HardwareUnavailable(unsupportedOnPlatform)` (WebAuthn-PRF-based gating is a post-0.2 candidate).
+- Calls `navigator.storage.persist()` once (first `capabilities()` or write) and exposes the result in capabilities (eviction risk).
+- Clipboard: `navigator.clipboard.writeText`; cleared at expiry only if `clipboard-read` is already granted and the content is still the code (no permission prompt, never wipes newer content).
+- Code layout (ADR-0008): `WebVault` (record format, AAD, levels, error policy) runs on the VM against the `WebStore` interface; `BrowserWebStore` is the thin `package:web` layer, covered by Chrome tests (JS and WASM). Browser errors become a detail-free `WebStoreFailure` → `VaultUnavailable(storageUnavailable)`.
 
 ## 5. Public API shape
 Full signatures in `03_API_SPEC.md`. Entry points:

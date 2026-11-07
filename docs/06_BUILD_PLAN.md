@@ -47,7 +47,7 @@ Estimated calendar (Claude Code implementing, BF1 reviewing within 1 working day
 | ✅ | M1-11 | `flutter_mfa`: `MfaVault` (error mapping), `AccountRepository` (index), `MfaClient` enrol/list/currentCode/remove on InMemory platform | FR-VLT-01, FR-FAC-01 | M1-10 |
 | ✅ | M1-12 | Android vault — standard protection (Keystore AES-GCM, noBackupFilesDir), JUnit + instrumented tests | FR-VLT-02 | M1-10 |
 | ✅ | M1-13 | iOS vault — standard protection (Keychain ThisDeviceOnly), XCTest | FR-VLT-03 | M1-10 |
-| ☐ | M1-14 | Web vault — IndexedDB + non-extractable key, browser tests (`flutter test --platform chrome`) | FR-VLT-04 | M1-10 |
+| ✅ | M1-14 | Web vault — IndexedDB + non-extractable key, browser tests (`flutter test --platform chrome`) | FR-VLT-04 | M1-10 |
 | ☐ | M1-15 | Example boots on all three platforms: manual-add + code list | FR-EX-01 | M1-11..14 |
 
 Exit: core coverage ≥ 95 % lines; other packages ≥ 70 % (proposal M1 target); API for core + platform interface **frozen** (changes now need ADR).

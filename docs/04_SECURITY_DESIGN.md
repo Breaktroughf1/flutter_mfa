@@ -43,7 +43,7 @@
 | S9 | Weak or timing-leaky comparison | T1 | Constant-time compare helper, single implementation | — |
 | S10 | Weak backup encryption / passphrase guessing | T3 | PBKDF2-SHA256 600k, AES-256-GCM, header as AAD, passphrase policy, min-iteration floor on read | Offline guessing of weak-but-policy-passing passphrases |
 | S11 | Malformed otpauth URI / QR crashes or injects | T2 | Strict parser, fuzz test, scanner accepts only `otpauth://` | — |
-| S12 | Web: XSS reads codes | T6 | Non-extractable key prevents key *export*, but script can still call decrypt — **documented as unmitigable**; recommend strict CSP, Trusted Types | Web is best-effort; README says so in bold |
+| S12 | Web: XSS reads codes | T6 | Non-extractable key prevents key *export*, but script can still call decrypt — **documented as unmitigable**; recommend strict CSP, Trusted Types. Also (found at M1-14): browsers keep non-extractable key material in the profile's IndexedDB files, so disk access to the browser profile recovers secrets; the web has no hardware binding | Web is best-effort; README says so in bold |
 | S13 | Web: storage eviction loses factors | — | `storage.persist()`, capability flag, prompt to back up | Browser policy |
 | S14 | Web QR decoder loaded from CDN | T7 | Native BarcodeDetector default; remote decoder opt-in or self-hosted | Firefox users need opt-in |
 | S15 | Compromised dependency | T7 | Minimal deps, pinned lockfile in example, Dependabot, `osv-scanner` in CI, license allowlist | — |

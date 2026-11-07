@@ -60,7 +60,9 @@ run() { # dir, min lines, min branches (empty = no gate, e.g. example apps)
     fi
   fi
   if [ -d "$dir/test/web" ] && need_chrome "$dir/test/web"; then
-    (cd "$dir" && flutter test --platform chrome test/web)
+    # Web-only code must work compiled to both JS and WASM (NFR-07).
+    (cd "$dir" && flutter test --platform chrome test/web &&
+      flutter test --platform chrome --wasm test/web)
   fi
 }
 
