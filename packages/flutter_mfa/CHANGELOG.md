@@ -6,6 +6,9 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `MfaClient.create` now throws `VaultUnavailable(insecureContext)` on a web
+  page outside a secure context, as documented, instead of failing on the
+  first vault read.
 - `MfaClient.setScreenCaptureProtection`: hides the app from screenshots and
   the recent-apps preview on Android (`FLAG_SECURE`); no-op on iOS and the
   web, as `capabilities.screenCaptureProtection` reports (FR-FAC-06).
