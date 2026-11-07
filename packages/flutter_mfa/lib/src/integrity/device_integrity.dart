@@ -21,13 +21,16 @@ enum IntegrityVerdict {
 /// such as `'root'` or `'debugger'`, never device data or secrets.
 @immutable
 final class IntegrityReport {
-  /// Creates a report.
-  const IntegrityReport({required this.verdict, this.signals = const []});
+  /// Creates a report. [signals] is copied, so the report cannot change
+  /// after it is made.
+  IntegrityReport({required this.verdict, List<String> signals = const []})
+    : signals = List.unmodifiable(signals);
 
   /// The overall verdict.
   final IntegrityVerdict verdict;
 
   /// Short names of what the check found, for display and logs.
+  /// Unmodifiable.
   final List<String> signals;
 
   @override
@@ -73,7 +76,7 @@ final class NoopIntegrityCheck implements DeviceIntegrityCheck {
 
   @override
   Future<IntegrityReport> run() async =>
-      const IntegrityReport(verdict: IntegrityVerdict.unknown);
+      IntegrityReport(verdict: IntegrityVerdict.unknown);
 }
 
 /// What the app does with an [IntegrityReport]: return to continue, or throw

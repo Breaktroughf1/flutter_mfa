@@ -293,7 +293,7 @@ final class SilentMfaLogger implements MfaLogger { const SilentMfaLogger(); }   
 abstract interface class DeviceIntegrityCheck { Future<IntegrityReport> run(); }
 final class NoopIntegrityCheck implements DeviceIntegrityCheck { const NoopIntegrityCheck(); }   // reports unknown (M3-08)
 enum IntegrityVerdict { trusted, suspicious, compromised, unknown }   // M3-08
-@immutable final class IntegrityReport { const IntegrityReport({required IntegrityVerdict verdict, List<String> signals = const []}); }   // value equality; signal names only (M3-08)
+@immutable final class IntegrityReport { IntegrityReport({required IntegrityVerdict verdict, List<String> signals = const []}); }   // signals copied and unmodifiable; value equality; signal names only (M3-08)
 Future<void> allowAllIntegrity(IntegrityReport report);   // default policy (M3-08)
 typedef IntegrityPolicy = Future<void> Function(IntegrityReport report); // app decides: warn / block
 ```

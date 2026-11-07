@@ -31,12 +31,12 @@ void main() {
   test('the default check reports unknown and never blocks', () async {
     expect(
       await const NoopIntegrityCheck().run(),
-      const IntegrityReport(verdict: IntegrityVerdict.unknown),
+      IntegrityReport(verdict: IntegrityVerdict.unknown),
     );
     final mfa = await MfaClient.create();
     expect(
       await mfa.checkIntegrity(),
-      const IntegrityReport(verdict: IntegrityVerdict.unknown),
+      IntegrityReport(verdict: IntegrityVerdict.unknown),
     );
   });
 
@@ -45,7 +45,7 @@ void main() {
     '(FR-FAC-03 AC1)',
     () async {
       final check = _FixedCheck(
-        const IntegrityReport(
+        IntegrityReport(
           verdict: IntegrityVerdict.suspicious,
           signals: ['emulator'],
         ),
@@ -63,7 +63,7 @@ void main() {
       expect(seen.single.signals, ['emulator']);
       expect(logger.messages, ['info: integrity suspicious']);
 
-      check.report = const IntegrityReport(
+      check.report = IntegrityReport(
         verdict: IntegrityVerdict.compromised,
         signals: ['root'],
       );
@@ -76,7 +76,7 @@ void main() {
 
   test('a policy that throws blocks create and checkIntegrity', () async {
     final check = _FixedCheck(
-      const IntegrityReport(verdict: IntegrityVerdict.compromised),
+      IntegrityReport(verdict: IntegrityVerdict.compromised),
     );
     Future<void> policy(IntegrityReport r) async {
       if (r.verdict == IntegrityVerdict.compromised) throw const _Blocked();
@@ -92,24 +92,35 @@ void main() {
       throwsA(isA<_Blocked>()),
     );
 
-    check.report = const IntegrityReport(verdict: IntegrityVerdict.trusted);
+    check.report = IntegrityReport(verdict: IntegrityVerdict.trusted);
     final mfa = await MfaClient.create(
       options: MfaClientOptions(integrityCheck: check, integrityPolicy: policy),
     );
-    check.report = const IntegrityReport(verdict: IntegrityVerdict.compromised);
+    check.report = IntegrityReport(verdict: IntegrityVerdict.compromised);
     await expectLater(mfa.checkIntegrity(), throwsA(isA<_Blocked>()));
     await mfa.dispose();
     expect(mfa.checkIntegrity, throwsStateError);
   });
 
+  test('a report keeps a copy of the signals and cannot be changed', () {
+    final signals = ['root'];
+    final report = IntegrityReport(
+      verdict: IntegrityVerdict.compromised,
+      signals: signals,
+    );
+    signals.add('later');
+    expect(report.signals, ['root']);
+    expect(() => report.signals.add('x'), throwsUnsupportedError);
+  });
+
   test('reports compare by value and print only the verdict and signals', () {
-    const a = IntegrityReport(
+    final a = IntegrityReport(
       verdict: IntegrityVerdict.compromised,
       signals: ['root', 'hooks'],
     );
     expect(
       a,
-      const IntegrityReport(
+      IntegrityReport(
         verdict: IntegrityVerdict.compromised,
         signals: ['root', 'hooks'],
       ),
@@ -118,7 +129,7 @@ void main() {
     expect(
       a,
       isNot(
-        const IntegrityReport(
+        IntegrityReport(
           verdict: IntegrityVerdict.compromised,
           signals: ['root'],
         ),
@@ -127,7 +138,7 @@ void main() {
     expect(
       a,
       isNot(
-        const IntegrityReport(
+        IntegrityReport(
           verdict: IntegrityVerdict.compromised,
           signals: ['root', 'other'],
         ),
@@ -135,7 +146,7 @@ void main() {
     );
     expect(a.toString(), 'IntegrityReport(compromised, root, hooks)');
     expect(
-      const IntegrityReport(verdict: IntegrityVerdict.trusted).toString(),
+      IntegrityReport(verdict: IntegrityVerdict.trusted).toString(),
       'IntegrityReport(trusted)',
     );
   });
