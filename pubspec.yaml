@@ -36,8 +36,8 @@ melos:
       run: dart format --output=none --set-exit-if-changed .
       description: Fails if any file is not dart-formatted.
     checks:
-      run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh && bash tool/check_l10n.sh
-      description: Architecture and security guard scripts.
+      run: bash tool/check_no_flutter_in_core.sh && bash tool/check_no_material_in_ui.sh && bash tool/forbidden_apis.sh && bash tool/check_l10n.sh && dart run tool/check_licenses.dart
+      description: Architecture and security guard scripts, and the dependency licence allowlist.
     test:core:
       run: cd packages/flutter_mfa_core && if [ -d test ]; then dart test; else echo "no core tests yet"; fi
       description: Fastest loop for core work (pure Dart, VM).
