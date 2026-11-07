@@ -114,8 +114,18 @@ void main() {
           200,
           scrollable: find.byType(Scrollable).first,
         );
-        await tester.tap(label);
-        await _pumpUntil(tester, find.text('Generate code'));
+        // The device keyboard may still be sliding away (it animates outside
+        // the test's frames), so a tap can land on a moving layout. Retry until
+        // the page opens; the expectation below still fails if it never does.
+        final opened = find.text('Generate code');
+        for (var i = 0; i < 3 && opened.evaluate().isEmpty; i++) {
+          await tester.tap(label.first, warnIfMissed: false);
+          await _pumpUntil(
+            tester,
+            opened,
+            timeout: const Duration(seconds: 10),
+          );
+        }
         await tester.pumpAndSettle();
         expect(
           find.text('Generate code'),
