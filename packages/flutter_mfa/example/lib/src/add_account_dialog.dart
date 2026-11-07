@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 
@@ -23,6 +25,25 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
   final _name = TextEditingController();
   final _secret = TextEditingController();
   var _type = OtpType.totp;
+  var _protection = ProtectionLevel.standard;
+  List<ProtectionLevel> _levels = const [ProtectionLevel.standard];
+
+  @override
+  void initState() {
+    super.initState();
+    // Offer only what this device can provide (never a silent downgrade).
+    unawaited(
+      widget.client.capabilities.then((caps) {
+        if (!mounted) return;
+        setState(() {
+          _levels = ProtectionLevel.values
+              .where(caps.supportedLevels.contains)
+              .toList();
+        });
+      }, onError: (Object _) {}),
+    );
+  }
+
   String? _error;
   bool _busy = false;
 
@@ -49,6 +70,7 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
         accountName: _name.text.trim(),
         issuer: issuer.isEmpty ? null : issuer,
         type: _type,
+        protection: _protection,
       );
       if (mounted) Navigator.of(context).pop(true);
     } on MfaException catch (e) {
@@ -99,6 +121,22 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
               selected: {_type},
               onSelectionChanged: (s) => setState(() => _type = s.single),
             ),
+            if (_levels.length > 1) ...[
+              const SizedBox(height: 16),
+              DropdownButtonFormField<ProtectionLevel>(
+                initialValue: _protection,
+                decoration: const InputDecoration(labelText: 'Protection'),
+                items: [
+                  for (final level in _levels)
+                    DropdownMenuItem(
+                      value: level,
+                      child: Text(protectionLabel(level)),
+                    ),
+                ],
+                onChanged: (level) =>
+                    setState(() => _protection = level ?? _protection),
+              ),
+            ],
             if (_error case final error?)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
@@ -123,3 +161,10 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
     );
   }
 }
+
+/// A short label for [level], shared by the add dialog and the detail page.
+String protectionLabel(ProtectionLevel level) => switch (level) {
+  ProtectionLevel.standard => 'Standard',
+  ProtectionLevel.biometric => 'Fingerprint or face for every code',
+  ProtectionLevel.hardwareBound => 'Fingerprint or face, secure hardware',
+};

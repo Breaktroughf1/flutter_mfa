@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_core/testing.dart';
 import 'package:flutter_mfa_example/main.dart';
@@ -283,4 +284,144 @@ void main() {
     expect(find.text('Not checked'), findsOneWidget);
     await unmount(tester);
   });
+
+  /// Waits until [finder] matches. Backup crypto runs on a background
+  /// isolate, which fake time does not advance, so this waits in real time
+  /// and also advances fake time (for snack bar animations).
+  Future<void> waitFor(WidgetTester tester, Finder finder) async {
+    for (var i = 0; i < 300 && finder.evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(finder, findsWidgets);
+  }
+
+  testWidgets(
+    'accounts can be added with a protection level the device offers',
+    (
+      tester,
+    ) async {
+      await boot(tester);
+      await tester.tap(find.text('Add account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Enter setup key'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Account name'),
+        'alice',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Secret key (Base32)'),
+        _secret,
+      );
+      await tester.tap(find.text('Standard'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fingerprint or face for every code').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      final keys = await vault.keys();
+      final secretKey = keys.singleWhere((k) => k.startsWith('acct_'));
+      expect(vault.levelOf(secretKey), ProtectionLevel.biometric);
+      await unmount(tester);
+    },
+  );
+
+  testWidgets(
+    'an encrypted backup is exported and restored from the settings '
+    '(UC6, UC7)',
+    (tester) async {
+      String? clipboard;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboard = (call.arguments as Map)['text'] as String;
+          }
+          return null;
+        },
+      );
+      await boot(tester);
+      await addAccount(tester, secret: _secret);
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Export encrypted backup'));
+      await tester.pumpAndSettle();
+      Future<void> passphrase(String text) async {
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Passphrase'),
+          text,
+        );
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Repeat passphrase'),
+          text,
+        );
+      }
+
+      await passphrase('short');
+      await tester.tap(find.text('Export'));
+      await tester.pumpAndSettle();
+      expect(find.text('Use at least 12 characters.'), findsOneWidget);
+
+      await passphrase('correct horse battery staple');
+      await tester.tap(find.text('Export'));
+      await waitFor(tester, find.text('Copy and close'));
+      await tester.tap(find.text('Copy and close'));
+      await tester.pumpAndSettle();
+      expect(clipboard, startsWith('-----BEGIN FLUTTER MFA BACKUP-----'));
+
+      await tester.tap(find.text('Restore from backup'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Backup text'),
+        clipboard!,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Passphrase'),
+        'a wrong but long passphrase',
+      );
+      await tester.tap(find.text('Restore'));
+      await waitFor(tester, find.textContaining('Wrong passphrase'));
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Passphrase'),
+        'correct horse battery staple',
+      );
+      await tester.tap(find.text('Keep both'));
+      await tester.tap(find.text('Restore'));
+      await waitFor(tester, find.textContaining('Restored 1 new'));
+      await unmount(tester);
+    },
+  );
+
+  testWidgets(
+    'an account whose key was invalidated offers restore or removal '
+    '(FR-VLT-06 AC3)',
+    (tester) async {
+      await boot(tester);
+      await addAccount(tester, secret: _secret);
+      final keys = await vault.keys();
+      vault.failNext(
+        VaultOperation.read,
+        const VaultKeyInvalidated(),
+        key: keys.singleWhere((k) => k.startsWith('acct_')),
+      );
+      await tester.tap(find.text('Example'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This account can no longer be unlocked'),
+        findsOneWidget,
+      );
+      expect(find.text('Restore from backup'), findsOneWidget);
+      await tester.tap(find.text('Remove account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('No accounts yet'), findsOneWidget);
+      await unmount(tester);
+    },
+  );
 }
