@@ -119,7 +119,7 @@ Everything else is Dart:
 - Optional `FLAG_SECURE` toggle.
 
 **iOS (Swift, SPM + CocoaPods)**
-- Keychain `kSecClassGenericPassword`, service `dev.breaktroughf1.flutter_mfa`, account = key, `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, `kSecAttrSynchronizable: false`.
+- Keychain `kSecClassGenericPassword`, service `com.breaktroughf1.flutter_mfa` (org decision at M0), account = key, `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, `kSecAttrSynchronizable: false`, `kSecAttrGeneric` = `version ‖ protection` (as built, M1-13). `biometric`/`hardwareBound` are refused with `unsupportedOnPlatform` until M3-06 (fail closed). Error codes are sent as the `VaultErrorCode` case name. Note: iOS keeps Keychain items after uninstall, so a reinstall sees earlier accounts (Android deletes app data) — maintainer decision pending.
 - biometric: `SecAccessControlCreateWithFlags(.., kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, .biometryCurrentSet)`; read with `LAContext.localizedReason`.
 - hardwareBound: Secure-Enclave P-256 key (`kSecAttrTokenIDSecureEnclave`) wraps the seed with `ECIESEncryptionCofactorVariableIVX963SHA256AESGCM`; Keychain stores the ciphertext. Simulator → `HardwareUnavailable`.
 - `errSecItemNotFound` → NotFound; `errSecUserCanceled`/`LAError.userCancel` → UserCancelled; access-control failure after enrolment change → KeyInvalidated.
