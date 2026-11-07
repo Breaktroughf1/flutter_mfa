@@ -8,6 +8,8 @@ Thanks for helping. This is security software, so the bar is deliberately high â
 - Be kind: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Setup
+Full workstation setup (Debian/Ubuntu, Android emulators, web and iOS testing): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
 Requires Flutter stable (CI pins the version in `.github/workflows/ci.yml`; floor 3.35) and, for browser tests, Chrome (or set `CHROME_EXECUTABLE`).
 ```bash
 git clone https://github.com/Breaktroughf1/flutter_mfa && cd flutter_mfa
@@ -36,4 +38,4 @@ Test layout: tests mirror `lib/src/`; browser-only tests go in `test/web/` with 
 Full detail: `docs/` (start with `02_ARCHITECTURE.md` and `04_SECURITY_DESIGN.md`).
 
 ## Good ways to contribute without writing core code
-Device testing on real hardware, security testing of the example app (see `docs/security/dynamic-test-guide.md` once published), accessibility audits with TalkBack/VoiceOver, translations (`packages/flutter_mfa_ui/lib/l10n/`), cookbook docs.
+Device testing on real hardware, security testing of the example app (see `docs/security/dynamic-test-guide.md`), accessibility audits with TalkBack/VoiceOver, translations (`packages/flutter_mfa_ui/lib/l10n/`), cookbook docs.
