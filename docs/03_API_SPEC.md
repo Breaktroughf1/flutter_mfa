@@ -128,7 +128,7 @@ final class AttemptLimiter {
 }
 final class InMemoryAttemptStore implements AtomicAttemptStore { … }   // main library only (not testing.dart)
 ```
-Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity: failures are recorded through `AtomicAttemptStore.update` when the store implements it (ADR-0014); a plain `AttemptStore` is read-then-write, last-writer-wins across processes (documented).
+Rules: window (`maxAttempts` per `window`), exponential back-off `min(base·2^(n−1), max)`, hard lockout after `lockoutAfter` consecutive failures (`VerificationRateLimited.lockedOut == true`; waiting does not lift it). Operations are serialised per subject in-process; verifiers check → compute → record atomically, so a parallel burst cannot exceed the limits. Cross-process atomicity: failures are recorded through `AtomicAttemptStore.update` when the store implements it (ADR-0014); a plain `AttemptStore` is read-then-write, last-writer-wins across processes (documented). With an atomic store no failure is lost; admission stays a plain read, so across processes a burst can exceed `maxAttempts` by at most one attempt per process, each still counted. `lastFailureAt` never moves backwards.
 
 ### 1.6 otpauth URIs
 ```dart
