@@ -195,8 +195,9 @@ internal class FileVaultTest {
             "bio" to ProtectionLevelMessage.BIOMETRIC,
             "hw" to ProtectionLevelMessage.HARDWARE_BOUND,
         )) {
+            val promptsBefore = keys.prompts.size
             vault.write(name, secret, level)
-            assertTrue(keys.prompts.isEmpty(), "writing never prompts")
+            assertEquals(promptsBefore, keys.prompts.size, "writing never prompts")
             val bytes = fileOf(name).readBytes()
             assertEquals(level.raw, bytes[1].toInt())
             assertEquals(2 + 8 + 256 + 12 + secret.size + 16, bytes.size)
