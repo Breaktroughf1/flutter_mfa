@@ -2,3 +2,8 @@ analyzer:
   exclude:
     - build/**
 include: ../../analysis_options.yaml
+
+# Repeated from the root file so a published copy of this package (where the
+# include above does not resolve) formats exactly as the workspace does.
+formatter:
+  trailing_commas: preserve

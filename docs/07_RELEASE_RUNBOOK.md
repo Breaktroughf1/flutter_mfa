@@ -11,7 +11,7 @@
 - [ ] All Release-blocking requirements (P = M) have passing tests; `docs/STATUS.md` shows every M task done
 - [ ] CI green on `main`, including iOS and web integration
 - [ ] Coverage gates met; numbers recorded in release notes
-- [ ] `pana` 160/160 for all five packages (run locally with current stable Flutter)
+- [ ] `pana` 160/160 for all five packages (run locally with current stable Flutter). Note (M4-08): pana resolves dependencies from pub.dev only and ignores `pubspec_overrides.yaml`, so before the first publish only `flutter_mfa_core` can be scored locally (150/160 at M4; the last 10 points need the packages on `main` so the `repository` URL resolves). Score each dependent package right after the package it depends on is published, in the order of §C, and fix any finding before publishing it.
 - [ ] `dart pub publish --dry-run` clean in dependency order: core → platform_interface → flutter_mfa → ui → qr
 - [ ] Every package: README (badges, platform table, install, quick start, security notes, web limitations), CHANGELOG `## 0.2.0`, LICENSE, `example/`, `topics:` (`mfa`, `totp`, `authentication`, `security`, `otp`), `repository:`, `issue_tracker:`, `screenshots:` (ui/qr)
 - [ ] Inter-package constraints use caret ranges on the just-released versions (`flutter_mfa_core: ^0.2.0`)
