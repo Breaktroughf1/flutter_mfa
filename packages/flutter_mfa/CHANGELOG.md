@@ -6,6 +6,9 @@ All notable changes to this package are documented here. The format follows
 
 ## Unreleased
 
+- `MfaClient.codeStream` (live TOTP codes, secret read once per subscription),
+  `copyCode` and `copySensitive` (sensitive clipboard with expiry).
+
 - iOS: the vault is wiped on the first launch after an install, so a
   reinstalled app does not regain an earlier installation's accounts
   (ADR-0012). **Upgrade note:** builds taken from git before this change
