@@ -7,17 +7,27 @@ Multi-factor authentication for Flutter — TOTP/HOTP (RFC 6238/4226), hardware-
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 
-> Status: in development towards v0.2.0. APIs may change until then.
+> Status: **v0.2.0**, the first public release. Until 1.0, a minor version may change the API; each package's CHANGELOG says what changed.
 
 | Package | What it is | pub.dev |
 |---|---|---|
-| [`flutter_mfa_core`](packages/flutter_mfa_core) | Pure Dart: OTP generation, verification with replay protection and throttling, otpauth URIs, Base32, encrypted backup format. Works on servers. | _soon_ |
-| [`flutter_mfa`](packages/flutter_mfa) | The Flutter plugin: `MfaClient`, secure vault (Keystore / Keychain / WebCrypto), biometric-bound protection, sensitive clipboard. | _soon_ |
-| [`flutter_mfa_ui`](packages/flutter_mfa_ui) | Widgets: code field, code display with countdown, account list, enrolment QR, status badges. Design-system independent, a11y + i18n. | _soon_ |
-| [`flutter_mfa_qr`](packages/flutter_mfa_qr) | Optional camera scanner for `otpauth://` QR codes. | _soon_ |
-| [`flutter_mfa_platform_interface`](packages/flutter_mfa_platform_interface) | Platform interface for vault implementations. | _soon_ |
+| [`flutter_mfa_core`](packages/flutter_mfa_core) | Pure Dart: OTP generation, verification with replay protection and throttling, otpauth URIs, Base32, encrypted backup format. Works on servers. | [![pub](https://img.shields.io/pub/v/flutter_mfa_core.svg)](https://pub.dev/packages/flutter_mfa_core) |
+| [`flutter_mfa`](packages/flutter_mfa) | The Flutter plugin: `MfaClient`, secure vault (Keystore / Keychain / WebCrypto), biometric-bound protection, sensitive clipboard. | [![pub](https://img.shields.io/pub/v/flutter_mfa.svg)](https://pub.dev/packages/flutter_mfa) |
+| [`flutter_mfa_ui`](packages/flutter_mfa_ui) | Widgets: code field, code display with countdown, account list, enrolment QR, status badges. Design-system independent, a11y + i18n. | [![pub](https://img.shields.io/pub/v/flutter_mfa_ui.svg)](https://pub.dev/packages/flutter_mfa_ui) |
+| [`flutter_mfa_qr`](packages/flutter_mfa_qr) | Optional camera scanner for `otpauth://` QR codes. | [![pub](https://img.shields.io/pub/v/flutter_mfa_qr.svg)](https://pub.dev/packages/flutter_mfa_qr) |
+| [`flutter_mfa_platform_interface`](packages/flutter_mfa_platform_interface) | Platform interface for vault implementations. | [![pub](https://img.shields.io/pub/v/flutter_mfa_platform_interface.svg)](https://pub.dev/packages/flutter_mfa_platform_interface) |
 
 <img src="https://raw.githubusercontent.com/Breaktroughf1/flutter_mfa/main/packages/flutter_mfa_ui/test/goldens/images/gallery_light.png" width="260" align="right" alt="flutter_mfa widgets">
+
+## Install
+
+```sh
+flutter pub add flutter_mfa flutter_mfa_ui   # app: vault, codes, widgets
+flutter pub add flutter_mfa_qr              # optional QR scanner
+dart pub add flutter_mfa_core               # Dart server: verification
+```
+
+API reference: [pub.dev/documentation/flutter_mfa](https://pub.dev/documentation/flutter_mfa/latest/) (and the same path for each package).
 
 ## Guides
 - [Add an authenticator to your app](docs/cookbook/add-an-authenticator.md): scan or type enrolments, keep secrets in the platform vault, show live codes.

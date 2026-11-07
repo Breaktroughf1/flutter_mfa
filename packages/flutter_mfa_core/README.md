@@ -1,5 +1,7 @@
 # flutter_mfa_core
 
+[![pub package](https://img.shields.io/pub/v/flutter_mfa_core.svg)](https://pub.dev/packages/flutter_mfa_core)
+
 Pure Dart core of [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa):
 
 - TOTP/HOTP generation per RFC 6238 / RFC 4226, verified against every RFC test vector.
@@ -9,7 +11,13 @@ Pure Dart core of [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa):
 
 It has **no Flutter dependency**, so the same audited code runs in your Dart backend (shelf, dart_frog, Serverpod) and in Flutter apps. It runs on the VM, and compiled to JS and WASM.
 
-> **Status:** in development towards v0.2.0. Not yet published. APIs may change.
+> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
+
+## Install
+
+```sh
+dart pub add flutter_mfa_core
+```
 
 ## Who verifies?
 Codes are **generated** on the user's device and **verified** by your server. A code checked on the same device that holds the secret is not a second factor, and client-side rate limits can be reset by whoever holds the device. Use `TotpVerifier` / `HotpVerifier` on your server; on-device verification is only for local step-up.

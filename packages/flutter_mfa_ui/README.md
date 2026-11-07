@@ -1,8 +1,10 @@
 # flutter_mfa_ui
 
+[![pub package](https://img.shields.io/pub/v/flutter_mfa_ui.svg)](https://pub.dev/packages/flutter_mfa_ui)
+
 Widgets for [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa): OTP code field, code display with countdown, account list, enrolment QR and status badges. Built on the widgets layer, independent of Material or Cupertino, accessible and localisable.
 
-> **Status:** in development towards v0.2.0. Not yet published. APIs may change.
+> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 
@@ -13,6 +15,12 @@ Security model and design: see the [project docs](https://github.com/Breaktrough
   <img src="https://raw.githubusercontent.com/Breaktroughf1/flutter_mfa/main/packages/flutter_mfa_ui/test/goldens/images/gallery_dark.png" width="260" alt="The widgets in the dark theme">
   <img src="https://raw.githubusercontent.com/Breaktroughf1/flutter_mfa/main/packages/flutter_mfa_ui/test/goldens/images/gallery_ar_rtl.png" width="260" alt="The widgets in Arabic, right to left">
 </p>
+
+## Install
+
+```sh
+flutter pub add flutter_mfa_ui
+```
 
 ## Widgets
 

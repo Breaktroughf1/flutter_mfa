@@ -1,12 +1,24 @@
 # flutter_mfa
 
+[![pub package](https://img.shields.io/pub/v/flutter_mfa.svg)](https://pub.dev/packages/flutter_mfa)
+
 The Flutter plugin of [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa): `MfaClient`, a secure vault (Android Keystore, iOS Keychain, WebCrypto), biometric-bound protection, sensitive clipboard and encrypted backup.
 
-> **Status:** in development towards v0.2.0. Not yet published. APIs may change.
+> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 
 Security model and design: see the [project docs](https://github.com/Breaktroughf1/flutter_mfa/tree/main/docs).
+
+## Install
+
+```sh
+flutter pub add flutter_mfa
+# optional: widgets and the QR scanner
+flutter pub add flutter_mfa_ui flutter_mfa_qr
+```
+
+Android needs `minSdk 24`, iOS needs 15.0 (plus `NSFaceIDUsageDescription` for biometric protection) and the web needs a secure context (HTTPS or localhost). See [Platform notes](#platform-notes).
 
 ## Quick start
 
