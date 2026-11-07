@@ -69,4 +69,22 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(VaultFailure(code: .hostActivityNotFragmentActivity).pigeonError.code, "hostActivityNotFragmentActivity")
     XCTAssertNil(VaultFailure(code: .corrupted).pigeonError.message)
   }
+
+  func testLeftoversFromAnEarlierInstallAreWipedOnce() throws {
+    let suite = "com.breaktroughf1.flutter_mfa.tests.defaults"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+    defaults.removePersistentDomain(forName: suite)
+    defer { defaults.removePersistentDomain(forName: suite) }
+
+    try vault.write(key: "old", value: Data([1]), level: .standard)
+    let guardOne = FreshInstallGuard(vault: vault, defaults: defaults)
+    try guardOne.ensure()
+    XCTAssertEqual(try vault.keys(), [], "leftover from the earlier install is wiped")
+    XCTAssertTrue(defaults.bool(forKey: FreshInstallGuard.markerKey))
+
+    try vault.write(key: "new", value: Data([2]), level: .standard)
+    try guardOne.ensure()
+    try FreshInstallGuard(vault: vault, defaults: defaults).ensure()
+    XCTAssertEqual(try vault.keys(), ["new"], "this installation's data is never wiped")
+  }
 }

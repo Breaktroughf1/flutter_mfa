@@ -5,7 +5,15 @@ import UIKit
 /// iOS entry point of flutter_mfa: a thin byte vault behind the Pigeon
 /// `MfaHostApi`. No OTP logic, JSON or validation lives here (CLAUDE.md rule 1).
 public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
-  private let vault = KeychainVault()
+  private let vault: KeychainVault
+  private let freshInstall: FreshInstallGuard
+
+  override init() {
+    let vault = KeychainVault()
+    self.vault = vault
+    self.freshInstall = FreshInstallGuard(vault: vault)
+    super.init()
+  }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     MfaHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: FlutterMfaPlugin())
@@ -33,30 +41,47 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
   // block, so it runs on a background executor.
   func write(key: String, value: FlutterStandardTypedData, level: ProtectionLevelMessage) async throws {
     let vault = self.vault
+    let freshInstall = self.freshInstall
     let data = value.data
     try await Task.detached {
-      try Self.mapped { try vault.write(key: key, value: data, level: level) }
+      try Self.mapped {
+        try freshInstall.ensure()
+        try vault.write(key: key, value: data, level: level)
+      }
     }.value
   }
 
   func read(key: String, prompt: PromptMessage?) async throws -> FlutterStandardTypedData? {
     let vault = self.vault
+    let freshInstall = self.freshInstall
     let data = try await Task.detached {
-      try Self.mapped { try vault.read(key: key) }
+      try Self.mapped {
+        try freshInstall.ensure()
+        return try vault.read(key: key)
+      }
     }.value
     return data.map { FlutterStandardTypedData(bytes: $0) }
   }
 
   func delete(key: String) throws {
-    try Self.mapped { try vault.delete(key: key) }
+    try Self.mapped {
+      try freshInstall.ensure()
+      try vault.delete(key: key)
+    }
   }
 
   func keys() throws -> [String] {
-    try Self.mapped { try vault.keys() }
+    try Self.mapped {
+      try freshInstall.ensure()
+      return try vault.keys()
+    }
   }
 
   func wipe() throws {
-    try Self.mapped { try vault.wipe() }
+    try Self.mapped {
+      try freshInstall.ensure()
+      try vault.wipe()
+    }
   }
 
   func copySensitive(text: String, expiryMillis: Int64) throws {

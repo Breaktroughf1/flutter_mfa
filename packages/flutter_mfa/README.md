@@ -8,6 +8,10 @@ Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRI
 
 Security model and design: see the [project docs](https://github.com/Breaktroughf1/flutter_mfa/tree/main/docs).
 
+## Platform notes
+
+- **Uninstall removes accounts on every platform.** Android deletes app data on uninstall. iOS keeps Keychain items, so the plugin wipes anything left from an earlier installation before its first vault operation (ADR-0012). Users who reinstall need an encrypted backup to restore their accounts.
+
 ## Web: security limits
 
 **On the web the vault is best-effort. Prefer the mobile apps for high-value accounts.**
