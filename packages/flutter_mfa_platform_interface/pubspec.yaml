@@ -2,14 +2,16 @@ name: flutter_mfa_platform_interface
 description: >-
   A common platform interface for the flutter_mfa secure vault (Android Keystore, iOS Keychain, WebCrypto).
 version: 0.2.0
-repository: https://github.com/Breaktroughf1/flutter_mfa/tree/main/packages/flutter_mfa_platform_interface
+homepage: https://breaktroughf1.com/open-source
+repository: https://github.com/Breaktroughf1/flutter_mfa
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues
+documentation: https://github.com/Breaktroughf1/flutter_mfa#readme
 topics:
+  - authentication
   - mfa
+  - security
   - totp
   - otp
-  - authentication
-  - security
 platforms:
   android:
   ios:

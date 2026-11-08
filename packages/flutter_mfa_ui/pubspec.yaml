@@ -2,14 +2,16 @@ name: flutter_mfa_ui
 description: >-
   Accessible, design-system independent Flutter widgets for multi-factor authentication: OTP code field, code display with countdown, account list, enrolment QR and status badges.
 version: 0.2.0
-repository: https://github.com/Breaktroughf1/flutter_mfa/tree/main/packages/flutter_mfa_ui
+homepage: https://breaktroughf1.com/open-source
+repository: https://github.com/Breaktroughf1/flutter_mfa
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues
+documentation: https://github.com/Breaktroughf1/flutter_mfa#readme
 topics:
+  - authentication
   - mfa
+  - security
   - totp
   - otp
-  - authentication
-  - security
 platforms:
   android:
   ios:
