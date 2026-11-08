@@ -1,70 +1,20 @@
-# Publishes ONE package to pub.dev when its tag is pushed: <package>-v<semver>
-# Requires (per package, on pub.dev Admin tab): automated publishing enabled for this repo,
-# tag pattern "<package>-v{{version}}", required environment "pub.dev".
-# See docs/07_RELEASE_RUNBOOK.md. No credentials are stored — OIDC only.
-name: publish
-
+name: Publish
 on:
   push:
     tags:
-      - 'flutter_mfa_core-v[0-9]*.[0-9]*.[0-9]*'
-      - 'flutter_mfa_platform_interface-v[0-9]*.[0-9]*.[0-9]*'
-      - 'flutter_mfa-v[0-9]*.[0-9]*.[0-9]*'
-      - 'flutter_mfa_ui-v[0-9]*.[0-9]*.[0-9]*'
-      - 'flutter_mfa_qr-v[0-9]*.[0-9]*.[0-9]*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag to publish (e.g. flutter_mfa_core-v0.2.0)'
-        required: true
-        type: string
-
-permissions:
-  contents: read
-
-env:
-  FLUTTER_VERSION: "3.47.8"
-
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 jobs:
-  resolve:
-    runs-on: ubuntu-24.04
-    outputs:
-      tag: ${{ steps.p.outputs.tag }}
-      package: ${{ steps.p.outputs.package }}
-      version: ${{ steps.p.outputs.version }}
-    steps:
-      - id: p
-        run: |
-          TAG="${{ inputs.tag || github.ref_name }}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "package=${TAG%-v*}" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG##*-v}" >> "$GITHUB_OUTPUT"
-
+  ci:
+    uses: Breaktroughf1/.github/.github/workflows/dart-package-ci.yml@main
+    with:
+      flutter: true
+      package-path: packages/flutter_mfa
   publish:
-    needs: resolve
-    runs-on: ubuntu-24.04
-    environment: pub.dev # required reviewer approves here
+    needs: ci
     permissions:
+      id-token: write
       contents: read
-      id-token: write # OIDC token for pub.dev
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.resolve.outputs.tag }}
-          persist-credentials: false
-      - uses: ./.github/actions/setup
-        with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
-      - name: Check pubspec version matches tag
-        working-directory: packages/${{ needs.resolve.outputs.package }}
-        run: |
-          V=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
-          test "$V" = "${{ needs.resolve.outputs.version }}" || { echo "pubspec $V != tag ${{ needs.resolve.outputs.version }}"; exit 1; }
-      - name: Verify package
-        working-directory: packages/${{ needs.resolve.outputs.package }}
-        run: |
-          flutter analyze --fatal-infos
-          bash ../../tool/test.sh
-          dart pub publish --dry-run
-      - name: Publish
-        working-directory: packages/${{ needs.resolve.outputs.package }}
-        run: dart pub publish --force
+    uses: Breaktroughf1/.github/.github/workflows/dart-package-publish.yml@main
+    with:
+      flutter: true
+      package-path: packages/flutter_mfa
