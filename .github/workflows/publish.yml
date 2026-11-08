@@ -12,6 +12,12 @@ on:
       - 'flutter_mfa-v[0-9]*.[0-9]*.[0-9]*'
       - 'flutter_mfa_ui-v[0-9]*.[0-9]*.[0-9]*'
       - 'flutter_mfa_qr-v[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g. flutter_mfa_core-v0.2.0)'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -23,12 +29,14 @@ jobs:
   resolve:
     runs-on: ubuntu-24.04
     outputs:
+      tag: ${{ steps.p.outputs.tag }}
       package: ${{ steps.p.outputs.package }}
       version: ${{ steps.p.outputs.version }}
     steps:
       - id: p
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "package=${TAG%-v*}" >> "$GITHUB_OUTPUT"
           echo "version=${TAG##*-v}" >> "$GITHUB_OUTPUT"
 
@@ -41,7 +49,9 @@ jobs:
       id-token: write # OIDC token for pub.dev
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
+        with:
+          ref: ${{ needs.resolve.outputs.tag }}
+          persist-credentials: false
       - uses: ./.github/actions/setup
         with: { flutter-version: "${{ env.FLUTTER_VERSION }}" }
       - name: Check pubspec version matches tag
