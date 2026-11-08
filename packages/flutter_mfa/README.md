@@ -1,10 +1,12 @@
 # flutter_mfa
 
 [![pub package](https://img.shields.io/pub/v/flutter_mfa.svg)](https://pub.dev/packages/flutter_mfa)
+[![publisher](https://img.shields.io/pub/publisher/flutter_mfa.svg)](https://pub.dev/publishers/breaktroughf1.com)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 The Flutter plugin of [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa): `MfaClient`, a secure vault (Android Keystore, iOS Keychain, WebCrypto), biometric-bound protection, sensitive clipboard and encrypted backup.
 
-> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
+> **Status:** Published on [pub.dev](https://pub.dev/packages/flutter_mfa) under verified publisher [breaktroughf1.com](https://breaktroughf1.com/open-source). Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 

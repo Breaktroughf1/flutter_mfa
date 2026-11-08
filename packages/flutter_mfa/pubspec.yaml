@@ -1,7 +1,7 @@
 name: flutter_mfa
 description: >-
   Multi-factor authentication for Flutter: a TOTP/HOTP authenticator with hardware-backed storage (Keystore, Keychain, WebCrypto), biometric protection and encrypted backup.
-version: 0.2.0
+version: 0.2.1
 homepage: https://breaktroughf1.com/open-source
 repository: https://github.com/Breaktroughf1/flutter_mfa
 issue_tracker: https://github.com/Breaktroughf1/flutter_mfa/issues

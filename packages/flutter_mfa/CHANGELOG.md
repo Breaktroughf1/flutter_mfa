@@ -4,6 +4,11 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package uses
 [Semantic Versioning](https://semver.org) (0.x: a minor bump may break).
 
+## 0.2.1 - 2026-11-08
+
+- Documentation improvements: added verified publisher badge and links to open-source portal.
+- Enabled automated GitHub Actions release publishing with OIDC.
+
 ## 0.2.0 - 2026-11-08
 
 - `MfaClient.create` now throws `VaultUnavailable(insecureContext)` on a web
