@@ -88,14 +88,27 @@ void main() {
     final copied = <String>[];
     await tester.pumpWidget(view(onCopy: copied.add));
     await tester.tap(find.bySemanticsLabel('Copy setup key'));
+    await tester.pump();
     expect(copied, ['GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ']);
+    expect(find.text('Setup key copied'), findsOneWidget);
+    expect(
+      tester
+          .getSemantics(find.text('Setup key copied'))
+          .flagsCollection
+          .isLiveRegion,
+      isTrue,
+    );
+    await tester.pump(EnrollmentQrView.confirmationDuration);
+    expect(find.text('Setup key copied'), findsNothing);
     final node = tester.getSemantics(find.bySemanticsLabel('Copy setup key'));
     node.owner!.performAction(node.id, ui.SemanticsAction.tap);
+    await tester.pump();
     expect(copied, hasLength(2));
     expect(
       tester.getSize(find.bySemanticsLabel('Copy setup key')),
       const Size(48, 48),
     );
+    await tester.pumpWidget(const SizedBox());
     handle.dispose();
   });
 

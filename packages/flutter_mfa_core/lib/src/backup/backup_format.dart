@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../codec/base32.dart';
 import '../errors/mfa_exception.dart';
 import '../model/otp_account.dart';
 import '../otp/otp_secret.dart';
@@ -51,7 +50,7 @@ String backupPlaintext(List<BackupEntry> entries, DateTime createdAt) =>
       'createdAt': createdAt.toUtc().toIso8601String(),
       'accounts': [
         for (final e in entries)
-          {...e.account.toJson(), 'secret': Base32.encode(e.secret.bytes)},
+          {...e.account.toJson(), 'secret': e.secret.toBase32()},
       ],
     });
 
@@ -67,14 +66,18 @@ Future<Uint8List> sealBackup(
   required DateTime createdAt,
 }) async {
   final header = backupHeader(iterations, salt, nonce);
-  final key = await crypto.deriveKey(utf8.encode(passphrase), salt, iterations);
-  final plaintext = utf8.encode(backupPlaintext(entries, createdAt));
+  final passphraseBytes = utf8.encode(passphrase);
+  Uint8List? key;
+  Uint8List? plaintext;
   try {
+    key = await crypto.deriveKey(passphraseBytes, salt, iterations);
+    plaintext = utf8.encode(backupPlaintext(entries, createdAt));
     final sealed = await crypto.seal(key, nonce, plaintext, header);
     return Uint8List.fromList([...header, ...sealed]);
   } finally {
-    key.fillRange(0, key.length, 0);
-    plaintext.fillRange(0, plaintext.length, 0);
+    passphraseBytes.fillRange(0, passphraseBytes.length, 0);
+    key?.fillRange(0, key.length, 0);
+    plaintext?.fillRange(0, plaintext.length, 0);
   }
 }
 
@@ -109,9 +112,11 @@ Future<List<BackupEntry>> openBackup(
   final header = Uint8List.sublistView(data, 0, _headerLength);
   final salt = Uint8List.sublistView(data, 10, 10 + _saltLength);
   final nonce = Uint8List.sublistView(data, 26, 26 + _nonceLength);
-  final key = await crypto.deriveKey(utf8.encode(passphrase), salt, iterations);
+  final passphraseBytes = utf8.encode(passphrase);
+  Uint8List? key;
   final Uint8List? plaintext;
   try {
+    key = await crypto.deriveKey(passphraseBytes, salt, iterations);
     plaintext = await crypto.open(
       key,
       nonce,
@@ -119,7 +124,8 @@ Future<List<BackupEntry>> openBackup(
       header,
     );
   } finally {
-    key.fillRange(0, key.length, 0);
+    passphraseBytes.fillRange(0, passphraseBytes.length, 0);
+    key?.fillRange(0, key.length, 0);
   }
   if (plaintext == null) throw const BackupDecryptFailed();
   try {

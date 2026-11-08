@@ -2,6 +2,7 @@ package com.breaktroughf1.flutter_mfa
 
 import android.Manifest
 import android.app.Activity
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -29,10 +30,14 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         val ctx = binding.applicationContext
         context = ctx
-        val keystore = KeystoreCrypto(strongBoxAvailable = hasStrongBox(ctx))
+        val strongBox = hasStrongBox(ctx)
+        val keystore = KeystoreCrypto(
+            strongBoxAvailable = strongBox,
+            isDeviceSecure = { isDeviceSecure(ctx) },
+        )
         crypto = keystore
         val keys = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            KeystoreProtectedKeys(ctx, hasStrongBox(ctx)) { activity }
+            KeystoreProtectedKeys(ctx, strongBox) { activity }
         } else {
             UnsupportedProtectedKeys
         }
@@ -71,24 +76,22 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
     override fun capabilities(): CapabilitiesMessage = vaultCall {
         val ctx = requireNotNull(context)
         val hardwareBacked = crypto?.isHardwareBacked() ?: false
+        val strongBox = hasStrongBox(ctx)
         CapabilitiesMessage(
             hardwareBacked = hardwareBacked,
-            strongBox = hasStrongBox(ctx),
+            strongBox = strongBox,
             secureEnclave = false,
             biometricsEnrolled = biometricsEnrolled(ctx),
             persistentStorage = true,
             screenCaptureProtection = true,
             // Protected levels need per-operation strong-biometric keys (API 30+),
-            // enrolled biometrics and secure hardware; otherwise they are not offered.
-            supportedLevels = if (hardwareBacked && protectedKeys.available()) {
-                listOf(
-                    ProtectionLevelMessage.STANDARD,
-                    ProtectionLevelMessage.BIOMETRIC,
-                    ProtectionLevelMessage.HARDWARE_BOUND,
-                )
-            } else {
-                listOf(ProtectionLevelMessage.STANDARD)
-            },
+            // enrolled biometrics and secure hardware; hardwareBound also requires
+            // StrongBox (never silently downgraded to TEE).
+            supportedLevels = supportedLevels(
+                hardwareBacked = hardwareBacked,
+                biometricsAvailable = protectedKeys.available(),
+                strongBox = strongBox,
+            ),
         )
     }
 
@@ -135,9 +138,26 @@ class FlutterMfaPlugin : FlutterPlugin, ActivityAware, MfaHostApi {
     internal companion object {
         const val VAULT_DIR = "flutter_mfa"
 
+        fun supportedLevels(
+            hardwareBacked: Boolean,
+            biometricsAvailable: Boolean,
+            strongBox: Boolean,
+        ): List<ProtectionLevelMessage> = buildList {
+            add(ProtectionLevelMessage.STANDARD)
+            if (hardwareBacked && biometricsAvailable) {
+                add(ProtectionLevelMessage.BIOMETRIC)
+                if (strongBox) {
+                    add(ProtectionLevelMessage.HARDWARE_BOUND)
+                }
+            }
+        }
+
         fun hasStrongBox(ctx: Context): Boolean =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
                 ctx.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+
+        fun isDeviceSecure(ctx: Context): Boolean =
+            ctx.getSystemService(KeyguardManager::class.java)?.isDeviceSecure ?: false
 
         /**
          * Whether strong biometrics are enrolled (API 30+, where Class 3 can be

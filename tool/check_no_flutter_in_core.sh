@@ -9,14 +9,14 @@ fail=0
 
 # Imports that break pure-Dart or web/WASM compilation of the published library.
 SRC=$(ls -d "$CORE/lib" "$CORE/bin" 2>/dev/null || true)
-if hits=$(grep -rnE "^\s*(import|export)\s+['\"](package:flutter/|dart:(ui|html|io|isolate|ffi|mirrors))" $SRC); then
+if hits=$(grep -rnE "^\s*(import|export)\b.*['\"](package:flutter/|dart:(ui|html|io|isolate|ffi|mirrors))" $SRC); then
   echo "ERROR: flutter_mfa_core lib must not import Flutter, dart:ui/html/io/isolate/ffi/mirrors:"
   echo "$hits"; fail=1
 fi
 
 # Dependency allowlist: crypto, meta, collection + the AEAD/KDF package of ADR-0007 (cryptography).
 ALLOWED='^(crypto|meta|collection|cryptography)$'
-deps=$(awk '/^dependencies:/{f=1;next} /^[^[:space:]#]/{f=0} f && /^  [a-z_]+:/{sub(":.*","");gsub(" ","");print}' "$CORE/pubspec.yaml")
+deps=$(awk '/^dependencies:/{f=1;next} /^[^[:space:]#]/{f=0} f && /^  [a-z0-9_]+:/{sub(":.*","");gsub(" ","");print}' "$CORE/pubspec.yaml")
 for d in $deps; do
   if ! [[ $d =~ $ALLOWED ]]; then
     echo "ERROR: flutter_mfa_core may not depend on '$d' (allowlist: crypto, meta, collection, ADR-0007 AEAD/KDF)"; fail=1

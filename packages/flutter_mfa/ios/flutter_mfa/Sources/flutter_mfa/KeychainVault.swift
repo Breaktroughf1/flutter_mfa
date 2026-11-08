@@ -25,20 +25,27 @@ import Security
 /// re-enrolment is reported as `keyInvalidated` without showing a prompt.
 final class KeychainVault: @unchecked Sendable {
   static let defaultService = "com.breaktroughf1.flutter_mfa"
+  static let maxKeyBytes = 120
   private static let formatVersion: UInt8 = 1
   private static let keyIdSize = 8
   static let algorithm = SecKeyAlgorithm.eciesEncryptionCofactorVariableIVX963SHA256AESGCM
 
   private let service: String
   private let keyTagPrefix: String
+  private let enclaveKeyLabel: String
+  private let lock = NSLock()
 
   init(service: String = KeychainVault.defaultService) {
     self.service = service
     self.keyTagPrefix = service + ".se."
+    self.enclaveKeyLabel = service + ".se"
   }
 
   /// Stores `value` under `key` at `level`, replacing any existing entry.
   func write(key: String, value: Data, level: ProtectionLevelMessage) throws {
+    _ = try Self.validateKey(key)
+    lock.lock()
+    defer { lock.unlock() }
     let previous = try existing(key)
     var attributes: [String: Any]
     var newKeyTag: Data?
@@ -70,12 +77,13 @@ final class KeychainVault: @unchecked Sendable {
       }
       let id = Data(idBytes)
       let tag = keyTag(id)
+      let boundPlaintext = try Self.bound(key, value)
       let publicKey = try createEnclaveKey(tag: tag)
       newKeyTag = tag
       var error: Unmanaged<CFError>?
       guard
         let sealed = SecKeyCreateEncryptedData(
-          publicKey, Self.algorithm, Self.bound(key, value) as CFData, &error) as Data?
+          publicKey, Self.algorithm, boundPlaintext as CFData, &error) as Data?
       else {
         deleteEnclaveKey(tag: tag)
         throw VaultFailure(code: .secureEnclaveUnavailable)
@@ -86,11 +94,13 @@ final class KeychainVault: @unchecked Sendable {
         kSecAttrGeneric as String: Data([Self.formatVersion, UInt8(level.rawValue)]) + hash,
       ]
     }
+    var deletedPreviousItem = false
     do {
       // An item with access control cannot be updated without authenticating,
       // so it is replaced; any other item is updated in place (atomic).
       if previous?.level == .biometric || level == .biometric {
         try delete(itemOnly: key)
+        deletedPreviousItem = true
         try add(key, attributes)
       } else if previous == nil {
         try add(key, attributes)
@@ -99,6 +109,7 @@ final class KeychainVault: @unchecked Sendable {
       }
     } catch {
       if let newKeyTag { deleteEnclaveKey(tag: newKeyTag) }
+      if deletedPreviousItem, let oldTag = previous?.keyTag { deleteEnclaveKey(tag: oldTag) }
       throw error
     }
     if let oldTag = previous?.keyTag { deleteEnclaveKey(tag: oldTag) }
@@ -107,9 +118,17 @@ final class KeychainVault: @unchecked Sendable {
   /// The bytes under `key`, or nil if there is no entry. Protected entries
   /// show `prompt` and are released only after Face ID or Touch ID.
   func read(key: String, prompt: PromptMessage? = nil) throws -> Data? {
-    guard let entry = try existing(key) else { return nil }
+    _ = try Self.validateKey(key)
+    let entry: Entry? = try {
+      lock.lock()
+      defer { lock.unlock() }
+      return try existing(key)
+    }()
+    guard let entry else { return nil }
     switch entry.level {
     case .standard:
+      lock.lock()
+      defer { lock.unlock() }
       return try data(key, context: nil)
     case .biometric:
       try checkEnrolment(entry)
@@ -119,7 +138,12 @@ final class KeychainVault: @unchecked Sendable {
       return value
     case .hardwareBound:
       try checkEnrolment(entry)
-      guard let stored = try data(key, context: nil), stored.count > Self.keyIdSize,
+      let stored: Data? = try {
+        lock.lock()
+        defer { lock.unlock() }
+        return try data(key, context: nil)
+      }()
+      guard let stored, stored.count > Self.keyIdSize,
         let tag = entry.keyTag
       else { throw VaultFailure(code: .corrupted) }
       let context = try Biometry.context(for: prompt)
@@ -138,6 +162,9 @@ final class KeychainVault: @unchecked Sendable {
   /// Removes `key` (and the Secure Enclave key of a hardware-bound entry);
   /// absent keys are ignored.
   func delete(key: String) throws {
+    _ = try Self.validateKey(key)
+    lock.lock()
+    defer { lock.unlock() }
     let previous = try? existing(key)
     try delete(itemOnly: key)
     if let tag = previous?.keyTag { deleteEnclaveKey(tag: tag) }
@@ -145,6 +172,8 @@ final class KeychainVault: @unchecked Sendable {
 
   /// All keys with an entry, sorted.
   func keys() throws -> [String] {
+    lock.lock()
+    defer { lock.unlock() }
     var query = serviceQuery()
     query[kSecAttrSynchronizable as String] = kCFBooleanFalse
     query[kSecReturnAttributes as String] = true
@@ -162,11 +191,20 @@ final class KeychainVault: @unchecked Sendable {
   /// Removes every entry in this plugin's service and every Secure Enclave
   /// key it created.
   func wipe() throws {
+    lock.lock()
+    defer { lock.unlock() }
     var query = serviceQuery()
     query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
     let status = SecItemDelete(query as CFDictionary)
     if status != errSecItemNotFound { try Self.check(status) }
-    for tag in enclaveKeyTags() { deleteEnclaveKey(tag: tag) }
+    let labelQuery: [String: Any] = [
+      kSecClass as String: kSecClassKey,
+      kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
+      kSecAttrLabel as String: enclaveKeyLabel,
+    ]
+    let labelStatus = SecItemDelete(labelQuery as CFDictionary)
+    if labelStatus != errSecItemNotFound { try Self.check(labelStatus) }
+    for tag in try enclaveKeyTags() { deleteEnclaveKey(tag: tag) }
   }
 
   // MARK: - Entries
@@ -253,9 +291,17 @@ final class KeychainVault: @unchecked Sendable {
     if status != errSecItemNotFound { try Self.check(status) }
   }
 
-  /// `UTF-8 key length (2) ‖ key ‖ value`: binds the ciphertext to its entry.
-  static func bound(_ key: String, _ value: Data) -> Data {
+  private static func validateKey(_ key: String) throws -> Data {
     let name = Data(key.utf8)
+    guard !name.isEmpty, name.count <= maxKeyBytes else {
+      throw VaultFailure(code: .corrupted)
+    }
+    return name
+  }
+
+  /// `UTF-8 key length (2) ‖ key ‖ value`: binds the ciphertext to its entry.
+  static func bound(_ key: String, _ value: Data) throws -> Data {
+    let name = try validateKey(key)
     return Data([UInt8(name.count >> 8), UInt8(name.count & 0xff)]) + name + value
   }
 
@@ -290,6 +336,7 @@ final class KeychainVault: @unchecked Sendable {
       kSecPrivateKeyAttrs as String: [
         kSecAttrIsPermanent as String: true,
         kSecAttrApplicationTag as String: tag,
+        kSecAttrLabel as String: enclaveKeyLabel,
         kSecAttrAccessControl as String: access,
       ],
     ]
@@ -325,7 +372,7 @@ final class KeychainVault: @unchecked Sendable {
     SecItemDelete(query as CFDictionary)
   }
 
-  private func enclaveKeyTags() -> [Data] {
+  private func enclaveKeyTags() throws -> [Data] {
     let query: [String: Any] = [
       kSecClass as String: kSecClassKey,
       kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
@@ -334,9 +381,10 @@ final class KeychainVault: @unchecked Sendable {
       kSecUseAuthenticationContext as String: Self.nonInteractive(),
     ]
     var result: CFTypeRef?
-    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-      let items = result as? [[String: Any]]
-    else { return [] }
+    let status = SecItemCopyMatching(query as CFDictionary, &result)
+    if status == errSecItemNotFound { return [] }
+    try Self.check(status)
+    let items = result as? [[String: Any]] ?? []
     let prefix = Data(keyTagPrefix.utf8)
     return items.compactMap { $0[kSecAttrApplicationTag as String] as? Data }
       .filter { $0.starts(with: prefix) }

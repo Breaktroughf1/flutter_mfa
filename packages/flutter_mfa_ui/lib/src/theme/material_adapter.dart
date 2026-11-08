@@ -23,12 +23,9 @@ extension MfaMaterialTheme on ThemeData {
       onSurfaceVariant: scheme.onSurfaceVariant,
       outline: scheme.outline,
       error: scheme.error,
-      codeTextStyle: MfaThemeData.defaultCodeTextStyle
-          .merge(textTheme.headlineMedium)
-          .copyWith(
-            color: scheme.onSurface,
-            fontFeatures: MfaThemeData.defaultCodeTextStyle.fontFeatures,
-          ),
+      codeTextStyle: (textTheme.headlineMedium ?? const TextStyle())
+          .merge(MfaThemeData.defaultCodeTextStyle)
+          .copyWith(color: scheme.onSurface),
       titleTextStyle: style(
         textTheme.titleMedium,
         base.titleTextStyle,

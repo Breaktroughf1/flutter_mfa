@@ -33,6 +33,7 @@ List<String> allMessages(MfaLocalizations l) => [
   l.tryAgain,
   l.cameraUnavailable,
   l.cameraInsecureContext,
+  l.scanUnsupportedBrowser,
   l.paste,
   l.codeLabel('1 2 3'),
   l.codeUnavailable,

@@ -18,6 +18,7 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
+import java.security.ProviderException
 import java.security.PublicKey
 import java.security.SecureRandom
 import javax.crypto.BadPaddingException
@@ -47,6 +48,9 @@ internal class KeystoreProtectedKeys(
     override fun available(): Boolean = enrollment() == BiometricManager.BIOMETRIC_SUCCESS
 
     override fun create(hardwareBound: Boolean): Pair<ByteArray, PublicKey> = guard {
+        if (hardwareBound && !strongBoxAvailable) {
+            throw VaultFailure(VaultErrorCode.STRONG_BOX_UNAVAILABLE)
+        }
         when (enrollment()) {
             BiometricManager.BIOMETRIC_SUCCESS -> Unit
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
@@ -55,8 +59,8 @@ internal class KeystoreProtectedKeys(
         }
         val id = ByteArray(ProtectedKeys.ID_SIZE).also { SecureRandom().nextBytes(it) }
         val alias = alias(id)
-        val pair = generate(alias, strongBox = hardwareBound && strongBoxAvailable)
-        if (!insideSecureHardware(pair.private)) {
+        val pair = generate(alias, strongBox = hardwareBound)
+        if (!insideSecureHardware(pair.private, requireStrongBox = hardwareBound)) {
             keyStore().deleteEntry(alias)
             throw VaultFailure(VaultErrorCode.STRONG_BOX_UNAVAILABLE)
         }
@@ -116,15 +120,22 @@ internal class KeystoreProtectedKeys(
             generator.initialize(builder.build())
             generator.generateKeyPair()
         } catch (e: StrongBoxUnavailableException) {
-            generate(alias, strongBox = false)
+            throw VaultFailure(VaultErrorCode.STRONG_BOX_UNAVAILABLE)
+        } catch (e: ProviderException) {
+            if (strongBox) throw VaultFailure(VaultErrorCode.STRONG_BOX_UNAVAILABLE)
+            throw e
         }
     }
 
-    private fun insideSecureHardware(key: PrivateKey): Boolean {
+    private fun insideSecureHardware(key: PrivateKey, requireStrongBox: Boolean): Boolean {
         val info = KeyFactory.getInstance(key.algorithm, KEYSTORE)
             .getKeySpec(key, KeyInfo::class.java)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            info.securityLevel != KeyProperties.SECURITY_LEVEL_SOFTWARE
+            if (requireStrongBox) {
+                info.securityLevel == KeyProperties.SECURITY_LEVEL_STRONGBOX
+            } else {
+                info.securityLevel != KeyProperties.SECURITY_LEVEL_SOFTWARE
+            }
         } else {
             @Suppress("DEPRECATION")
             info.isInsideSecureHardware
@@ -184,6 +195,8 @@ internal class KeystoreProtectedKeys(
         } catch (e: IllegalBlockSizeException) {
             throw VaultFailure(VaultErrorCode.CORRUPTED)
         } catch (e: GeneralSecurityException) {
+            throw VaultFailure(VaultErrorCode.STORAGE_UNAVAILABLE)
+        } catch (e: ProviderException) {
             throw VaultFailure(VaultErrorCode.STORAGE_UNAVAILABLE)
         }
 

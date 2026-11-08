@@ -96,11 +96,13 @@ void main() {
       );
     });
 
-    test('rejects non-positive or fractional-second periods', () {
+    test('rejects non-positive, fractional-second or excessive periods', () {
       for (final p in [
         Duration.zero,
         const Duration(seconds: -30),
         const Duration(milliseconds: 1500),
+        const Duration(seconds: 86401),
+        const Duration(seconds: 999999999),
       ]) {
         expect(
           () => Totp(secret, config: TotpConfig(period: p)).stepAt(_at(0)),

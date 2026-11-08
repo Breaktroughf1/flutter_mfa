@@ -58,7 +58,11 @@ final class AccountRepository {
       try {
         await _save([...accounts, account]);
       } on Object {
-        await _platform.delete(secretKey(account.id));
+        try {
+          await _platform.delete(secretKey(account.id));
+        } on Object {
+          _shared.swept = false;
+        }
         rethrow;
       }
     },
@@ -112,6 +116,7 @@ final class AccountRepository {
           await _platform.delete(key);
         } on Object {
           // Keep the original error; an orphan is swept on the next load.
+          _shared.swept = false;
         }
       }
       rethrow;
@@ -124,6 +129,7 @@ final class AccountRepository {
         await _platform.delete(secretKey(id));
       } on Object {
         // Swept later.
+        _shared.swept = false;
       }
     }
     return change.result;
@@ -164,7 +170,12 @@ final class AccountRepository {
       for (final a in accounts)
         if (a.id != id) a,
     ]);
-    await _platform.delete(secretKey(id));
+    try {
+      await _platform.delete(secretKey(id));
+    } on Object {
+      _shared.swept = false;
+      rethrow;
+    }
   });
 
   /// Deletes every entry of this plugin (all secrets and the index).

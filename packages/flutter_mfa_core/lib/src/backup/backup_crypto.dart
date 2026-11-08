@@ -105,7 +105,11 @@ final class _DartBackupCrypto implements BackupCrypto {
         secretKey: SecretKey(key),
         aad: aad,
       );
-      return Uint8List.fromList(plain);
+      final out = Uint8List.fromList(plain);
+      if (plain is Uint8List) {
+        plain.fillRange(0, plain.length, 0);
+      }
+      return out;
     } on SecretBoxAuthenticationError {
       return null;
     }

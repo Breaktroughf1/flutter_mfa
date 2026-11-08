@@ -52,11 +52,11 @@ void main(List<String> args) {
   }
 
   final lh = lines.values.where((h) => h > 0).length;
-  final linePct = lines.isEmpty ? 100.0 : lh * 100 / lines.length;
+  final linePct = lines.isEmpty ? 0.0 : lh * 100 / lines.length;
   stdout.writeln(
     '$path  lines ${linePct.toStringAsFixed(2)}% ($lh/${lines.length})',
   );
-  var failed = linePct < minLines;
+  var failed = lines.isEmpty || linePct < minLines;
 
   if (minBranches != null) {
     final bh = branches.values.where((t) => t).length;

@@ -82,10 +82,22 @@ final class RunnerTests: XCTestCase {
   }
 
   func testHardwareBoundPlaintextIsBoundToItsKey() throws {
-    let bound = KeychainVault.bound("acct_a", Data([9, 8]))
+    let bound = try KeychainVault.bound("acct_a", Data([9, 8]))
     XCTAssertEqual(try KeychainVault.unbound("acct_a", bound), Data([9, 8]))
     for (key, data) in [("acct_b", bound), ("acct_a", Data([0])), ("acct_a", Data([0, 9, 1]))] {
       XCTAssertThrowsError(try KeychainVault.unbound(key, data)) { error in
+        XCTAssertEqual(error as? VaultFailure, VaultFailure(code: .corrupted))
+      }
+    }
+    let tooLong = String(repeating: "x", count: 121)
+    for invalid in ["", tooLong] {
+      XCTAssertThrowsError(try KeychainVault.bound(invalid, Data([1]))) { error in
+        XCTAssertEqual(error as? VaultFailure, VaultFailure(code: .corrupted))
+      }
+      XCTAssertThrowsError(try vault.write(key: invalid, value: Data([1]), level: .standard)) { error in
+        XCTAssertEqual(error as? VaultFailure, VaultFailure(code: .corrupted))
+      }
+      XCTAssertThrowsError(try vault.read(key: invalid)) { error in
         XCTAssertEqual(error as? VaultFailure, VaultFailure(code: .corrupted))
       }
     }

@@ -15,7 +15,7 @@ check() { # pattern, message, paths, [exclude-regex]
 }
 
 # Dart library code
-check '\bRandom\(' 'non-secure Random(...) in lib (use Random.secure(); fakes belong in testing.dart)' "$LIBS" '/testing\.dart:|/src/testing/'
+check '\bRandom\s*(\(|\.\s*new\b)' 'non-secure Random(...) in lib (use Random.secure(); fakes belong in testing.dart)' "$LIBS" '/testing\.dart:|/src/testing/'
 check '\b(print|debugPrint)\(' 'print/debugPrint in lib (use MfaLogger)' "$LIBS"
 check '\bconsole\.(log|info|warn|error|debug)\b' 'browser console logging in lib (use MfaLogger)' "$LIBS"
 check 'dart:html' 'dart:html is not WASM-compatible (use package:web)' "$LIBS"
@@ -29,6 +29,7 @@ if [ -n "$NATIVE" ]; then
   check '\bLog\.(v|d|i|w|e|wtf)\(|\bprintln\(|System\.(out|err)|\bNSLog\(|\bprint\(|\bdebugPrint\(|\bos_log\(|Logger\(' \
     'logging in native vault code' "$NATIVE"
   check 'AES/ECB|AES/CBC|"MD5"|\.md5|kCCAlgorithm|CC_MD5' 'weak native crypto' "$NATIVE"
+  check 'java\.util\.Random|kotlin\.random\.Random' 'non-CSPRNG Random in native vault code (use SecureRandom)' "$NATIVE"
 fi
 
 if [ $fail -eq 0 ]; then echo "ok: no forbidden APIs"; else exit 1; fi

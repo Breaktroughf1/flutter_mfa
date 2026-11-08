@@ -55,12 +55,30 @@ void main() {
     expect(filter.check(_uri), isA<ScanAccepted>());
   });
 
-  test('a different code is reported at once and resets the window', () {
-    expect(filter.check(_uri), isA<ScanAccepted>());
-    expect(filter.check('hello'), isA<ScanRejected>());
-    expect(filter.check('hello'), isNull, reason: 'rejections debounce too');
-    expect(filter.check(_uri), isA<ScanAccepted>());
-  });
+  test(
+    'multiple codes in view are each reported once within the debounce window',
+    () {
+      const secondUri =
+          'otpauth://totp/Breaktrough:bob%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=Breaktrough';
+      expect(filter.check(_uri), isA<ScanAccepted>());
+      expect(filter.check(secondUri), isA<ScanAccepted>());
+      expect(filter.check('hello'), isA<ScanRejected>());
+      expect(filter.check('hello'), isNull, reason: 'rejections debounce too');
+      expect(
+        filter.check(_uri),
+        isNull,
+        reason: 'first code stays debounced when alternating with a second code',
+      );
+      expect(
+        filter.check(secondUri),
+        isNull,
+        reason: 'second code stays debounced too',
+      );
+      clock.advance(const Duration(seconds: 2));
+      expect(filter.check(_uri), isA<ScanAccepted>());
+      expect(filter.check(secondUri), isA<ScanAccepted>());
+    },
+  );
 
   test('the parsed URI does not reveal the secret in toString', () {
     final uri = (filter.check(_uri)! as ScanAccepted).uri;

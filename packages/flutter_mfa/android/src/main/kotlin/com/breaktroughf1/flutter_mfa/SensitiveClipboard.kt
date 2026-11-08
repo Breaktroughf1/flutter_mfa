@@ -29,6 +29,7 @@ internal class SensitiveClipboard(context: Context) {
         }
         clipboard.setPrimaryClip(clip)
         val stamp = currentStamp()
+        handler.removeCallbacksAndMessages(null)
         handler.postDelayed({ clearIfOurs(stamp, text) }, expiryMillis.coerceAtLeast(0))
     }
 

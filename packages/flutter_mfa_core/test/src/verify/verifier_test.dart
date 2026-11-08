@@ -324,6 +324,20 @@ void main() {
         );
       },
     );
+
+    test(
+      'an invalid timestamp throws OtpConfigException without recording a failure',
+      () async {
+        final v = TotpVerifier(totp: totp, limiter: limiter);
+        await expectLater(
+          v.verify(codeAt(step), subject: 'u', at: _at(-1)),
+          throwsA(
+            isA<OtpConfigException>().having((e) => e.field, 'field', 'time'),
+          ),
+        );
+        expect(await store.read('u'), isNull);
+      },
+    );
   });
 
   group('HotpVerifier (FR-VER-03)', () {

@@ -45,11 +45,54 @@ void main() {
     });
   }
 
-  test('fallback picks the palette for the brightness', () {
+  test('fallback picks the palette for the brightness and contrast', () {
     expect(MfaThemeData.fallback(Brightness.dark), MfaThemeData.dark());
     expect(MfaThemeData.fallback(Brightness.light), MfaThemeData.light());
+    expect(
+      MfaThemeData.fallback(Brightness.light, highContrast: true),
+      MfaThemeData.highContrastLight(),
+    );
+    expect(
+      MfaThemeData.fallback(Brightness.dark, highContrast: true),
+      MfaThemeData.highContrastDark(),
+    );
     expect(MfaThemeData.light(), isNot(MfaThemeData.dark()));
+    expect(identical(MfaThemeData.light(), MfaThemeData.light()), isTrue);
+    expect(identical(MfaThemeData.dark(), MfaThemeData.dark()), isTrue);
   });
+
+  for (final theme in [
+    MfaThemeData.highContrastLight(),
+    MfaThemeData.highContrastDark(),
+  ]) {
+    group(
+      '${theme.brightness.name} high-contrast palette meets WCAG AAA (7:1)',
+      () {
+        final textColours = {
+          'onSurface': theme.onSurface,
+          'onSurfaceVariant': theme.onSurfaceVariant,
+          'primary': theme.primary,
+          'error': theme.error,
+          'success': theme.success,
+          'warning': theme.warning,
+        };
+        for (final MapEntry(:key, :value) in textColours.entries) {
+          test('$key has at least 7:1 contrast on surface', () {
+            expect(
+              contrastRatio(value, theme.surface),
+              greaterThanOrEqualTo(7),
+            );
+          });
+        }
+        test('onPrimary has at least 7:1 contrast on primary', () {
+          expect(
+            contrastRatio(theme.onPrimary, theme.primary),
+            greaterThanOrEqualTo(7),
+          );
+        });
+      },
+    );
+  }
 
   test('metrics default to accessible sizes', () {
     final theme = MfaThemeData.light();
@@ -92,6 +135,7 @@ void main() {
   test('describes itself for the widget inspector', () {
     final description = MfaThemeData.light().toString();
     expect(description, contains('brightness: light'));
+    expect(description, contains('spacing: 8.0'));
     expect(description, contains('minTapTarget: 48.0'));
   });
 }

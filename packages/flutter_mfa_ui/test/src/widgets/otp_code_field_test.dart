@@ -370,4 +370,75 @@ void main() {
       throwsAssertionError,
     );
   });
+
+  testWidgets('pasting text with prefix digits extracts the exact OTP code', (
+    tester,
+  ) async {
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => switch (call.method) {
+        'Clipboard.getData' => {'text': 'Your 2FA code is 123456'},
+        'Clipboard.hasStrings' => {'value': true},
+        _ => null,
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.pumpWidget(host(field()));
+    await tester.tap(find.byType(OtpCodeField));
+    await tester.pump();
+    await tester
+        .state<EditableTextState>(find.byType(EditableText))
+        .pasteText(SelectionChangedCause.toolbar);
+    await tester.pump();
+    expect(editable(tester).controller.text, '123456');
+    expect(completed, ['123456']);
+  });
+
+  testWidgets('updating length re-evaluates completion and truncates excess', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(field(length: 6)));
+    await tester.enterText(find.byType(EditableText), '123456');
+    expect(completed, ['123456']);
+
+    await tester.pumpWidget(host(field(length: 8)));
+    await tester.enterText(find.byType(EditableText), '12345678');
+    expect(completed, ['123456', '12345678']);
+
+    await tester.pumpWidget(host(field(length: 6)));
+    await tester.pump();
+    expect(editable(tester).controller.text, '123456');
+  });
+
+  testWidgets('caret position updates the highlighted box when focused', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: '123456');
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      host(field(controller: controller, autofocus: true)),
+    );
+    await tester.pump();
+    Color borderOf(int i) =>
+        ((tester
+                            .widget<Container>(
+                              find.byKey(ValueKey('otp-box-$i')),
+                            )
+                            .decoration!
+                        as BoxDecoration)
+                    .border!
+                as Border)
+            .top
+            .color;
+    final theme = MfaThemeData.light();
+    controller.selection = const TextSelection.collapsed(offset: 2);
+    await tester.pump();
+    expect(borderOf(2), theme.primary);
+    expect(borderOf(5), theme.outline);
+  });
 }

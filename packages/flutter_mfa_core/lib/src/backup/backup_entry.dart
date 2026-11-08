@@ -18,5 +18,14 @@ final class BackupEntry {
   final OtpSecret secret;
 
   @override
+  bool operator ==(Object other) =>
+      other is BackupEntry &&
+      other.account == account &&
+      other.secret == secret;
+
+  @override
+  int get hashCode => Object.hash(account, secret);
+
+  @override
   String toString() => 'BackupEntry(${account.displayName}, $secret)';
 }

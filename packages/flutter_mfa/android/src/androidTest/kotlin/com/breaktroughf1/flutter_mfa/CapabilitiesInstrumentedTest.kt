@@ -23,6 +23,7 @@ class CapabilitiesInstrumentedTest {
     @Test
     fun strongBoxAndHardwareBackingAreQueryable() {
         FlutterMfaPlugin.hasStrongBox(context)
+        FlutterMfaPlugin.isDeviceSecure(context)
         val crypto = KeystoreCrypto(strongBoxAvailable = false)
         try {
             crypto.isHardwareBacked()

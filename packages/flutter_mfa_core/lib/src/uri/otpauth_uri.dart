@@ -133,10 +133,11 @@ final class OtpAuthUri {
       );
     }
 
-    final issuerParam = known['issuer'];
-    final issuer = (issuerParam != null && issuerParam.isNotEmpty)
-        ? issuerParam
-        : labelIssuer;
+    final rawIssuer = known['issuer'];
+    final issuerParam = (rawIssuer != null && rawIssuer.isNotEmpty)
+        ? rawIssuer
+        : null;
+    final issuer = issuerParam ?? labelIssuer;
     final mismatch =
         issuerParam != null &&
         labelIssuer != null &&
@@ -167,10 +168,10 @@ final class OtpAuthUri {
       final periodText = known['period'];
       if (periodText != null) {
         final seconds = _uint(periodText, 'period');
-        if (seconds < 1) {
+        if (seconds < 1 || seconds > Totp.maxPeriodSeconds) {
           throw const OtpAuthUriException(
             field: 'period',
-            reason: 'must be at least 1 second',
+            reason: 'must be 1 to 86400 seconds',
           );
         }
         period = Duration(seconds: seconds);
@@ -294,10 +295,13 @@ final class OtpAuthUri {
       );
     }
     final periodMs = period.inMilliseconds;
-    if (type == OtpType.totp && (periodMs < 1000 || periodMs % 1000 != 0)) {
+    if (type == OtpType.totp &&
+        (periodMs < 1000 ||
+            periodMs > Totp.maxPeriodSeconds * 1000 ||
+            periodMs % 1000 != 0)) {
       throw const OtpAuthUriException(
         field: 'period',
-        reason: 'must be a positive whole number of seconds',
+        reason: 'must be 1 to 86400 whole seconds',
       );
     }
     final counter = this.counter;

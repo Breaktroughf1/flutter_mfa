@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:qr/qr.dart';
@@ -23,7 +25,7 @@ import 'status_glyph.dart';
 /// Protects against: casual exposure (warning text, no copy unless asked).
 /// Does not protect against screenshots or screen recording: on Android set
 /// screen-capture protection while this is shown.
-class EnrollmentQrView extends StatelessWidget {
+class EnrollmentQrView extends StatefulWidget {
   /// Creates the view for [uri].
   const EnrollmentQrView({
     super.key,
@@ -42,11 +44,66 @@ class EnrollmentQrView extends StatelessWidget {
   /// button.
   final ValueChanged<String>? onCopySecret;
 
+  /// How long the "Setup key copied" confirmation stays visible.
+  static const confirmationDuration = Duration(seconds: 2);
+
+  @override
+  State<EnrollmentQrView> createState() => _EnrollmentQrViewState();
+}
+
+class _EnrollmentQrViewState extends State<EnrollmentQrView> {
+  late String _data;
+  late QrImage _image;
+  Timer? _confirmation;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateQr();
+  }
+
+  @override
+  void didUpdateWidget(EnrollmentQrView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uri.toUri().toString() != widget.uri.toUri().toString()) {
+      _updateQr();
+    }
+    if ((!widget.showSecret && oldWidget.showSecret) ||
+        (widget.onCopySecret == null && oldWidget.onCopySecret != null)) {
+      _confirmation?.cancel();
+      _confirmation = null;
+    }
+  }
+
+  void _updateQr() {
+    _data = widget.uri.toUri().toString();
+    _image = QrImage(
+      QrCode.fromData(data: _data, errorCorrectLevel: QrErrorCorrectLevel.M),
+    );
+  }
+
+  @override
+  void dispose() {
+    _confirmation?.cancel();
+    super.dispose();
+  }
+
+  void _copy() {
+    widget.onCopySecret!(widget.uri.secret.toBase32());
+    _confirmation?.cancel();
+    setState(() {
+      _confirmation = Timer(EnrollmentQrView.confirmationDuration, () {
+        if (mounted) setState(() => _confirmation = null);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = MfaTheme.of(context);
     final strings = mfaStrings(context);
-    final copy = onCopySecret;
+    final copy = widget.onCopySecret;
+    final copied = _confirmation != null;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -62,27 +119,33 @@ class EnrollmentQrView extends StatelessWidget {
                   : 240.0;
               return SizedBox.square(
                 dimension: side,
-                child: CustomPaint(painter: _QrPainter(uri.toUri().toString())),
+                child: CustomPaint(painter: _QrPainter(_data, _image)),
               );
             },
           ),
         ),
-        if (showSecret) ...[
+        if (widget.showSecret) ...[
           SizedBox(height: theme.spacing * 2),
-          Text(strings.setupKey, style: theme.labelTextStyle),
+          Semantics(
+            container: true,
+            child: Text(strings.setupKey, style: theme.labelTextStyle),
+          ),
           SizedBox(height: theme.spacing / 2),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
-                child: Text(
-                  groupSetupKey(uri.secret.toBase32()),
-                  key: const ValueKey('setup-key'),
-                  textDirection: TextDirection.ltr,
-                  textAlign: TextAlign.center,
-                  style: theme.codeTextStyle.copyWith(
-                    fontSize: 18,
-                    letterSpacing: 1,
+                child: Semantics(
+                  container: true,
+                  child: Text(
+                    groupSetupKey(widget.uri.secret.toBase32()),
+                    key: const ValueKey('setup-key'),
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.center,
+                    style: theme.codeTextStyle.copyWith(
+                      fontSize: 18,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
               ),
@@ -92,9 +155,9 @@ class EnrollmentQrView extends StatelessWidget {
                   container: true,
                   button: true,
                   label: strings.copySetupKey,
-                  onTap: () => copy(uri.secret.toBase32()),
+                  onTap: _copy,
                   child: MfaPressable(
-                    onPressed: () => copy(uri.secret.toBase32()),
+                    onPressed: _copy,
                     child: SizedBox.square(
                       dimension: theme.minTapTarget,
                       child: Center(
@@ -110,25 +173,37 @@ class EnrollmentQrView extends StatelessWidget {
               ],
             ],
           ),
-        ],
-        SizedBox(height: theme.spacing * 2),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StatusGlyphIcon(
-              StatusGlyph.warning,
-              color: theme.warning,
-              size: MediaQuery.textScalerOf(context).scale(18),
-            ),
-            SizedBox(width: theme.spacing),
-            Flexible(
+          if (copied)
+            Semantics(
+              container: true,
+              liveRegion: true,
               child: Text(
-                strings.enrollmentPrivacyWarning,
-                style: theme.labelTextStyle.copyWith(color: theme.onSurface),
+                strings.setupKeyCopied,
+                style: theme.labelTextStyle.copyWith(color: theme.success),
               ),
             ),
-          ],
+        ],
+        SizedBox(height: theme.spacing * 2),
+        Semantics(
+          container: true,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StatusGlyphIcon(
+                StatusGlyph.warning,
+                color: theme.warning,
+                size: MediaQuery.textScalerOf(context).scale(18),
+              ),
+              SizedBox(width: theme.spacing),
+              Flexible(
+                child: Text(
+                  strings.enrollmentPrivacyWarning,
+                  style: theme.labelTextStyle.copyWith(color: theme.onSurface),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -145,10 +220,7 @@ String groupSetupKey(String base32) {
 }
 
 class _QrPainter extends CustomPainter {
-  _QrPainter(this.data)
-    : _image = QrImage(
-        QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.M),
-      );
+  const _QrPainter(this.data, this._image);
 
   final String data;
   final QrImage _image;

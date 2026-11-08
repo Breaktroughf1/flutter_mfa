@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
 import '../l10n/mfa_strings.dart';
@@ -36,6 +37,7 @@ class OtpCountdownRing extends StatelessWidget {
     final color = warning ? theme.warning : theme.primary;
     final size = MediaQuery.textScalerOf(context).scale(40);
     return Semantics(
+      sortKey: const OrdinalSortKey(3),
       container: true,
       label: mfaStrings(context).secondsRemaining(seconds),
       excludeSemantics: true,
@@ -48,12 +50,16 @@ class OtpCountdownRing extends StatelessWidget {
             track: theme.outline,
           ),
           child: Center(
-            child: Text(
-              '$seconds',
-              textDirection: TextDirection.ltr,
-              style: theme.labelTextStyle.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$seconds',
+                textDirection: TextDirection.ltr,
+                style: theme.labelTextStyle.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ),

@@ -111,6 +111,14 @@ void main() {
       },
     );
 
+    test('an empty issuer parameter falls back to label without warning', () {
+      final u = OtpAuthUri.parse(
+        'otpauth://totp/Example:alice?secret=$_secret20&issuer=',
+      );
+      expect(u.issuer, 'Example');
+      expect(u.compatibilityWarnings, isEmpty);
+    });
+
     test('accepts a percent-encoded colon separator and spaces after it', () {
       final u = OtpAuthUri.parse(
         'otpauth://totp/Example%3A%20alice?secret=$_secret20',
@@ -242,8 +250,15 @@ void main() {
       );
     });
 
-    test('period must be a positive integer number of seconds', () {
-      for (final bad in ['0', '-30', '1.5', 'x']) {
+    test('period must be 1 to 86400 whole seconds', () {
+      for (final bad in [
+        '0',
+        '-30',
+        '1.5',
+        'x',
+        '86401',
+        '999999999999999',
+      ]) {
         expect(
           () => OtpAuthUri.parse(
             'otpauth://totp/a?secret=$_secret20&period=$bad',
@@ -255,6 +270,12 @@ void main() {
       expect(
         OtpAuthUri.parse('otpauth://totp/a?secret=$_secret20&period=15').period,
         const Duration(seconds: 15),
+      );
+      expect(
+        OtpAuthUri.parse(
+          'otpauth://totp/a?secret=$_secret20&period=86400',
+        ).period,
+        const Duration(seconds: 86400),
       );
     });
 
@@ -422,6 +443,15 @@ void main() {
           secret: secret,
           accountName: 'a',
           period: const Duration(milliseconds: 1500),
+        ).toUri(),
+        _uriError('period'),
+      );
+      expect(
+        () => OtpAuthUri(
+          type: OtpType.totp,
+          secret: secret,
+          accountName: 'a',
+          period: const Duration(seconds: 86401),
         ).toUri(),
         _uriError('period'),
       );

@@ -43,6 +43,16 @@ void main() {
       ),
       MfaThemeData.dark(),
     );
+    expect(
+      await capture(
+        tester,
+        (probe) => MediaQuery(
+          data: const MediaQueryData(highContrast: true),
+          child: probe,
+        ),
+      ),
+      MfaThemeData.highContrastLight(),
+    );
     expect(await capture(tester, (probe) => probe), MfaThemeData.light());
     expect(await capture(tester, (probe) => probe, maybe: true), isNull);
   });

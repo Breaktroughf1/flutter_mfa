@@ -60,6 +60,9 @@ final class Totp {
     this.clock = const SystemClock(),
   });
 
+  /// Largest time-step period accepted (24 hours).
+  static const int maxPeriodSeconds = 86400;
+
   /// The shared secret.
   final OtpSecret secret;
 
@@ -94,10 +97,10 @@ final class Totp {
 
   int get _periodMs {
     final ms = config.period.inMilliseconds;
-    if (ms <= 0 || ms % 1000 != 0) {
+    if (ms <= 0 || ms > maxPeriodSeconds * 1000 || ms % 1000 != 0) {
       throw const OtpConfigException(
         field: 'period',
-        reason: 'must be a positive whole number of seconds',
+        reason: 'must be 1 to 86400 whole seconds',
       );
     }
     return ms;

@@ -201,11 +201,17 @@ void main() {
           onDuplicate: DuplicateStrategy.replace,
         );
         expect(report.replaced, hasLength(2));
-        expect(await mfa.accounts(), report.replaced);
         expect(
           await target.keys(),
           contains('acct_${existing.id}'),
           reason: 'left as an orphan for the next sweep',
+        );
+        final next = await client(target);
+        expect(await next.accounts(), report.replaced);
+        expect(
+          await target.keys(),
+          isNot(contains('acct_${existing.id}')),
+          reason: 'swept on the next load',
         );
       },
     );

@@ -28,8 +28,28 @@ void main() {
         expect(theme.warning, fallback.warning);
         expect(theme.codeTextStyle.color, scheme.onSurface);
         expect(
+          theme.codeTextStyle.fontSize,
+          MfaThemeData.defaultCodeTextStyle.fontSize,
+        );
+        expect(
+          theme.codeTextStyle.fontWeight,
+          MfaThemeData.defaultCodeTextStyle.fontWeight,
+        );
+        expect(
+          theme.codeTextStyle.letterSpacing,
+          MfaThemeData.defaultCodeTextStyle.letterSpacing,
+        );
+        expect(
+          theme.codeTextStyle.height,
+          MfaThemeData.defaultCodeTextStyle.height,
+        );
+        expect(
           theme.codeTextStyle.fontFeatures,
           MfaThemeData.defaultCodeTextStyle.fontFeatures,
+        );
+        expect(
+          theme.codeTextStyle.fontFamily,
+          material.textTheme.headlineMedium!.fontFamily,
         );
         expect(
           theme.titleTextStyle.fontSize,

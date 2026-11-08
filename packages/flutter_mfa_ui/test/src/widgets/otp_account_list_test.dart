@@ -130,4 +130,31 @@ void main() {
     expect(tile.onTap, isNull);
     expect(tile.onCopy, isNull);
   });
+
+  testWidgets('HOTP tile updates when codeStream starts returning a stream', (
+    tester,
+  ) async {
+    final hotp = account(id: 'h', issuer: 'Bank', name: 'bob', type: OtpType.hotp);
+    final generated = <String, Stream<OtpCode>>{};
+    Widget buildList() => host(
+      SizedBox(
+        height: 400,
+        child: OtpAccountList(
+          accounts: Stream.value([hotp]),
+          codeStream: (a) => generated[a.id],
+          onTap: (a) => generated[a.id] = Stream.value(code),
+        ),
+      ),
+    );
+    await tester.pumpWidget(buildList());
+    await tester.pumpAndSettle();
+    expect(find.text('Tap to generate a code'), findsOneWidget);
+    expect(find.text('287 082'), findsNothing);
+
+    await tester.tap(find.text('Bank'));
+    await tester.pumpWidget(buildList());
+    await tester.pumpAndSettle();
+    expect(find.text('Tap to generate a code'), findsNothing);
+    expect(find.text('287 082'), findsOneWidget);
+  });
 }

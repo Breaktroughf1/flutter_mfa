@@ -457,16 +457,22 @@ final class MfaClient {
           byId[id] ?? (throw const VaultNotFound()),
       ];
     }
-    final entries = <BackupEntry>[
-      for (final account in selected)
-        BackupEntry(
-          account: account,
-          secret: await _readSecret(account, null),
-        ),
-    ];
-    final data = await compute(_encryptBackup, (entries, passphrase));
-    _log(MfaLogLevel.info, 'exported ${entries.length} accounts');
-    return data;
+    final entries = <BackupEntry>[];
+    try {
+      for (final account in selected) {
+        entries.add(
+          BackupEntry(
+            account: account,
+            secret: await _readSecret(account, null),
+          ),
+        );
+      }
+      final data = await compute(_encryptBackup, (entries, passphrase));
+      _log(MfaLogLevel.info, 'exported ${entries.length} accounts');
+      return data;
+    } finally {
+      entries.clear();
+    }
   }
 
   /// Restores the accounts of a backup made by [exportEncrypted] on any
@@ -518,6 +524,7 @@ final class MfaClient {
       for (final s in secrets) {
         s.fillRange(0, s.length, 0);
       }
+      entries.clear();
     }
   }
 

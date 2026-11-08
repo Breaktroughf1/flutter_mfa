@@ -114,4 +114,30 @@ void main() {
       TextDirection.ltr,
     );
   });
+
+  testWidgets('clears copy confirmation when hidden or onCopy is removed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(OtpCodeDisplay(code: code('123456'), onCopy: () {})),
+    );
+    await tester.tap(find.text('123 456'));
+    await tester.pump();
+    expect(find.text('Code copied'), findsOneWidget);
+
+    await tester.pumpWidget(
+      host(OtpCodeDisplay(code: code('123456'), hidden: true, onCopy: () {})),
+    );
+    expect(find.text('Code copied'), findsNothing);
+
+    await tester.pumpWidget(
+      host(OtpCodeDisplay(code: code('123456'), onCopy: () {})),
+    );
+    await tester.tap(find.text('123 456'));
+    await tester.pump();
+    expect(find.text('Code copied'), findsOneWidget);
+
+    await tester.pumpWidget(host(OtpCodeDisplay(code: code('123456'))));
+    expect(find.text('Code copied'), findsNothing);
+  });
 }

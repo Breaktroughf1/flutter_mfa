@@ -33,9 +33,10 @@ internal class FileVault(
     private val crypto: VaultCrypto,
     private val protectedKeys: ProtectedKeys,
 ) {
+    private val lock = Any()
 
     /** Stores [value] under [key] at [level], replacing any existing entry. */
-    fun write(key: String, value: ByteArray, level: ProtectionLevelMessage) {
+    fun write(key: String, value: ByteArray, level: ProtectionLevelMessage) = synchronized(lock) {
         val target = fileFor(key)
         val previousId = protectedIdOf(target)
         val header = byteArrayOf(FORMAT_VERSION, level.raw.toByte())
@@ -69,8 +70,10 @@ internal class FileVault(
      */
     suspend fun read(key: String, prompt: PromptMessage? = null): ByteArray? {
         val file = fileFor(key)
-        if (!file.exists()) return null
-        val data = io { file.readBytes() }
+        val data = synchronized(lock) {
+            if (!file.exists()) return null
+            io { file.readBytes() }
+        }
         val level = levelOf(data)
         val header = data.copyOfRange(0, HEADER_SIZE)
         if (level == ProtectionLevelMessage.STANDARD) {
@@ -94,7 +97,7 @@ internal class FileVault(
     }
 
     /** Removes [key] (and the biometric key of a protected entry); absent keys are ignored. */
-    fun delete(key: String) {
+    fun delete(key: String) = synchronized(lock) {
         val file = fileFor(key)
         val id = protectedIdOf(file)
         io { if (file.exists() && !file.delete()) throw IOException() }
@@ -102,16 +105,16 @@ internal class FileVault(
     }
 
     /** All keys with an entry. */
-    fun keys(): List<String> {
+    fun keys(): List<String> = synchronized(lock) {
         val names = io { dir.list()?.toList() ?: emptyList() }
-        return names.mapNotNull { name ->
+        names.mapNotNull { name ->
             if (!name.endsWith(FILE_SUFFIX)) return@mapNotNull null
             decodeKey(name.removeSuffix(FILE_SUFFIX))
         }.sorted()
     }
 
     /** Removes every entry and destroys every key. */
-    fun wipe() {
+    fun wipe() = synchronized(lock) {
         io { dir.listFiles()?.forEach { if (!it.delete()) throw IOException() } }
         crypto.destroy()
         protectedKeys.deleteAll()
@@ -176,7 +179,9 @@ internal class FileVault(
 
     private fun fileFor(key: String): File {
         val bytes = key.toByteArray(Charsets.UTF_8)
-        require(bytes.isNotEmpty() && bytes.size <= MAX_KEY_BYTES) { "invalid key length" }
+        if (bytes.isEmpty() || bytes.size > MAX_KEY_BYTES) {
+            throw VaultFailure(VaultErrorCode.CORRUPTED)
+        }
         return File(dir, bytes.joinToString("") { "%02x".format(it) } + FILE_SUFFIX)
     }
 

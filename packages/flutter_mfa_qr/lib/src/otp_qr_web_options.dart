@@ -52,7 +52,12 @@ final class OtpQrWebOptions {
 (WebBarcodeReader, String?) webDecoderFor(OtpQrWebOptions options) {
   final url = options.decoderScriptUrl;
   if (url != null) {
-    final sameOrigin = !url.hasScheme && !url.hasAuthority && url.path != '';
+    final sameOrigin =
+        !url.hasScheme &&
+        !url.hasAuthority &&
+        url.path != '' &&
+        !url.path.startsWith('//') &&
+        !url.path.contains(r'\');
     if (!(url.isScheme('https') && url.host.isNotEmpty) && !sameOrigin) {
       throw ArgumentError(
         'must be an https URL or a same-origin path',

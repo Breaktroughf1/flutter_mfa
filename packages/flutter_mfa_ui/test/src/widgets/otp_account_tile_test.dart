@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
@@ -66,6 +67,10 @@ void main() {
     );
     await tester.tap(find.text('Example'));
     expect(taps, 1);
+    await tester.tap(find.text('Tap to generate a code'));
+    expect(taps, 2);
+    await tester.tap(find.byType(StatusGlyphIcon));
+    expect(taps, 3);
 
     await tester.pumpWidget(tile(controller.stream));
     controller.add(code);
@@ -78,6 +83,7 @@ void main() {
     await tester.tap(find.text('287 082'));
     await tester.pump();
     expect(copies, 1);
+    expect(taps, 3, reason: 'copying does not trigger tile onTap');
     await tester.pumpWidget(const SizedBox());
   });
 
@@ -86,6 +92,40 @@ void main() {
       host(OtpAccountTile(account: account(), codeStream: null)),
     );
     expect(find.text('Tap to generate a code'), findsNothing);
+    expect(find.text(''), findsNothing);
+  });
+
+  testWidgets('orders semantics as account name, code, then countdown', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host(
+        OtpAccountTile(
+          account: account(),
+          codeStream: Stream.value(code),
+          onTap: () {},
+          onCopy: () {},
+        ),
+      ),
+    );
+    await tester.pump();
+    final nameNode = tester.getSemantics(find.text('Example'));
+    final codeNode = tester.getSemantics(find.text('287 082'));
+    final ringNode = tester.getSemantics(find.byType(OtpCountdownRing));
+    expect(
+      nameNode.getSemanticsData().sortKey,
+      const OrdinalSortKey(1),
+    );
+    expect(
+      codeNode.getSemanticsData().sortKey,
+      const OrdinalSortKey(2),
+    );
+    expect(
+      ringNode.getSemanticsData().sortKey,
+      const OrdinalSortKey(3),
+    );
+    handle.dispose();
   });
 
   testWidgets('stream errors show "Code unavailable", never the error', (

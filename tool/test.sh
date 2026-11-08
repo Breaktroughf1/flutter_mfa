@@ -29,7 +29,10 @@ vm_tests() { # dir -> test files outside test/web
 }
 
 run() { # dir, min lines, min branches (empty = no gate, e.g. example apps)
-  local dir=$1 files
+  local dir=$1 files is_flutter=false
+  if grep -qE '^\s+sdk: flutter' "$dir/pubspec.yaml"; then
+    is_flutter=true
+  fi
   files=$(vm_tests "$dir")
   if [ -z "$files" ]; then
     if [ -d "$dir/lib/src" ] && [ ! -d "$dir/test/web" ]; then
@@ -43,7 +46,7 @@ run() { # dir, min lines, min branches (empty = no gate, e.g. example apps)
       args+=(--coverage-path=coverage/lcov.info --branch-coverage)
     fi
     echo "== $dir"
-    if grep -qE '^\s+sdk: flutter' "$dir/pubspec.yaml"; then
+    if $is_flutter; then
       # shellcheck disable=SC2086
       (cd "$dir" && flutter test "${args[@]}" $files)
     else
@@ -61,8 +64,13 @@ run() { # dir, min lines, min branches (empty = no gate, e.g. example apps)
   fi
   if [ -d "$dir/test/web" ] && need_chrome "$dir/test/web"; then
     # Web-only code must work compiled to both JS and WASM (NFR-07).
-    (cd "$dir" && flutter test --platform chrome test/web &&
-      flutter test --platform chrome --wasm test/web)
+    if $is_flutter; then
+      (cd "$dir" && flutter test --platform chrome test/web &&
+        flutter test --platform chrome --wasm test/web)
+    else
+      (cd "$dir" && dart test -p chrome test/web &&
+        dart test -p chrome -c dart2wasm test/web)
+    fi
   fi
 }
 

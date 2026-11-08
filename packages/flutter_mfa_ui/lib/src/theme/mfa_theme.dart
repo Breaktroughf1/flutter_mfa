@@ -18,6 +18,7 @@ class MfaTheme extends InheritedWidget {
       maybeOf(context) ??
       MfaThemeData.fallback(
         MediaQuery.maybePlatformBrightnessOf(context) ?? Brightness.light,
+        highContrast: MediaQuery.maybeHighContrastOf(context) ?? false,
       );
 
   /// The nearest theme, or `null` if there is no [MfaTheme] ancestor.

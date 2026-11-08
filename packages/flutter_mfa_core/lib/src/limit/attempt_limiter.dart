@@ -58,6 +58,25 @@ final class LimiterPolicy {
       throw OtpConfigException(field: 'policy.$bad', reason: 'is out of range');
     }
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is LimiterPolicy &&
+      other.maxAttempts == maxAttempts &&
+      other.window == window &&
+      other.backoffBase == backoffBase &&
+      other.backoffMax == backoffMax &&
+      other.lockoutAfter == lockoutAfter;
+
+  @override
+  int get hashCode =>
+      Object.hash(maxAttempts, window, backoffBase, backoffMax, lockoutAfter);
+
+  @override
+  String toString() =>
+      'LimiterPolicy(maxAttempts: $maxAttempts, window: ${window.inSeconds}s, '
+      'backoff: ${backoffBase.inSeconds}s..${backoffMax.inSeconds}s, '
+      'lockoutAfter: $lockoutAfter)';
 }
 
 /// Persisted throttling state of one subject.

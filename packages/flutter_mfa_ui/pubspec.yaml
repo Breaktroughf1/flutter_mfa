@@ -10,6 +10,10 @@ topics:
   - otp
   - authentication
   - security
+platforms:
+  android:
+  ios:
+  web:
 screenshots:
   - description: The widgets in the light theme (code field, code display with countdown, account list, badges).
     path: doc/screenshots/widgets_light.png

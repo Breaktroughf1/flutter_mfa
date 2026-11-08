@@ -36,6 +36,11 @@ void main() {
     test('the list holds the top 10 000 entries of the bundled source', () {
       expect(PassphrasePolicy.commonPasswordCount, 10000);
     });
+
+    test('non-ASCII passphrases with short ASCII words are not tooCommon', () {
+      expect(check('झरना-पहाड़-नदी-test'), PassphraseCheck.ok);
+      expect(check('झरना-पहाड़-नदी-abc'), PassphraseCheck.ok);
+    });
   });
 
   group('variety', () {

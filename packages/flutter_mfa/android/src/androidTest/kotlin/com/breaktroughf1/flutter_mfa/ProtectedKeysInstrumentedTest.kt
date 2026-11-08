@@ -53,14 +53,19 @@ class ProtectedKeysInstrumentedTest {
     }
 
     @Test
-    fun withoutEnrolledBiometricsProtectedKeysFailClosed() {
+    fun withoutEnrolledBiometricsOrStrongBoxProtectedKeysFailClosed() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             assertFailsWith<VaultFailure> { UnsupportedProtectedKeys.create(hardwareBound = false) }
             return
         }
+        val noStrongBox = KeystoreProtectedKeys(context, strongBoxAvailable = false) { null }
+        assertEquals(
+            VaultErrorCode.STRONG_BOX_UNAVAILABLE,
+            assertFailsWith<VaultFailure> { noStrongBox.create(hardwareBound = true) }.code,
+        )
         val keys = KeystoreProtectedKeys(context, FlutterMfaPlugin.hasStrongBox(context)) { null }
         assertFalse(keys.available())
-        val failure = assertFailsWith<VaultFailure> { keys.create(hardwareBound = true) }
+        val failure = assertFailsWith<VaultFailure> { keys.create(hardwareBound = false) }
         assertEquals(VaultErrorCode.BIOMETRICS_NOT_ENROLLED, failure.code)
         keys.deleteAll()
     }

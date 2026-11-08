@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 
@@ -45,6 +46,16 @@ class OtpCodeDisplay extends StatefulWidget {
 
 class _OtpCodeDisplayState extends State<OtpCodeDisplay> {
   Timer? _confirmation;
+
+  @override
+  void didUpdateWidget(OtpCodeDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((widget.hidden && !oldWidget.hidden) ||
+        (widget.onCopy == null && oldWidget.onCopy != null)) {
+      _confirmation?.cancel();
+      _confirmation = null;
+    }
+  }
 
   @override
   void dispose() {
@@ -104,6 +115,7 @@ class _OtpCodeDisplayState extends State<OtpCodeDisplay> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Semantics(
+          sortKey: const OrdinalSortKey(2),
           container: true,
           label: label,
           button: copyable,

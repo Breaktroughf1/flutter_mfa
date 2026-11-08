@@ -46,6 +46,8 @@ void main() {
       for (final url in [
         'http://example.com/zxing.js',
         '//cdn.example.com/zxing.js',
+        r'\\evil.com/zxing.js',
+        r'/\evil.com/zxing.js',
         'data:text/javascript,alert(1)',
         'javascript:alert(1)',
         'https:zxing.js',

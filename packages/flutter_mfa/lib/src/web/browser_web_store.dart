@@ -115,10 +115,16 @@ final class BrowserWebStore implements WebStore {
   @override
   Future<void> clear() => _wrap(() async {
     final db = await _open();
-    final tx = db.transaction(
-      [_recordsStore.toJS, _keysStore.toJS].toJS,
-      'readwrite',
-    );
+    final web.IDBTransaction tx;
+    try {
+      tx = db.transaction(
+        [_recordsStore.toJS, _keysStore.toJS].toJS,
+        'readwrite',
+      );
+    } on Object {
+      _db = null;
+      throw const WebStoreFailure();
+    }
     tx.objectStore(_recordsStore).clear();
     tx.objectStore(_keysStore).clear();
     await _completion(tx);
@@ -207,7 +213,16 @@ final class BrowserWebStore implements WebStore {
           ..createObjectStore(_recordsStore);
       }).toJS
       ..onsuccess = ((web.Event _) {
-        completer.complete(request.result! as web.IDBDatabase);
+        final db = request.result! as web.IDBDatabase;
+        db
+          ..onclose = ((web.Event _) {
+            _db = null;
+          }).toJS
+          ..onversionchange = ((web.Event _) {
+            db.close();
+            _db = null;
+          }).toJS;
+        completer.complete(db);
       }).toJS
       ..onerror = ((web.Event _) {
         completer.completeError(const WebStoreFailure());
@@ -223,7 +238,13 @@ final class BrowserWebStore implements WebStore {
     web.IDBRequest Function(web.IDBObjectStore store) operation,
   ) async {
     final db = await _open();
-    final tx = db.transaction(storeName.toJS, mode);
+    final web.IDBTransaction tx;
+    try {
+      tx = db.transaction(storeName.toJS, mode);
+    } on Object {
+      _db = null;
+      throw const WebStoreFailure();
+    }
     final request = operation(tx.objectStore(storeName));
     await _completion(tx);
     return request.result;

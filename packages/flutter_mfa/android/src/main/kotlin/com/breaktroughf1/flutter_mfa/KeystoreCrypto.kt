@@ -9,6 +9,7 @@ import android.security.keystore.StrongBoxUnavailableException
 import android.security.keystore.UserNotAuthenticatedException
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import java.security.ProviderException
 import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -21,11 +22,14 @@ import javax.crypto.spec.GCMParameterSpec
  *
  * The key is created on first use with StrongBox when the device has it
  * (falling back to the TEE, which is still hardware-backed: this is the
- * `standard` level, which does not promise StrongBox), and on API 28+ it can
- * only be used while the device is unlocked. The key material never enters
- * app memory. Nothing is logged.
+ * `standard` level, which does not promise StrongBox), and on API 31+ when a
+ * lockscreen is configured it can only be used while the device is unlocked.
+ * The key material never enters app memory. Nothing is logged.
  */
-internal class KeystoreCrypto(private val strongBoxAvailable: Boolean) : VaultCrypto {
+internal class KeystoreCrypto(
+    private val strongBoxAvailable: Boolean,
+    private val isDeviceSecure: () -> Boolean = { false },
+) : VaultCrypto {
 
     override fun seal(plaintext: ByteArray, aad: ByteArray): Sealed = guard {
         val cipher = Cipher.getInstance(TRANSFORMATION)
@@ -43,9 +47,11 @@ internal class KeystoreCrypto(private val strongBoxAvailable: Boolean) : VaultCr
         cipher.doFinal(sealed.ciphertext)
     }
 
+    @Synchronized
     override fun isHardwareBacked(): Boolean = guard {
-        val info = SecretKeyFactory.getInstance(key().algorithm, KEYSTORE)
-            .getKeySpec(key(), KeyInfo::class.java) as KeyInfo
+        val secretKey = key()
+        val info = SecretKeyFactory.getInstance(secretKey.algorithm, KEYSTORE)
+            .getKeySpec(secretKey, KeyInfo::class.java) as KeyInfo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             info.securityLevel != KeyProperties.SECURITY_LEVEL_SOFTWARE
         } else {
@@ -54,12 +60,14 @@ internal class KeystoreCrypto(private val strongBoxAvailable: Boolean) : VaultCr
         }
     }
 
+    @Synchronized
     override fun destroy() {
         guard { keyStore().deleteEntry(ALIAS) }
     }
 
     private fun keyStore(): KeyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
 
+    @Synchronized
     private fun existingKey(): SecretKey? = keyStore().getKey(ALIAS, null) as SecretKey?
 
     @Synchronized
@@ -74,16 +82,20 @@ internal class KeystoreCrypto(private val strongBoxAvailable: Boolean) : VaultCr
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(KEY_BITS)
             .setRandomizedEncryptionRequired(true)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isDeviceSecure()) {
             builder.setUnlockedDeviceRequired(true)
-            if (strongBox) builder.setIsStrongBoxBacked(true)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && strongBox) {
+            builder.setIsStrongBoxBacked(true)
         }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE)
         return try {
             generator.init(builder.build())
             generator.generateKey()
         } catch (e: StrongBoxUnavailableException) {
-            create(strongBox = false)
+            if (strongBox) create(strongBox = false) else throw e
+        } catch (e: ProviderException) {
+            if (strongBox) create(strongBox = false) else throw e
         }
     }
 
@@ -99,6 +111,8 @@ internal class KeystoreCrypto(private val strongBoxAvailable: Boolean) : VaultCr
         } catch (e: AEADBadTagException) {
             throw VaultFailure(VaultErrorCode.CORRUPTED)
         } catch (e: GeneralSecurityException) {
+            throw VaultFailure(VaultErrorCode.STORAGE_UNAVAILABLE)
+        } catch (e: ProviderException) {
             throw VaultFailure(VaultErrorCode.STORAGE_UNAVAILABLE)
         }
 

@@ -65,6 +65,7 @@ private class SoftwareProtectedKeys : ProtectedKeys {
     val created = mutableListOf<Pair<String, Boolean>>()
     val prompts = mutableListOf<PromptMessage?>()
     var available = true
+    var strongBoxAvailable = true
     var nextFailure: VaultErrorCode? = null
     var deletedAll = false
 
@@ -73,6 +74,7 @@ private class SoftwareProtectedKeys : ProtectedKeys {
     override fun available() = available
 
     override fun create(hardwareBound: Boolean): Pair<ByteArray, PublicKey> {
+        if (hardwareBound && !strongBoxAvailable) throw VaultFailure(VaultErrorCode.STRONG_BOX_UNAVAILABLE)
         if (!available) throw VaultFailure(VaultErrorCode.BIOMETRICS_NOT_ENROLLED)
         val id = ByteArray(ProtectedKeys.ID_SIZE).also { SecureRandom().nextBytes(it) }
         val pair = KeyPairGenerator.getInstance("RSA").apply { initialize(RsaEnvelope.KEY_BITS) }.generateKeyPair()
@@ -249,6 +251,12 @@ internal class FileVaultTest {
 
     @Test
     fun protectedLevelsAreRefusedNotDowngradedWhenUnavailable() {
+        keys.strongBoxAvailable = false
+        assertEquals(
+            VaultErrorCode.STRONG_BOX_UNAVAILABLE,
+            failure { vault.write("a", byteArrayOf(1), ProtectionLevelMessage.HARDWARE_BOUND) },
+        )
+        keys.strongBoxAvailable = true
         keys.available = false
         assertEquals(
             VaultErrorCode.BIOMETRICS_NOT_ENROLLED,
@@ -335,8 +343,16 @@ internal class FileVaultTest {
 
     @Test
     fun invalidKeyLengthsAreRejected() {
-        assertFailsWith<IllegalArgumentException> { read("") }
-        assertFailsWith<IllegalArgumentException> { read("x".repeat(121)) }
+        assertEquals(VaultErrorCode.CORRUPTED, failure { read("") })
+        assertEquals(VaultErrorCode.CORRUPTED, failure { read("x".repeat(121)) })
+        assertEquals(
+            VaultErrorCode.CORRUPTED,
+            failure { vault.write("", byteArrayOf(1), ProtectionLevelMessage.STANDARD) },
+        )
+        assertEquals(
+            VaultErrorCode.CORRUPTED,
+            failure { vault.write("x".repeat(121), byteArrayOf(1), ProtectionLevelMessage.STANDARD) },
+        )
         vault.write("x".repeat(120), byteArrayOf(1), ProtectionLevelMessage.STANDARD)
     }
 

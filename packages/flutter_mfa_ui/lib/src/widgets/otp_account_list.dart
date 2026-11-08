@@ -118,7 +118,23 @@ class _LiveTile extends StatefulWidget {
 }
 
 class _LiveTileState extends State<_LiveTile> {
-  late final Stream<OtpCode>? _stream = widget.codeStream(widget.account);
+  Stream<OtpCode>? _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    _stream = widget.codeStream(widget.account);
+  }
+
+  @override
+  void didUpdateWidget(_LiveTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_stream == null ||
+        oldWidget.account != widget.account ||
+        oldWidget.codeStream != widget.codeStream) {
+      _stream = widget.codeStream(widget.account);
+    }
+  }
 
   @override
   Widget build(BuildContext context) => OtpAccountTile(

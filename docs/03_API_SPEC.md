@@ -187,8 +187,6 @@ final class BackupCodec {
 }
 ```
 As built at M3-02: `BackupEntry.toString` shows the account but never the secret; `dearmor` ignores whitespace and CRLF and throws `BackupDecryptFailed` for text that is not an armoured backup; `encrypt` throws `OtpConfigException` when `iterations` is outside 210 000..10 000 000; `decrypt` does not apply the passphrase policy, so any backup can be restored.
-```dart
-```
 
 ### 1.9 Errors
 As listed in `02_ARCHITECTURE.md §6`. All extend `MfaException implements Exception` with `toString()` that never contains secret material. Details fixed at M1-01:
@@ -209,14 +207,14 @@ sealed class BackupException extends MfaException {}
 enum PassphraseCheck { ok, tooShort, tooCommon, lowVariety }
 ```
 
-### 1.11 Utilities
+### 1.10 Utilities
 ```dart
 /// FIFO async lock used to serialise index read-modify-write (02 §4.1). Exported because flutter_mfa needs it.
 final class AsyncMutex { bool get isLocked; Future<T> protect<T>(FutureOr<T> Function() action); }
 ```
 Constant-time comparison (`constantTimeEquals`) stays internal to core (`src/util/`); only the verifiers use it.
 
-### 1.10 Testing library — `package:flutter_mfa_core/testing.dart`
+### 1.11 Testing library — `package:flutter_mfa_core/testing.dart`
 `FakeClock(DateTime)` with `advance(Duration)` and a settable `time`, `SeededRandom(int)` (deterministic, insecure — exported only from `testing.dart`, never from the main library), `rfc4226Vectors`, `rfc6238Vectors` (+ `rfc4226Secret`, `rfc6238Seed(OtpAlgorithm)`, `HotpVector`, `TotpVector`). (`InMemoryAttemptStore` lives in the main library: it is a legitimate default, not a fake.)
 
 ### 1.12 Displayed codes (added at M2-01, ADR-0013)
@@ -309,8 +307,8 @@ As built at M1-11: `create`, `capabilities`, `enrollFromUri`, `enrollManual`, `a
 
 ## 4. `flutter_mfa_ui`
 ```dart
-class MfaTheme extends InheritedWidget { static MfaThemeData of(BuildContext); }
-class MfaThemeData { const MfaThemeData(...); factory MfaThemeData.light(); factory MfaThemeData.dark(); MfaThemeData copyWith(...); … }
+class MfaTheme extends InheritedWidget { static MfaThemeData of(BuildContext); static MfaThemeData? maybeOf(BuildContext); }
+class MfaThemeData { const MfaThemeData(...); factory MfaThemeData.light(); factory MfaThemeData.dark(); factory MfaThemeData.fallback(Brightness); MfaThemeData copyWith(...); … }
 // Adapters (ADR-0013), separate libraries so the main library never imports a design system:
 //   package:flutter_mfa_ui/material.dart  → extension on ThemeData { MfaThemeData toMfaTheme(); }
 //   package:flutter_mfa_ui/cupertino.dart → extension on CupertinoThemeData { MfaThemeData toMfaTheme({Brightness? brightness}); }
@@ -319,14 +317,16 @@ class OtpCodeField extends StatefulWidget {
   const OtpCodeField({super.key, this.length = 6, required this.onCompleted, this.onChanged,
       this.controller, this.errorText, this.autofocus = false, this.obscure = false, this.semanticLabel});
 }
-class OtpCodeDisplay extends StatelessWidget { const OtpCodeDisplay({required this.code, this.onCopy, this.hidden = false}); }
+class OtpCodeDisplay extends StatefulWidget { const OtpCodeDisplay({required this.code, this.onCopy, this.hidden = false}); }
 class OtpCountdownRing extends StatelessWidget { const OtpCountdownRing({required this.progress, required this.remaining}); }
 class MfaStatusBadge extends StatelessWidget { const MfaStatusBadge({required this.status}); }
 enum MfaStatus { enrolled, notEnrolled, locked, keyInvalidated, integrityWarning }
 class OtpAccountTile extends StatelessWidget { const OtpAccountTile({required this.account, required Stream<OtpCode>? this.codeStream, this.onTap, this.onCopy}); } // null stream: HOTP, "tap to generate"
 class OtpAccountList extends StatelessWidget { const OtpAccountList({required Stream<List<OtpAccount>> accounts, required Stream<OtpCode>? Function(OtpAccount) codeStream, ValueChanged<OtpAccount>? onTap, ValueChanged<OtpAccount>? onCopy, WidgetBuilder? emptyBuilder, WidgetBuilder? errorBuilder, EdgeInsetsGeometry? padding}); } // as built, M2-05
-class EnrollmentQrView extends StatelessWidget { const EnrollmentQrView({required OtpAuthUri uri, bool showSecret = true, ValueChanged<String>? onCopySecret}); } // copy button only with onCopySecret (M2-06)
+class EnrollmentQrView extends StatefulWidget { const EnrollmentQrView({required OtpAuthUri uri, bool showSecret = true, ValueChanged<String>? onCopySecret}); } // copy button only with onCopySecret (M2-06)
+class MfaPressable extends StatefulWidget { const MfaPressable({super.key, required this.onPressed, required this.child, this.borderRadius}); } // keyboard + pointer tap target (M2-12)
 class MfaLocalizations { static const delegate; static const supportedLocales; }
+MfaLocalizations mfaStrings(BuildContext context); // localized strings with English fallback
 ```
 `material_adapter.dart` and `cupertino_adapter.dart` are the **only** files allowed to import Material/Cupertino (CI script). QR rendering uses `qr` (pure Dart) painted with `CustomPainter` — no Material-dependent QR widget.
 

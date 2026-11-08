@@ -346,6 +346,29 @@ void main() {
     });
 
     test(
+      're-copying before expiry cancels the previous timer',
+      () async {
+        await vault.copySensitive(
+          '123456',
+          expiry: const Duration(milliseconds: 20),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await vault.copySensitive(
+          '123456',
+          expiry: const Duration(milliseconds: 40),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(
+          store.clipboard,
+          '123456',
+          reason: 'first timer was cancelled on re-copy',
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        expect(store.clipboard, '');
+      },
+    );
+
+    test(
       'a failed copy is VaultUnavailable; a failed clear is ignored',
       () async {
         store.failClipboard = true;

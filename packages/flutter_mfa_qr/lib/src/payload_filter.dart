@@ -30,8 +30,8 @@ final class ScanRejected extends ScanResult {
 /// same code (FR-QR-01).
 ///
 /// A payload seen again within [window] of its previous sighting is a
-/// duplicate, so a code held in front of the camera is reported once. Only a
-/// SHA-256 digest of the last payload is kept, never the payload itself.
+/// duplicate, so a code held in front of the camera is reported once. Only
+/// SHA-256 digests of recent payloads are kept, never the payloads themselves.
 final class PayloadFilter {
   /// Creates a filter with an empty history.
   PayloadFilter({
@@ -45,21 +45,16 @@ final class PayloadFilter {
   /// How long a payload counts as a duplicate after it was last seen.
   final Duration window;
 
-  Digest? _last;
-  DateTime? _lastSeen;
+  final Map<Digest, DateTime> _seen = {};
 
   /// The result for [payload], or `null` for an empty payload or a duplicate.
   ScanResult? check(String payload) {
     if (payload.isEmpty) return null;
     final now = clock.now();
+    _seen.removeWhere((_, seenAt) => now.difference(seenAt) >= window);
     final digest = sha256.convert(utf8.encode(payload));
-    final lastSeen = _lastSeen;
-    final duplicate =
-        digest == _last &&
-        lastSeen != null &&
-        now.difference(lastSeen) < window;
-    _last = digest;
-    _lastSeen = now;
+    final duplicate = _seen.containsKey(digest);
+    _seen[digest] = now;
     if (duplicate) return null;
     final uri = OtpAuthUri.tryParse(payload);
     return uri == null ? ScanRejected(payload) : ScanAccepted(uri);

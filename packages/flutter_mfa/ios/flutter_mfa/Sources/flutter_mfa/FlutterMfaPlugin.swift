@@ -26,15 +26,17 @@ public final class FlutterMfaPlugin: NSObject, FlutterPlugin, MfaHostApi {
     #else
       let hardware = true
     #endif
+    let bioAvailable = Biometry.available
+    let enclaveAvailable = SecureEnclave.isAvailable
     return CapabilitiesMessage(
       hardwareBacked: hardware,
       strongBox: false,
-      secureEnclave: SecureEnclave.isAvailable,
-      biometricsEnrolled: LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil),
+      secureEnclave: enclaveAvailable,
+      biometricsEnrolled: bioAvailable,
       persistentStorage: true,
       screenCaptureProtection: false,
       // Offered only when they can be provided now; never a silent downgrade.
-      supportedLevels: Self.supportedLevels(biometry: Biometry.available, enclave: SecureEnclave.isAvailable)
+      supportedLevels: Self.supportedLevels(biometry: bioAvailable, enclave: enclaveAvailable)
     )
   }
 

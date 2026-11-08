@@ -35,6 +35,7 @@ final class WebVault extends MfaPlatform {
 
   final WebStore _store;
   Future<bool>? _persisted;
+  Timer? _clipboardTimer;
 
   Future<bool> _persist() => _persisted ??= _store
       .requestPersistence()
@@ -116,17 +117,16 @@ final class WebVault extends MfaPlatform {
     } on WebStoreFailure {
       throw const VaultUnavailable(VaultUnavailableReason.storageUnavailable);
     }
-    unawaited(
-      Future<void>.delayed(expiry, () async {
-        try {
-          if (await _store.readClipboardIfPermitted() == text) {
-            await _store.writeClipboard('');
-          }
-        } on WebStoreFailure {
-          // Best effort: the page may have lost focus.
+    _clipboardTimer?.cancel();
+    _clipboardTimer = Timer(expiry, () async {
+      try {
+        if (await _store.readClipboardIfPermitted() == text) {
+          await _store.writeClipboard('');
         }
-      }),
-    );
+      } on WebStoreFailure {
+        // Best effort: the page may have lost focus.
+      }
+    });
   }
 
   /// Browsers cannot block screenshots; reported via [capabilities].

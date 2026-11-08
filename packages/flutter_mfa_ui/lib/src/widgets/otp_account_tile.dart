@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 
@@ -55,6 +56,7 @@ class OtpAccountTile extends StatelessWidget {
     final stream = codeStream;
 
     final Widget names = Semantics(
+      sortKey: const OrdinalSortKey(1),
       container: true,
       label: label,
       button: onTap != null,
@@ -80,71 +82,86 @@ class OtpAccountTile extends StatelessWidget {
       ),
     );
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: theme.spacing * 2,
-        vertical: theme.spacing,
-      ),
-      decoration: BoxDecoration(
-        color: theme.surface,
-        border: Border(bottom: BorderSide(color: theme.outline, width: 0.5)),
-      ),
-      child: stream == null
-          ? _layout(
-              theme,
-              leading: StatusGlyphIcon(
-                StatusGlyph.counter,
-                color: theme.onSurfaceVariant,
-                size: MediaQuery.textScalerOf(context).scale(24),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: theme.spacing * 2,
+          vertical: theme.spacing,
+        ),
+        decoration: BoxDecoration(
+          color: theme.surface,
+          border: Border(bottom: BorderSide(color: theme.outline, width: 0.5)),
+        ),
+        child: stream == null
+            ? _layout(
+                theme,
+                leading: StatusGlyphIcon(
+                  StatusGlyph.counter,
+                  color: theme.onSurfaceVariant,
+                  size: MediaQuery.textScalerOf(context).scale(24),
+                ),
+                names: names,
+                code: isTotp
+                    ? const SizedBox.shrink()
+                    : Semantics(
+                        sortKey: const OrdinalSortKey(2),
+                        container: true,
+                        child: Text(
+                          strings.tapToGenerate,
+                          style: theme.labelTextStyle,
+                        ),
+                      ),
+              )
+            : StreamBuilder<OtpCode>(
+                stream: stream,
+                builder: (context, snapshot) {
+                  final code = snapshot.data;
+                  final Widget leading;
+                  final Widget codeWidget;
+                  if (snapshot.hasError) {
+                    leading = StatusGlyphIcon(
+                      StatusGlyph.warning,
+                      color: theme.error,
+                      size: MediaQuery.textScalerOf(context).scale(24),
+                    );
+                    codeWidget = Semantics(
+                      sortKey: const OrdinalSortKey(2),
+                      container: true,
+                      child: Text(
+                        strings.codeUnavailable,
+                        style: theme.bodyTextStyle.copyWith(color: theme.error),
+                      ),
+                    );
+                  } else if (code == null) {
+                    leading = SizedBox.square(
+                      dimension: MediaQuery.textScalerOf(context).scale(40),
+                    );
+                    codeWidget = const SizedBox.shrink();
+                  } else {
+                    leading = isTotp
+                        ? OtpCountdownRing(
+                            progress: code.progress,
+                            remaining: code.remaining,
+                          )
+                        : StatusGlyphIcon(
+                            StatusGlyph.counter,
+                            color: theme.onSurfaceVariant,
+                            size: MediaQuery.textScalerOf(context).scale(24),
+                          );
+                    codeWidget = OtpCodeDisplay(code: code, onCopy: onCopy);
+                  }
+                  return _layout(
+                    theme,
+                    leading: leading,
+                    names: names,
+                    code: codeWidget,
+                  );
+                },
               ),
-              names: names,
-              code: Text(
-                isTotp ? '' : strings.tapToGenerate,
-                style: theme.labelTextStyle,
-              ),
-            )
-          : StreamBuilder<OtpCode>(
-              stream: stream,
-              builder: (context, snapshot) {
-                final code = snapshot.data;
-                final Widget leading;
-                final Widget codeWidget;
-                if (snapshot.hasError) {
-                  leading = StatusGlyphIcon(
-                    StatusGlyph.warning,
-                    color: theme.error,
-                    size: MediaQuery.textScalerOf(context).scale(24),
-                  );
-                  codeWidget = Text(
-                    strings.codeUnavailable,
-                    style: theme.bodyTextStyle.copyWith(color: theme.error),
-                  );
-                } else if (code == null) {
-                  leading = SizedBox.square(
-                    dimension: MediaQuery.textScalerOf(context).scale(40),
-                  );
-                  codeWidget = const SizedBox.shrink();
-                } else {
-                  leading = isTotp
-                      ? OtpCountdownRing(
-                          progress: code.progress,
-                          remaining: code.remaining,
-                        )
-                      : StatusGlyphIcon(
-                          StatusGlyph.counter,
-                          color: theme.onSurfaceVariant,
-                          size: MediaQuery.textScalerOf(context).scale(24),
-                        );
-                  codeWidget = OtpCodeDisplay(code: code, onCopy: onCopy);
-                }
-                return _layout(
-                  theme,
-                  leading: leading,
-                  names: names,
-                  code: codeWidget,
-                );
-              },
-            ),
+      ),
     );
   }
 

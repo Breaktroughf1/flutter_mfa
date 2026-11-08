@@ -59,6 +59,20 @@ void main() {
       expect(p.lockoutAfter, 20);
     });
 
+    test('value equality, hashCode and toString', () {
+      expect(const LimiterPolicy(), const LimiterPolicy());
+      expect(const LimiterPolicy().hashCode, const LimiterPolicy().hashCode);
+      expect(
+        const LimiterPolicy(),
+        isNot(const LimiterPolicy(maxAttempts: 10)),
+      );
+      expect(
+        const LimiterPolicy().toString(),
+        'LimiterPolicy(maxAttempts: 5, window: 300s, '
+        'backoff: 1s..900s, lockoutAfter: 20)',
+      );
+    });
+
     test('invalid policies are rejected when the limiter is built', () {
       for (final (field, policy) in [
         ('maxAttempts', const LimiterPolicy(maxAttempts: 0)),

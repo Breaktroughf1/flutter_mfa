@@ -100,6 +100,7 @@ class _OtpQrScannerState extends State<OtpQrScanner>
   MobileScannerException? _lastError;
   bool _deniedBefore = false;
   bool _stoppedInBackground = false;
+  bool _wasBackgrounded = false;
 
   @override
   void initState() {
@@ -205,21 +206,28 @@ class _OtpQrScannerState extends State<OtpQrScanner>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        if (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.hidden) {
+          _wasBackgrounded = true;
+        }
         if (_controller.value.isRunning) {
           _stoppedInBackground = true;
           unawaited(_controller.stop());
         }
       case AppLifecycleState.resumed:
+        final wasBackgrounded = _wasBackgrounded;
+        _wasBackgrounded = false;
         if (_stoppedInBackground) {
           _stoppedInBackground = false;
           unawaited(_start());
-        } else if (_status == OtpQrScannerStatus.permanentlyDenied) {
+        } else if (wasBackgrounded &&
+            _status == OtpQrScannerStatus.permanentlyDenied) {
           // The user may have allowed the camera in the settings.
           unawaited(_start());
         }
       case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
     }
   }
 
@@ -239,12 +247,15 @@ class _OtpQrScannerState extends State<OtpQrScanner>
       fit: StackFit.expand,
       children: [
         if (status != OtpQrScannerStatus.insecureContext)
-          MobileScanner(
-            controller: _controller,
-            placeholderBuilder: (_) => const SizedBox.expand(),
-            errorBuilder: (_, _) => const SizedBox.expand(),
-            overlayBuilder: (context, _) =>
-                widget.overlayBuilder?.call(context) ?? const _Viewfinder(),
+          ExcludeSemantics(
+            excluding: status != null,
+            child: MobileScanner(
+              controller: _controller,
+              placeholderBuilder: (_) => const SizedBox.expand(),
+              errorBuilder: (_, _) => const SizedBox.expand(),
+              overlayBuilder: (context, _) =>
+                  widget.overlayBuilder?.call(context) ?? const _Viewfinder(),
+            ),
           ),
         if (status != null)
           (widget.permissionBuilder ?? _defaultStatusView)(
@@ -303,6 +314,7 @@ class _OtpQrScannerState extends State<OtpQrScanner>
             mainAxisSize: MainAxisSize.min,
             children: [
               Semantics(
+                container: true,
                 liveRegion: true,
                 child: Text(
                   message,
@@ -336,6 +348,7 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = MfaTheme.of(context);
     return Semantics(
+      container: true,
       button: true,
       label: label,
       onTap: onTap,

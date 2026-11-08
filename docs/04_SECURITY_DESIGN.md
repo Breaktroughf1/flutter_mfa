@@ -80,10 +80,10 @@ Evidence column names the test or document that proves it. This table is copied 
 |---|---|---|---|
 | OTP | HMAC-SHA1/256/512 | RFC 4226/6238 | `package:crypto` |
 | Seed generation | CSPRNG | ≥ 16 B, default 20 B | `Random.secure()` |
-| Vault (Android) | AES-256-GCM | 96-bit random nonce, 128-bit tag, AAD = key name | Android Keystore |
-| Vault (Android, biometric entries) | RSA-2048 OAEP key wrap + AES-256-GCM | OAEP SHA-256 / MGF1-SHA-1; random 256-bit data key per write | Keystore RSA key gated by Class 3 biometric per use (ADR-0004 note) |
+| Vault (Android) | AES-256-GCM | 96-bit random nonce, 128-bit tag, AAD = `"flutter_mfa.v1:" ‖ version(1) ‖ protection(1) ‖ key` | Android Keystore |
+| Vault (Android, biometric entries) | RSA-2048 OAEP key wrap + AES-256-GCM | OAEP SHA-256 / MGF1-SHA-1; random 256-bit data key per write; AAD = `"flutter_mfa.v1:" ‖ version(1) ‖ protection(1) ‖ key ‖ keyId ‖ wrappedKey` | Keystore RSA key gated by Class 3 biometric per use (ADR-0004 note) |
 | Vault (iOS) | Keychain; optional ECIES P-256 + AES-GCM (Secure Enclave) | — | Security.framework |
-| Vault (Web) | AES-256-GCM | non-extractable CryptoKey | WebCrypto |
+| Vault (Web) | AES-256-GCM | non-extractable CryptoKey; 96-bit random nonce, 128-bit tag, AAD = `"flutter_mfa.v1:" ‖ version(1) ‖ protection(1) ‖ key` | WebCrypto |
 | Backup KDF | PBKDF2-HMAC-SHA256 | 600 000 iter, 16 B salt; read floor 210 000 | `cryptography` `DartPbkdf2` (ADR-0007); WebCrypto on the web (ADR-0010) |
 | Backup AEAD | AES-256-GCM | 12 B nonce, header AAD | `cryptography` `DartAesGcm` (ADR-0007); WebCrypto on the web (ADR-0010) |
 | Compare | constant-time | full-length XOR accumulate | core `util/` |

@@ -39,11 +39,12 @@ abstract final class PassphrasePolicy {
     if (characters.length < minLength) return PassphraseCheck.tooShort;
 
     final lower = passphrase.toLowerCase();
+    final hasNonAscii = characters.any((c) => c > 0x7f);
     final letters = String.fromCharCodes(
       lower.codeUnits.where((c) => c >= 0x61 && c <= 0x7a),
     );
     if (_common.contains(lower) ||
-        (letters.isNotEmpty && _common.contains(letters))) {
+        (!hasNonAscii && letters.length >= 4 && _common.contains(letters))) {
       return PassphraseCheck.tooCommon;
     }
 

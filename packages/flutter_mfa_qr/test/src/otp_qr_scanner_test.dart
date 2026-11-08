@@ -174,7 +174,7 @@ void main() {
   );
 
   testWidgets(
-    'on iOS a denial is permanent; returning to the app retries',
+    'on iOS a denial is permanent; returning from background retries',
     (tester) async {
       camera.nextStart = _FakeScanner.failWith(
         MobileScannerErrorCode.permissionDenied,
@@ -187,10 +187,19 @@ void main() {
       expect(find.text('Open settings'), findsNothing, reason: 'no callback');
       expect(find.text('Try again'), findsOneWidget);
 
-      // The user allowed the camera in the settings and came back.
+      // Dismissing the in-app permission dialog (inactive -> resumed without
+      // backgrounding) must not trigger a retry loop.
       camera.nextStart = _FakeScanner._started;
       tester.binding
         ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+        ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(camera.startOptions, hasLength(1));
+
+      // The user allowed the camera in the settings and came back.
+      tester.binding
+        ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+        ..handleAppLifecycleStateChanged(AppLifecycleState.paused)
         ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pump();
       await tester.pump();
@@ -213,6 +222,7 @@ void main() {
       // while that start is still running.
       tester.binding
         ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+        ..handleAppLifecycleStateChanged(AppLifecycleState.paused)
         ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pump();
       await tester.tap(find.text('Try again'));
@@ -324,6 +334,13 @@ void main() {
     );
     await pumpScanner(tester, onOpenSettings: () {});
     expect(find.text('Open settings'), findsOneWidget);
+    final exclude = tester.widget<ExcludeSemantics>(
+      find.ancestor(
+        of: find.byType(MobileScanner),
+        matching: find.byType(ExcludeSemantics),
+      ),
+    );
+    expect(exclude.excluding, isTrue);
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

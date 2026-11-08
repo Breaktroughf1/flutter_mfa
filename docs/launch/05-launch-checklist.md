@@ -26,7 +26,7 @@ Order matters: test, then publish, then update the website the same day. Publish
 
 ## 3. Publish (runbook §C)
 
-- [ ] Add today's date to each `## 0.2.0` heading in the CHANGELOGs (one small PR).
+- [x] Add today's date to each `## 0.2.0` heading in the CHANGELOGs.
 - [ ] Tag and publish in dependency order: `flutter_mfa_core` → `flutter_mfa_platform_interface` → `flutter_mfa` → `flutter_mfa_ui` → `flutter_mfa_qr`.
 - [ ] After each package lands, run `pana` on the next one and fix findings before publishing it (the dependents can only be scored once their dependencies are on pub.dev).
 - [ ] Check each pub.dev page: README, screenshots (ui), example tab, API docs link, platforms, 160/160 pub points.

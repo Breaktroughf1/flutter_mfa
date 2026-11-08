@@ -1,5 +1,6 @@
 import '../errors/mfa_exception.dart';
 import '../limit/attempt_limiter.dart';
+import '../otp/hotp.dart';
 import '../otp/totp.dart';
 import '../util/constant_time.dart';
 import 'code_input.dart';
@@ -51,17 +52,22 @@ final class TotpVerifier {
     int? lastUsedStep,
     DateTime? at,
   }) async {
-    final time = at ?? totp.clock.now();
-    VerificationResult attempt() => _check(code, lastUsedStep, time);
+    final current = totp.stepAt(at ?? totp.clock.now());
+    if (current + window > Hotp.maxCounter) {
+      throw const OtpConfigException(
+        field: 'time',
+        reason: 'step exceeds 2^53-1',
+      );
+    }
+    VerificationResult attempt() => _check(code, lastUsedStep, current);
     final limiter = this.limiter;
     if (limiter == null) return attempt();
     return limitedAttempt(limiter, subject, attempt, (r) => r is Accepted);
   }
 
-  VerificationResult _check(String input, int? lastUsedStep, DateTime at) {
+  VerificationResult _check(String input, int? lastUsedStep, int current) {
     final code = normalizeCode(input, totp.config.digits);
     if (code == null) return const Rejected(RejectReason.malformed);
-    final current = totp.stepAt(at);
 
     Accepted? best;
     var replayed = false;

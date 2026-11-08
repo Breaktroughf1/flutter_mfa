@@ -47,7 +47,7 @@ Invalid input throws `OtpAuthUriException` or `OtpConfigException` before anythi
 
 ### Protection levels
 
-`ProtectionLevel.standard` encrypts the secret under a non-exportable platform key. `biometric` and `hardwareBound` add a fresh biometric check before every code; they are being completed in M3. Offer only the levels in `(await client.capabilities).supportedLevels`. An unsupported level throws `VaultHardwareUnavailable`, and the account is never stored with weaker protection.
+`ProtectionLevel.standard` encrypts the secret under a non-exportable platform key. `biometric` and `hardwareBound` gate each secret read behind a fresh biometric authentication tied to a cryptographic key operation (Keystore per-use Class 3 biometric RSA wrap on Android API 30+, `.biometryCurrentSet` Keychain item or Secure Enclave P-256 key on iOS); re-enrolling biometrics invalidates the key (`VaultKeyInvalidated`). Offer only the levels in `(await client.capabilities).supportedLevels`. An unsupported level throws `VaultHardwareUnavailable`, and the account is never stored with weaker protection.
 
 ## 3. Show codes
 
@@ -82,7 +82,7 @@ The widgets work with any design system. Map your theme with `Theme.of(context).
 
 ## 5. Things to tell your users
 
-- **Uninstalling removes the accounts** on every platform, and iOS wipes Keychain leftovers from an earlier installation. Encrypted backup arrives in M3.
+- **Uninstalling removes the accounts** on every platform, and iOS wipes Keychain leftovers from an earlier installation. Offer encrypted backups with `client.exportEncrypted` and `client.importEncrypted` (PBKDF2-HMAC-SHA256 600 000 iterations + AES-256-GCM; passphrases checked by `PassphrasePolicy.check`).
 - **On the web the vault is best-effort:** script running in your origin can produce codes. Use a strict CSP and prefer the mobile apps for high-value accounts. See the `flutter_mfa` README.
 
 The example app (`packages/flutter_mfa/example`) implements all of this.

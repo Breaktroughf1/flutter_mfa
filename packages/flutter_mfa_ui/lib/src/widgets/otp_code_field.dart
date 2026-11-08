@@ -73,6 +73,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
   );
   TextEditingController? _ownController;
   String _lastText = '';
+  TextSelection _lastSelection = const TextSelection.collapsed(offset: -1);
   bool _wasComplete = false;
 
   TextEditingController get _controller =>
@@ -105,11 +106,24 @@ class _OtpCodeFieldState extends State<OtpCodeField>
       }
       _attach();
     }
+    if (oldWidget.length != widget.length) {
+      if (_controller.text.length > widget.length) {
+        final truncated = _controller.text.substring(0, widget.length);
+        _lastText = truncated;
+        _controller.value = TextEditingValue(
+          text: truncated,
+          selection: TextSelection.collapsed(offset: truncated.length),
+        );
+        _lastSelection = _controller.selection;
+      }
+      _wasComplete = _controller.text.length == widget.length;
+    }
   }
 
   void _attach() {
     _controller.addListener(_onChanged);
     _lastText = _controller.text;
+    _lastSelection = _controller.selection;
     _wasComplete = _lastText.length == widget.length;
   }
 
@@ -134,8 +148,16 @@ class _OtpCodeFieldState extends State<OtpCodeField>
 
   void _onChanged() {
     final text = _controller.text;
-    if (text == _lastText) return;
+    final selection = _controller.selection;
+    if (text == _lastText) {
+      if (selection != _lastSelection) {
+        _lastSelection = selection;
+        setState(() {});
+      }
+      return;
+    }
     _lastText = text;
+    _lastSelection = selection;
     setState(() {});
     widget.onChanged?.call(text);
     final complete = text.length == widget.length;
@@ -169,10 +191,7 @@ class _OtpCodeFieldState extends State<OtpCodeField>
       autocorrect: false,
       enableSuggestions: false,
       enableIMEPersonalizedLearning: false,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(widget.length),
-      ],
+      inputFormatters: [_OtpInputFormatter(widget.length)],
       rendererIgnoresPointer: true,
       contextMenuBuilder: _buildContextMenu,
     );
@@ -226,15 +245,15 @@ class _OtpCodeFieldState extends State<OtpCodeField>
   Widget _boxes(MfaThemeData theme, String text) {
     final hasError = widget.errorText != null;
     final focused = _focusNode.hasFocus;
+    final activeIndex = _controller.selection.isValid
+        ? _controller.selection.baseOffset.clamp(0, widget.length - 1)
+        : text.length.clamp(0, widget.length - 1);
     final split = (widget.length + 1) ~/ 2;
     final boxes = <Widget>[];
     for (var i = 0; i < widget.length; i++) {
       if (i == split) boxes.add(SizedBox(width: theme.spacing * 2));
       if (i > 0 && i != split) boxes.add(SizedBox(width: theme.spacing));
-      final isCurrent =
-          focused &&
-          (i == text.length ||
-              (i == widget.length - 1 && text.length == widget.length));
+      final isCurrent = focused && i == activeIndex;
       final borderColor = hasError
           ? theme.error
           : isCurrent
@@ -345,5 +364,61 @@ class _PasteToolbar extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _OtpInputFormatter extends TextInputFormatter {
+  _OtpInputFormatter(this.length)
+    : _exactMatch = RegExp('(?<!\\d)\\d{$length}(?!\\d)'),
+      _groupedMatch = RegExp(
+        '(?<!\\d)\\d{${(length + 1) ~/ 2}}[\\s-]\\d{${length - (length + 1) ~/ 2}}(?!\\d)',
+      );
+
+  final int length;
+  final RegExp _exactMatch;
+  final RegExp _groupedMatch;
+
+  static final _nonDigit = RegExp('[^0-9]');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final delta = newValue.text.length - oldValue.text.length;
+    if (delta > 1 || _nonDigit.hasMatch(newValue.text)) {
+      String? inserted;
+      if (oldValue.selection.isValid) {
+        final prefix = oldValue.selection.start;
+        final suffix = oldValue.text.length - oldValue.selection.end;
+        if (newValue.text.length >= prefix + suffix) {
+          inserted = newValue.text.substring(
+            prefix,
+            newValue.text.length - suffix,
+          );
+        }
+      }
+      final match =
+          (inserted != null && inserted.length > 1
+              ? (_exactMatch.firstMatch(inserted) ??
+                    _groupedMatch.firstMatch(inserted))
+              : null) ??
+          _exactMatch.firstMatch(newValue.text) ??
+          _groupedMatch.firstMatch(newValue.text);
+      if (match != null) {
+        final digits = match.group(0)!.replaceAll(_nonDigit, '');
+        return TextEditingValue(
+          text: digits,
+          selection: TextSelection.collapsed(offset: digits.length),
+        );
+      }
+    }
+    final filtered = FilteringTextInputFormatter.digitsOnly.formatEditUpdate(
+      oldValue,
+      newValue,
+    );
+    return LengthLimitingTextInputFormatter(
+      length,
+    ).formatEditUpdate(oldValue, filtered);
   }
 }

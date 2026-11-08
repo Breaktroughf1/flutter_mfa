@@ -267,5 +267,12 @@ void main() {
       expect(text, isNot(contains('JBSWY3DPEHPK3PXP')));
       expect(text, contains('alice@example.com'));
     });
+
+    test('BackupEntry value equality and hashCode', () {
+      expect(_entry(), _entry());
+      expect(_entry().hashCode, _entry().hashCode);
+      expect(_entry(), isNot(_entry(name: 'bob@example.com')));
+      expect(_entry(), isNot(_entry(secret: 'GEZDGNBVGY3TQOJQ')));
+    });
   });
 }

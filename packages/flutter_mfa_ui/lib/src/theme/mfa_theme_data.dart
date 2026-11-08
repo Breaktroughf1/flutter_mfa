@@ -35,7 +35,29 @@ final class MfaThemeData with Diagnosticable {
   });
 
   /// The default light theme.
-  factory MfaThemeData.light() => _fromPalette(
+  factory MfaThemeData.light() => _light;
+
+  /// The default dark theme.
+  factory MfaThemeData.dark() => _dark;
+
+  /// A high-contrast light theme meeting WCAG 2.1 AAA (7:1 text contrast).
+  factory MfaThemeData.highContrastLight() => _highContrastLight;
+
+  /// A high-contrast dark theme meeting WCAG 2.1 AAA (7:1 text contrast).
+  factory MfaThemeData.highContrastDark() => _highContrastDark;
+
+  /// The default theme for [brightness] and [highContrast].
+  factory MfaThemeData.fallback(
+    Brightness brightness, {
+    bool highContrast = false,
+  }) => switch ((brightness, highContrast)) {
+    (Brightness.dark, true) => _highContrastDark,
+    (Brightness.dark, false) => _dark,
+    (Brightness.light, true) => _highContrastLight,
+    (Brightness.light, false) => _light,
+  };
+
+  static final MfaThemeData _light = _fromPalette(
     brightness: Brightness.light,
     primary: const Color(0xFF3949AB),
     onPrimary: const Color(0xFFFFFFFF),
@@ -48,8 +70,7 @@ final class MfaThemeData with Diagnosticable {
     warning: const Color(0xFF8A5100),
   );
 
-  /// The default dark theme.
-  factory MfaThemeData.dark() => _fromPalette(
+  static final MfaThemeData _dark = _fromPalette(
     brightness: Brightness.dark,
     primary: const Color(0xFFBAC3FF),
     onPrimary: const Color(0xFF08218A),
@@ -62,11 +83,31 @@ final class MfaThemeData with Diagnosticable {
     warning: const Color(0xFFFFB870),
   );
 
-  /// The default theme for [brightness].
-  factory MfaThemeData.fallback(Brightness brightness) =>
-      brightness == Brightness.dark
-      ? MfaThemeData.dark()
-      : MfaThemeData.light();
+  static final MfaThemeData _highContrastLight = _fromPalette(
+    brightness: Brightness.light,
+    primary: const Color(0xFF1A237E),
+    onPrimary: const Color(0xFFFFFFFF),
+    surface: const Color(0xFFFFFFFF),
+    onSurface: const Color(0xFF000000),
+    onSurfaceVariant: const Color(0xFF2E2E38),
+    outline: const Color(0xFF52525C),
+    error: const Color(0xFFA8071A),
+    success: const Color(0xFF135200),
+    warning: const Color(0xFF7A4100),
+  );
+
+  static final MfaThemeData _highContrastDark = _fromPalette(
+    brightness: Brightness.dark,
+    primary: const Color(0xFFBAC3FF),
+    onPrimary: const Color(0xFF000000),
+    surface: const Color(0xFF000000),
+    onSurface: const Color(0xFFFFFFFF),
+    onSurfaceVariant: const Color(0xFFE4E1E6),
+    outline: const Color(0xFFC7C5D0),
+    error: const Color(0xFFFFB4AB),
+    success: const Color(0xFF8BD88F),
+    warning: const Color(0xFFFFB870),
+  );
 
   static MfaThemeData _fromPalette({
     required Brightness brightness,
@@ -254,9 +295,20 @@ final class MfaThemeData with Diagnosticable {
     properties
       ..add(EnumProperty<Brightness>('brightness', brightness))
       ..add(ColorProperty('primary', primary))
+      ..add(ColorProperty('onPrimary', onPrimary))
       ..add(ColorProperty('surface', surface))
       ..add(ColorProperty('onSurface', onSurface))
+      ..add(ColorProperty('onSurfaceVariant', onSurfaceVariant))
+      ..add(ColorProperty('outline', outline))
+      ..add(ColorProperty('error', error))
+      ..add(ColorProperty('success', success))
+      ..add(ColorProperty('warning', warning))
+      ..add(DiagnosticsProperty<TextStyle>('codeTextStyle', codeTextStyle))
+      ..add(DiagnosticsProperty<TextStyle>('titleTextStyle', titleTextStyle))
+      ..add(DiagnosticsProperty<TextStyle>('bodyTextStyle', bodyTextStyle))
+      ..add(DiagnosticsProperty<TextStyle>('labelTextStyle', labelTextStyle))
       ..add(DoubleProperty('radius', radius))
+      ..add(DoubleProperty('spacing', spacing))
       ..add(DoubleProperty('minTapTarget', minTapTarget));
   }
 }

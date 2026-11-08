@@ -237,9 +237,19 @@ void main() {
       );
       await expectLater(mfa.remove(a.id), throwsA(const VaultCorrupted()));
       expect(
+        await vault.keys(),
+        contains('acct_${a.id}'),
+        reason: 'secret deletion failed',
+      );
+      expect(
         await mfa.accounts(),
         isEmpty,
         reason: 'never indexed without a secret',
+      );
+      expect(
+        await vault.keys(),
+        ['__index_v1__'],
+        reason: 'orphan secret swept on the next load',
       );
     });
   });

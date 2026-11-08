@@ -4,7 +4,7 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package uses
 [Semantic Versioning](https://semver.org) (0.x: a minor bump may break).
 
-## 0.2.0
+## 0.2.0 - 2026-11-08
 
 - `OtpQrScanner`: scans `otpauth://` QR codes with `mobile_scanner` and
   reports each valid code once as an `OtpAuthUri`; other payloads go to

@@ -81,9 +81,17 @@ final class OtpAccount {
         'algorithm',
       ),
       digits: field<int>('digits', (d) => d >= 6 && d <= 8),
-      period: Duration(seconds: field<int>('periodSeconds', (p) => p >= 1)),
+      period: Duration(
+        seconds: field<int>(
+          'periodSeconds',
+          (p) => p >= 1 && p <= Totp.maxPeriodSeconds,
+        ),
+      ),
       counter: counter,
-      lastUsedStep: field<int?>('lastUsedStep', (s) => s == null || s >= 0),
+      lastUsedStep: field<int?>(
+        'lastUsedStep',
+        (s) => s == null || (s >= 0 && s <= Hotp.maxCounter),
+      ),
       protection: _byName(
         ProtectionLevel.values,
         field<String>('protection', (_) => true),

@@ -29,17 +29,14 @@ final class MethodChannelMfaPlatform extends MfaPlatform {
       persistentStorage: m.persistentStorage,
       screenCaptureProtection: m.screenCaptureProtection,
       supportedLevels: {
-        for (final l in m.supportedLevels) ProtectionLevel.values[l.index],
+        for (final l in m.supportedLevels) _fromMessage(l),
       },
     );
   });
 
   @override
   Future<void> write(String key, Uint8List value, ProtectionLevel level) =>
-      _guard(
-        () =>
-            _api.write(key, value, ProtectionLevelMessage.values[level.index]),
-      );
+      _guard(() => _api.write(key, value, _toMessage(level)));
 
   @override
   Future<Uint8List?> read(String key, {BiometricPrompt? prompt}) => _guard(
@@ -78,6 +75,20 @@ final class MethodChannelMfaPlatform extends MfaPlatform {
   @override
   Future<void> setScreenCaptureProtection(bool enabled) =>
       _guard(() => _api.setScreenCaptureProtection(enabled));
+
+  static ProtectionLevel _fromMessage(ProtectionLevelMessage level) =>
+      switch (level) {
+        ProtectionLevelMessage.standard => ProtectionLevel.standard,
+        ProtectionLevelMessage.biometric => ProtectionLevel.biometric,
+        ProtectionLevelMessage.hardwareBound => ProtectionLevel.hardwareBound,
+      };
+
+  static ProtectionLevelMessage _toMessage(ProtectionLevel level) =>
+      switch (level) {
+        ProtectionLevel.standard => ProtectionLevelMessage.standard,
+        ProtectionLevel.biometric => ProtectionLevelMessage.biometric,
+        ProtectionLevel.hardwareBound => ProtectionLevelMessage.hardwareBound,
+      };
 
   static Future<T> _guard<T>(Future<T> Function() call) async {
     try {

@@ -17,8 +17,15 @@ const _allowed = <String, List<String>>{
 };
 
 /// Phrases that disqualify a text even when an allowed phrase matches: the
-/// BSD-4-Clause advertising clause, which is not on the allowlist.
-const _forbidden = ['advertising materials mentioning features or use'];
+/// BSD-4-Clause advertising clause and copyleft licences (in multi-licence
+/// files), which are not on the allowlist.
+const _forbidden = [
+  'advertising materials mentioning features or use',
+  'GNU GENERAL PUBLIC LICENSE',
+  'GNU LESSER GENERAL PUBLIC LICENSE',
+  'GNU AFFERO GENERAL PUBLIC LICENSE',
+  'Mozilla Public License',
+];
 
 void main() {
   final config = File('.dart_tool/package_config.json');
@@ -60,8 +67,9 @@ void main() {
     }
     // Collapse line breaks and runs of spaces so wrapped phrases match.
     final text = file.readAsStringSync().replaceAll(RegExp(r'\s+'), ' ');
-    if (_forbidden.any(text.toLowerCase().contains)) {
-      failures.add('$name: BSD-4-Clause (advertising clause) not allowed');
+    final lower = text.toLowerCase();
+    if (_forbidden.any((f) => lower.contains(f.toLowerCase()))) {
+      failures.add('$name: forbidden licence clause not allowed');
       continue;
     }
     final kind = _allowed.entries

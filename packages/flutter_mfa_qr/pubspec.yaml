@@ -10,6 +10,10 @@ topics:
   - otp
   - authentication
   - security
+platforms:
+  android:
+  ios:
+  web:
 
 environment:
   sdk: ">=3.9.0 <4.0.0"

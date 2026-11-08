@@ -14,8 +14,8 @@ internal interface ProtectedKeys {
 
     /**
      * Creates a key pair that only a strong biometric can unlock, in StrongBox
-     * when [hardwareBound] and the device has it, otherwise in the TEE; never
-     * in software. Returns its id and public key.
+     * when [hardwareBound] (failing with `STRONG_BOX_UNAVAILABLE` if absent)
+     * and in the TEE otherwise; never in software. Returns its id and public key.
      */
     fun create(hardwareBound: Boolean): Pair<ByteArray, PublicKey>
 

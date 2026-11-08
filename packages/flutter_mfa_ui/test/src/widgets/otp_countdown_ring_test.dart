@@ -55,6 +55,23 @@ void main() {
     expect(await sizeAt(2), const Size(80, 80));
   });
 
+  testWidgets('scales 3-4 digit countdowns inside the ring with tabular figures', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const OtpCountdownRing(
+          progress: 0.1,
+          remaining: Duration(seconds: 9999),
+        ),
+      ),
+    );
+    expect(find.text('9999'), findsOneWidget);
+    expect(find.byType(FittedBox), findsOneWidget);
+    final text = tester.widget<Text>(find.text('9999'));
+    expect(text.style!.fontFeatures, const [FontFeature.tabularFigures()]);
+  });
+
   testWidgets('repaints only when something changed', (tester) async {
     Future<CustomPainter> painterFor(
       double progress,
