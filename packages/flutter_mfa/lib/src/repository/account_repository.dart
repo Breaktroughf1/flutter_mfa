@@ -79,11 +79,7 @@ final class AccountRepository {
   /// since the change is committed, and leaves an orphan that the next first
   /// load sweeps. Returns what [plan] returned.
   Future<R> batch<R>(
-    ({
-      List<(OtpAccount, Uint8List)> add,
-      Set<String> remove,
-      R result,
-    })
+    ({List<(OtpAccount, Uint8List)> add, Set<String> remove, R result})
     Function(List<OtpAccount> current)
     plan,
   ) => _lock.protect(() async {

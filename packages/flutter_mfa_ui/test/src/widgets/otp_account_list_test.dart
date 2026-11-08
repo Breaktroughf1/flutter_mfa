@@ -134,7 +134,12 @@ void main() {
   testWidgets('HOTP tile updates when codeStream starts returning a stream', (
     tester,
   ) async {
-    final hotp = account(id: 'h', issuer: 'Bank', name: 'bob', type: OtpType.hotp);
+    final hotp = account(
+      id: 'h',
+      issuer: 'Bank',
+      name: 'bob',
+      type: OtpType.hotp,
+    );
     final generated = <String, Stream<OtpCode>>{};
     Widget buildList() => host(
       SizedBox(

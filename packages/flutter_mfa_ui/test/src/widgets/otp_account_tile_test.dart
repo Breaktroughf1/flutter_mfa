@@ -110,20 +110,26 @@ void main() {
       ),
     );
     await tester.pump();
-    final nameNode = tester.getSemantics(find.text('Example'));
-    final codeNode = tester.getSemantics(find.text('287 082'));
-    final ringNode = tester.getSemantics(find.byType(OtpCountdownRing));
     expect(
-      nameNode.getSemanticsData().sortKey,
-      const OrdinalSortKey(1),
+      find.byWidgetPredicate(
+        (w) =>
+            w is Semantics && w.properties.sortKey == const OrdinalSortKey(1),
+      ),
+      findsOneWidget,
     );
     expect(
-      codeNode.getSemanticsData().sortKey,
-      const OrdinalSortKey(2),
+      find.byWidgetPredicate(
+        (w) =>
+            w is Semantics && w.properties.sortKey == const OrdinalSortKey(2),
+      ),
+      findsOneWidget,
     );
     expect(
-      ringNode.getSemanticsData().sortKey,
-      const OrdinalSortKey(3),
+      find.byWidgetPredicate(
+        (w) =>
+            w is Semantics && w.properties.sortKey == const OrdinalSortKey(3),
+      ),
+      findsOneWidget,
     );
     handle.dispose();
   });

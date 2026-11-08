@@ -325,26 +325,30 @@ void main() {
     );
   });
 
-  testWidgets('status views meet tap target, label and contrast guidelines', (
-    tester,
-  ) async {
-    final handle = tester.ensureSemantics();
-    camera.nextStart = _FakeScanner.failWith(
-      MobileScannerErrorCode.permissionDenied,
-    );
-    await pumpScanner(tester, onOpenSettings: () {});
-    expect(find.text('Open settings'), findsOneWidget);
-    final exclude = tester.widget<ExcludeSemantics>(
-      find.ancestor(
-        of: find.byType(MobileScanner),
-        matching: find.byType(ExcludeSemantics),
-      ),
-    );
-    expect(exclude.excluding, isTrue);
-    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
-    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-    await expectLater(tester, meetsGuideline(textContrastGuideline));
-    handle.dispose();
-  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  testWidgets(
+    'status views meet tap target, label and contrast guidelines',
+    (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      camera.nextStart = _FakeScanner.failWith(
+        MobileScannerErrorCode.permissionDenied,
+      );
+      await pumpScanner(tester, onOpenSettings: () {});
+      expect(find.text('Open settings'), findsOneWidget);
+      final exclude = tester.widget<ExcludeSemantics>(
+        find.ancestor(
+          of: find.byType(MobileScanner),
+          matching: find.byType(ExcludeSemantics),
+        ),
+      );
+      expect(exclude.excluding, isTrue);
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
 }

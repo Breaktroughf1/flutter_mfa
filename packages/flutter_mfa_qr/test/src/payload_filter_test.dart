@@ -67,7 +67,8 @@ void main() {
       expect(
         filter.check(_uri),
         isNull,
-        reason: 'first code stays debounced when alternating with a second code',
+        reason:
+            'first code stays debounced when alternating with a second code',
       );
       expect(
         filter.check(secondUri),
