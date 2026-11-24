@@ -123,9 +123,8 @@ void main() {
         );
         expect(
           (await verifier(
-                window: 2,
-              ).verify(codeAt(step + 2), subject: 'u', at: _at(now)))
-              as Accepted,
+            window: 2,
+          ).verify(codeAt(step + 2), subject: 'u', at: _at(now))) as Accepted,
           isA<Accepted>().having((a) => a.offset, 'offset', 2),
         );
       },
@@ -192,14 +191,12 @@ void main() {
       var last = -1;
       for (var s = 0; s < 3; s++) {
         final at = _at(now + 30 * s);
-        final r =
-            await v.verify(
-                  totp.generate(at),
-                  subject: 'u',
-                  lastUsedStep: last < 0 ? null : last,
-                  at: at,
-                )
-                as Accepted;
+        final r = await v.verify(
+          totp.generate(at),
+          subject: 'u',
+          lastUsedStep: last < 0 ? null : last,
+          at: at,
+        ) as Accepted;
         expect(r.nextState, greaterThan(last));
         last = r.nextState;
       }

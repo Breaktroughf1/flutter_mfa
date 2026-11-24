@@ -15,12 +15,11 @@ import 'web/browser.dart';
 ///
 /// Call [retry] to start the camera again (for example from a "Try again"
 /// button).
-typedef OtpQrStatusBuilder =
-    Widget Function(
-      BuildContext context,
-      OtpQrScannerStatus status,
-      VoidCallback retry,
-    );
+typedef OtpQrStatusBuilder = Widget Function(
+  BuildContext context,
+  OtpQrScannerStatus status,
+  VoidCallback retry,
+);
 
 /// A camera view that scans `otpauth://` enrolment QR codes (FR-QR-01..03).
 ///
