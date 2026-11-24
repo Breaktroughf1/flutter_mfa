@@ -4,15 +4,12 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Breaktroughf1/flutter_mfa/badge)](https://scorecard.dev/viewer/?uri=github.com/Breaktroughf1/flutter_mfa)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17062/badge)](https://www.bestpractices.dev/projects/17062)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-<!-- After the OpenSSF Best Practices badge is granted, add it here with its project id
-     (docs/security/openssf-best-practices.md):
-     [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/PROJECT_ID/badge)](https://www.bestpractices.dev/projects/PROJECT_ID) -->
 
 Multi-factor authentication for Flutter — TOTP/HOTP (RFC 6238/4226), secure storage (hardware-backed on Android and iOS), QR enrolment and accessible UI widgets for **Android, iOS and Web**, plus a pure-Dart verifier for your server.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 
-> Status: **v0.2.0**, the first public release. Until 1.0, a minor version may change the API; each package's CHANGELOG says what changed.
+> Status: **v0.3.0**. Until 1.0, a minor version may change the API; each package's CHANGELOG says what changed.
 
 | Package | What it is | pub.dev |
 |---|---|---|

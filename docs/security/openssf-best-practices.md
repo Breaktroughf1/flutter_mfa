@@ -2,7 +2,7 @@
 
 Answers for the [OpenSSF Best Practices badge](https://www.bestpractices.dev) ("passing" level), with the evidence for each criterion. Sign in at bestpractices.dev with the GitHub account that administers the repository, add the project `https://github.com/Breaktroughf1/flutter_mfa`, then paste the status and justification for each criterion below. Links are relative to the repository root on `main`.
 
-Status values: **Met**, **N/A** (with the reason), or **Unmet**. Every MUST criterion below is Met or N/A. After the badge is granted, add its README badge (the site shows the Markdown) and replace `PROJECT_ID` in [the README](../../README.md).
+Status values: **Met**, **N/A** (with the reason), or **Unmet**. Every MUST criterion below is Met or N/A. The badge was granted on 24 November 2026 as [project 17062](https://www.bestpractices.dev/projects/17062); the README shows it. The form needs full URLs, so replace the relative links below with `https://github.com/Breaktroughf1/flutter_mfa/blob/main/...` when pasting.
 
 Last checked: 24 November 2026 (0.3.0 release preparation).
 
@@ -34,17 +34,17 @@ Last checked: 24 November 2026 (0.3.0 release preparation).
 | repo_distributed | Met | Git. |
 | version_unique | Met | Each package has a unique SemVer version on pub.dev, and every release has a tag (`<package>-v<version>`). |
 | version_semver | Met | SemVer (0.x: a minor version may break, as each CHANGELOG states). |
-| version_tags | Met | Release tags, for example `flutter_mfa_core-v0.2.0`. |
+| version_tags | Met | Release tags: `v0.3.0` for `flutter_mfa`, `<package>-v0.3.0` for the others. |
 | release_notes | Met | `packages/*/CHANGELOG.md` (Keep a Changelog). |
-| release_notes_vulns | Met | No vulnerabilities have been fixed yet. [SECURITY.md](../../SECURITY.md) commits to naming fixed vulnerabilities in the advisory and the CHANGELOG. |
+| release_notes_vulns | N/A | No vulnerabilities have been fixed yet. [SECURITY.md](../../SECURITY.md) commits to naming fixed vulnerabilities in the advisory and the CHANGELOG. |
 
 ## Reporting
 
 | Criterion | Status | Justification |
 |---|---|---|
-| report_process | Met | GitHub issues with bug and feature templates (`.github/ISSUE_TEMPLATE/`). |
+| report_process | Met | GitHub issues with bug and feature templates: `https://github.com/Breaktroughf1/flutter_mfa/issues/new/choose`. |
 | report_tracker | Met | GitHub issues. |
-| report_responses | Met | All reports so far were acknowledged. (If no external report has arrived yet, say so in the justification.) |
+| report_responses | Met | No external bug reports yet (first public release November 2026); maintainers triage every new issue. |
 | enhancement_responses | Met | As above. |
 | report_archive | Met | Public GitHub issues. |
 | vulnerability_report_process | Met | [SECURITY.md](../../SECURITY.md). |
@@ -78,7 +78,7 @@ Last checked: 24 November 2026 (0.3.0 release preparation).
 | crypto_published | Met | HOTP/TOTP (RFC 4226/6238, HMAC-SHA1/256/512), PBKDF2-HMAC-SHA256, AES-256-GCM, RSA-OAEP key wrap (Android), ECIES P-256 (iOS Secure Enclave). |
 | crypto_call | Met | No custom cryptography: `package:crypto` (HMAC), `package:cryptography` and WebCrypto (PBKDF2, AES-GCM), Android Keystore, iOS CryptoKit/Security. |
 | crypto_floss | Met | `crypto` and `cryptography` are BSD/Apache-2.0; platform APIs are used where FLOSS is not available. |
-| crypto_keylength | Met | AES-256, RSA-2048, P-256, PBKDF2 with 600 000 iterations, OTP secrets of at least 160 bits (generated: 160/256/512 bits by algorithm). |
+| crypto_keylength | Met | AES-256, RSA-2048, P-256, PBKDF2 with 600 000 iterations. Generated OTP secrets are 160 bits by default and never below 128 bits (RFC 4226 R6). Imported secrets of 80–127 bits are accepted for compatibility with existing issuers but flagged (`OtpSecret.meetsRfcMinimum` is false; URI parsing reports `CompatibilityWarning.shortSecret`), so an app can refuse them. |
 | crypto_working | Met | No broken algorithms. HMAC-SHA1 is used only inside HOTP/TOTP as the RFCs and authenticator apps require; HMAC-SHA1 is not affected by SHA-1 collision attacks. |
 | crypto_weaknesses | Met | HMAC-SHA-256 and HMAC-SHA-512 are supported; HMAC-SHA1 is the default because RFC 6238 and authenticator apps expect it (crypto inventory in docs/04_SECURITY_DESIGN.md §6). |
 | crypto_pfs | N/A | The packages make no network connections. |
