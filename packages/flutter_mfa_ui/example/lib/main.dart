@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_mfa_ui/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Starts the example app.
 void main() => runApp(const ExampleApp());

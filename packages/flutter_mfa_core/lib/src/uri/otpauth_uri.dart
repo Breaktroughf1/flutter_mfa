@@ -57,8 +57,8 @@ final class OtpAuthUri {
     required this.period,
     required this.counter,
     required this.extras,
-    required bool issuerMismatch,
-  }) : _issuerMismatch = issuerMismatch;
+    required this._issuerMismatch,
+  });
 
   /// Parses [uri] strictly on structure and leniently on optional values.
   ///

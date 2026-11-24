@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_example/main.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const _secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'; // RFC 4226/6238 test secret
 

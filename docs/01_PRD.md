@@ -126,7 +126,7 @@ Core use cases: UC1 enrol by scanning QR · UC2 enrol by manual entry · UC3 vie
 | NFR-04 | pub.dev score | 160/160 pub points for every package at release |
 | NFR-05 | Dependencies | Core: `crypto`, `meta`, `collection` only, plus the chosen AEAD/KDF package (ADR-0007). All deps MIT/BSD/Apache-2.0. `dart pub outdated` clean of security advisories. |
 | NFR-06 | Performance | TOTP generation < 1 ms on mid-range Android; PBKDF2 600k export key derivation runs off the UI isolate (`Isolate.run`) |
-| NFR-07 | Platform floors | Dart ≥ 3.9, Flutter ≥ 3.35, Android minSdk 24 / target latest, iOS 15, Web secure context; WASM-compatible web build |
+| NFR-07 | Platform floors | Dart ≥ 3.13, Flutter ≥ 3.47 (ADR-0015; was 3.9 / 3.35 until 0.3.0), Android minSdk 24 / target latest, iOS 15, Web secure context; WASM-compatible web build |
 | NFR-08 | API docs | 100 % public API documented (`public_member_api_docs` lint on) |
 | NFR-09 | No secrets in repo | gitleaks in CI; test vectors only |
 | NFR-10 | Supply chain | Actions pinned by SHA; Dependabot for pub + actions; OIDC publishing only |

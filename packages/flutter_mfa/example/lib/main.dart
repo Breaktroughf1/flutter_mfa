@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_mfa_ui/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'src/accounts_page.dart';
 
@@ -31,7 +31,10 @@ class ExampleApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
       ),
-      localizationsDelegates: MfaLocalizations.localizationsDelegates,
+      localizationsDelegates: const [
+        MfaLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: MfaLocalizations.supportedLocales,
       // The flutter_mfa widgets follow the app's Material theme.
       builder: (context, child) =>

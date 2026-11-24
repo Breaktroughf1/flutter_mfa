@@ -78,7 +78,10 @@ class _EnrollmentQrViewState extends State<EnrollmentQrView> {
   void _updateQr() {
     _data = widget.uri.toUri().toString();
     _image = QrImage(
-      QrCode.fromData(data: _data, errorCorrectLevel: QrErrorCorrectLevel.M),
+      QrCode(
+        payload: QrPayload.fromString(_data),
+        errorCorrectLevel: QrErrorCorrectLevel.medium,
+      ),
     );
   }
 

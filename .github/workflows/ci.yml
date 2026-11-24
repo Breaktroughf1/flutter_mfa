@@ -1,11 +1,16 @@
+# Organisation-wide checks for the plugin package (shared dart-package-ci
+# workflow). The full suite for all five packages is in ci-full.yml.
+# The shared workflow is pinned by commit SHA (Dependabot updates it).
 name: CI
 on:
   pull_request:
   push:
     branches: [main]
+permissions:
+  contents: read
 jobs:
   ci:
-    uses: Breaktroughf1/.github/.github/workflows/dart-package-ci.yml@main
+    uses: Breaktroughf1/.github/.github/workflows/dart-package-ci.yml@6f2b090f81810c38725bf7cfd11d6770c7fee6ad # main, 2026-11
     with:
       flutter: true
       package-path: packages/flutter_mfa

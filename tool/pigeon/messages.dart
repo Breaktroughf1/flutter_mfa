@@ -13,11 +13,9 @@ import 'package:pigeon/pigeon.dart';
     dartOut:
         '../../packages/flutter_mfa_platform_interface/lib/src/messages.g.dart',
     dartPackageName: 'flutter_mfa_platform_interface',
-    kotlinOut:
-        '../../packages/flutter_mfa/android/src/main/kotlin/com/breaktroughf1/flutter_mfa/Messages.g.kt',
+    kotlinOut: '../../packages/flutter_mfa/android/src/main/kotlin/com/breaktroughf1/flutter_mfa/Messages.g.kt',
     kotlinOptions: KotlinOptions(package: 'com.breaktroughf1.flutter_mfa'),
-    swiftOut:
-        '../../packages/flutter_mfa/ios/flutter_mfa/Sources/flutter_mfa/Messages.g.swift',
+    swiftOut: '../../packages/flutter_mfa/ios/flutter_mfa/Sources/flutter_mfa/Messages.g.swift',
     copyrightHeader: 'copyright.txt',
   ),
 )

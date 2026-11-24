@@ -3,7 +3,7 @@ publish_to: none
 description: Workspace root for the flutter_mfa packages (not published).
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
+  sdk: ">=3.13.0 <4.0.0"
 
 # Dart pub workspace (Dart >= 3.6). Globs need Dart >= 3.11 and our floor is 3.9,
 # so members are listed explicitly.

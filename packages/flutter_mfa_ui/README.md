@@ -38,8 +38,8 @@ flutter pub add flutter_mfa_ui
 The widgets use only the widgets layer, so they fit any design system. Pass an `MfaTheme`, or map your existing theme:
 
 ```dart
-import 'package:flutter_mfa_ui/material.dart';   // ThemeData.toMfaTheme()
-import 'package:flutter_mfa_ui/cupertino.dart';  // CupertinoThemeData.toMfaTheme()
+import 'package:flutter_mfa_ui/material.dart';   // material_ui's ThemeData.toMfaTheme()
+import 'package:flutter_mfa_ui/cupertino.dart';  // cupertino_ui's CupertinoThemeData.toMfaTheme()
 
 MaterialApp(
   builder: (context, child) =>
@@ -47,11 +47,13 @@ MaterialApp(
 )
 ```
 
+The adapters work with Flutter's `material_ui` and `cupertino_ui` packages (the SDK's `package:flutter/material.dart` and `cupertino.dart` are deprecated since Flutter 3.47). Apps still on the SDK libraries can build an `MfaThemeData` directly or stay on 0.2.x.
+
 Without an `MfaTheme` the widgets use light or dark defaults that meet WCAG AA contrast.
 
 ## Localization and accessibility
 
-- English, Hindi and Arabic (right to left). Add `MfaLocalizations.delegate` (or `MfaLocalizations.localizationsDelegates`); without it the widgets use English. `mfaStrings(context)` gives custom builders the same strings.
+- English, Hindi and Arabic (right to left). Add `MfaLocalizations.delegate` next to your design system's delegates, for example `localizationsDelegates: [MfaLocalizations.delegate, ...GlobalMaterialLocalizations.delegates]` with `material_ui`; without it the widgets use English. (The generated `MfaLocalizations.localizationsDelegates` list uses the deprecated `flutter_localizations` Material delegates, so it only fits apps on the old SDK libraries.) `mfaStrings(context)` gives custom builders the same strings.
 - Every interactive part has a label, a 48 dp tap target and its own semantics node. Codes are read digit by digit and errors are announced.
 - Text scales to 200% without clipping. The golden tests cover light, dark, Arabic, Hindi and 200% text.
 

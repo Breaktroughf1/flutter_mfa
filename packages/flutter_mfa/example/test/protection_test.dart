@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
 import 'package:flutter_mfa_example/src/protection.dart';
 import 'package:flutter_mfa_platform_interface/flutter_mfa_platform_interface.dart';
 import 'package:flutter_mfa_platform_interface/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 VaultCapabilities _levels(Set<ProtectionLevel> levels) => VaultCapabilities(
   hardwareBacked: true,

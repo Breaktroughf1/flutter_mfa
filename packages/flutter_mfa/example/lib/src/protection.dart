@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A short label for [level], used wherever the example offers protection.
 String protectionLabel(ProtectionLevel level) => switch (level) {

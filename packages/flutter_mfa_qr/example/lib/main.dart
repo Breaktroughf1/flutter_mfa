@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa_core/flutter_mfa_core.dart';
 import 'package:flutter_mfa_qr/flutter_mfa_qr.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_mfa_ui/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A self-hosted `@zxing/library` script for browsers without
 /// `BarcodeDetector`, for example

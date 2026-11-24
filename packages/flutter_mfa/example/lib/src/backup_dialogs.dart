@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'error_text.dart';
 

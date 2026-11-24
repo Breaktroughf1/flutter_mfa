@@ -71,9 +71,9 @@ void main() {
     });
 
     test('the plaintext is versioned JSON with one toJson per account', () {
-      final json =
-          jsonDecode(backupPlaintext([_entry()], DateTime.utc(2026)))
-              as Map<String, Object?>;
+      final json = jsonDecode(
+        backupPlaintext([_entry()], DateTime.utc(2026)),
+      ) as Map<String, Object?>;
       expect(json['format'], 'flutter_mfa.backup');
       expect(json['version'], 1);
       expect(json['createdAt'], '2026-01-01T00:00:00.000Z');
@@ -157,52 +157,59 @@ void main() {
       );
     });
 
-    test('authenticated but malformed contents are BackupDecryptFailed', () async {
-      Future<Uint8List> sealText(String text) async {
-        final key = await defaultBackupCrypto.deriveKey(
-          utf8.encode(_passphrase),
-          Uint8List(16),
-          _iterations,
-        );
-        final header = backupHeader(_iterations, Uint8List(16), Uint8List(12));
-        final sealed = await defaultBackupCrypto.seal(
-          key,
-          Uint8List(12),
-          Uint8List.fromList(utf8.encode(text)),
-          header,
-        );
-        return Uint8List.fromList([...header, ...sealed]);
-      }
+    test(
+      'authenticated but malformed contents are BackupDecryptFailed',
+      () async {
+        Future<Uint8List> sealText(String text) async {
+          final key = await defaultBackupCrypto.deriveKey(
+            utf8.encode(_passphrase),
+            Uint8List(16),
+            _iterations,
+          );
+          final header = backupHeader(
+            _iterations,
+            Uint8List(16),
+            Uint8List(12),
+          );
+          final sealed = await defaultBackupCrypto.seal(
+            key,
+            Uint8List(12),
+            Uint8List.fromList(utf8.encode(text)),
+            header,
+          );
+          return Uint8List.fromList([...header, ...sealed]);
+        }
 
-      final account = jsonEncode(_entry().account.toJson());
-      String withAccount(String extra) =>
-          '{"format":"flutter_mfa.backup","version":1,"createdAt":"x",'
-          '"accounts":[${account.substring(0, account.length - 1)}$extra}]}';
-      for (final text in [
-        'not json',
-        '{"format":"flutter_mfa.backup","version":"1","accounts":[]}',
-        '{"format":"flutter_mfa.backup","version":1,"accounts":[]}',
-        withAccount(''),
-        withAccount(',"secret":"not base32!"'),
-        '[]',
-        '{"format":"other","version":1,"createdAt":"2026-01-01T00:00:00Z","accounts":[]}',
-        '{"format":"flutter_mfa.backup","version":1,"createdAt":"x","accounts":[{"v":1}]}',
-      ]) {
+        final account = jsonEncode(_entry().account.toJson());
+        String withAccount(String extra) =>
+            '{"format":"flutter_mfa.backup","version":1,"createdAt":"x",'
+            '"accounts":[${account.substring(0, account.length - 1)}$extra}]}';
+        for (final text in [
+          'not json',
+          '{"format":"flutter_mfa.backup","version":"1","accounts":[]}',
+          '{"format":"flutter_mfa.backup","version":1,"accounts":[]}',
+          withAccount(''),
+          withAccount(',"secret":"not base32!"'),
+          '[]',
+          '{"format":"other","version":1,"createdAt":"2026-01-01T00:00:00Z","accounts":[]}',
+          '{"format":"flutter_mfa.backup","version":1,"createdAt":"x","accounts":[{"v":1}]}',
+        ]) {
+          await expectLater(
+            _open(await sealText(text)),
+            throwsA(const BackupDecryptFailed()),
+            reason: text,
+          );
+        }
         await expectLater(
-          _open(await sealText(text)),
-          throwsA(const BackupDecryptFailed()),
-          reason: text,
-        );
-      }
-      await expectLater(
-        _open(
-          await sealText(
-            '{"format":"flutter_mfa.backup","version":2,"accounts":[]}',
+          _open(
+            await sealText(
+              '{"format":"flutter_mfa.backup","version":2,"accounts":[]}',
+            ),
           ),
-        ),
-        throwsA(const BackupUnsupportedVersion(2)),
-      );
-    });
+          throwsA(const BackupUnsupportedVersion(2)),
+        );
+      },
+    );
   });
 
   group('BackupCodec', () {

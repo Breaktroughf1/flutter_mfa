@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_mfa/flutter_mfa.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'error_text.dart';
 import 'protection.dart';

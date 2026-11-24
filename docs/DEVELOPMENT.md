@@ -13,20 +13,20 @@ Java 17 is what CI uses for the Android build. Chromium (or Google Chrome) runs 
 
 ## 2. Flutter (pinned)
 
-CI pins Flutter **3.47.8** (`FLUTTER_VERSION` in `ci.yml`). Analyzer output and goldens must match it, so use the same version.
+CI pins Flutter **3.50.1** (`FLUTTER_VERSION` in `ci-full.yml`), the latest stable, which is also what pub.dev scores with. Analyzer output and goldens must match it, so use the same version.
 
 ```bash
 git clone https://github.com/flutter/flutter.git ~/sdk/flutter
-cd ~/sdk/flutter && git checkout 3.47.8
+cd ~/sdk/flutter && git checkout 3.50.1
 echo 'export PATH="$HOME/sdk/flutter/bin:$HOME/.pub-cache/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 flutter --version && flutter doctor
 ```
 
-Optional, for the minimum-SDK check (Flutter **3.35.7**, the supported floor):
+Optional, for the minimum-SDK check (Flutter **3.47.9**, the newest patch of the supported floor, ADR-0015):
 
 ```bash
-git clone https://github.com/flutter/flutter.git ~/sdk/flutter-3.35 && (cd ~/sdk/flutter-3.35 && git checkout 3.35.7)
+git clone https://github.com/flutter/flutter.git ~/sdk/flutter-3.47 && (cd ~/sdk/flutter-3.47 && git checkout 3.47.9)
 ```
 
 ## 3. The workspace
@@ -115,10 +115,10 @@ iOS builds and tests need macOS with Xcode. From Linux, use CI: label the PR `ci
 
 ## 7. Minimum-SDK check
 
-What CI's `min-sdk` job does, locally:
+What the `min-sdk` job in `ci-full.yml` does, locally:
 
 ```bash
-PATH="$HOME/sdk/flutter-3.35/bin:$PATH"
+PATH="$HOME/sdk/flutter-3.47/bin:$PATH"
 flutter pub upgrade && bash tool/test.sh              # our code on the floor SDK
 flutter pub downgrade && dart analyze --fatal-infos . # our lower bounds still compile
 git checkout pubspec.lock                             # restore the pinned lockfile

@@ -1,9 +1,13 @@
 # flutter_mfa
 
-[![ci](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci.yml)
+[![ci](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci-full.yml/badge.svg?branch=main)](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci-full.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Breaktroughf1/flutter_mfa/badge)](https://scorecard.dev/viewer/?uri=github.com/Breaktroughf1/flutter_mfa)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<!-- After the OpenSSF Best Practices badge is granted, add it here with its project id
+     (docs/security/openssf-best-practices.md):
+     [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/PROJECT_ID/badge)](https://www.bestpractices.dev/projects/PROJECT_ID) -->
 
-Multi-factor authentication for Flutter — TOTP/HOTP (RFC 6238/4226), hardware-backed secure storage, QR enrolment and accessible UI widgets for **Android, iOS and Web**, plus a pure-Dart verifier for your server.
+Multi-factor authentication for Flutter — TOTP/HOTP (RFC 6238/4226), secure storage (hardware-backed on Android and iOS), QR enrolment and accessible UI widgets for **Android, iOS and Web**, plus a pure-Dart verifier for your server.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 
@@ -41,19 +45,19 @@ The [example app](packages/flutter_mfa/example) shows all of it on Android, iOS 
 |---|---|---|---|
 | API 24+ (Keystore, StrongBox) | iOS 15+ (Keychain, Secure Enclave envelope) | Secure contexts (HTTPS/localhost), JS and WASM | `flutter_mfa_core` only |
 
-Minimum toolchain: Dart 3.9 / Flutter 3.35.
+Minimum toolchain: Dart 3.13 / Flutter 3.47 (since 0.3.0; ADR-0015).
 
 ## Security model in one paragraph
-Codes are **generated** on the user's device and **verified** by your server. `flutter_mfa_core` gives you the server verifier (replay protection + attempt limiting) so the same audited code runs on both sides. Seeds are stored encrypted under non-exportable platform keys, excluded from backups, and can be bound to biometrics so no code can be produced without a fresh biometric event. **On the web, storage uses a non-extractable WebCrypto key, but a script running in your origin (XSS) can still use it to produce codes: treat web as best-effort and use a strict CSP.** Details: [docs/04_SECURITY_DESIGN.md](docs/04_SECURITY_DESIGN.md).
+Codes are **generated** on the user's device and **verified** by your server. `flutter_mfa_core` gives you the server verifier (replay protection + attempt limiting) so the same tested code runs on both sides. On Android and iOS, seeds are stored encrypted under non-exportable platform keys, excluded from device backups, and can be bound to biometrics so no code can be produced without a fresh biometric event. **On the web, storage uses a non-extractable WebCrypto key, but a script running in your origin (XSS) can still use it to produce codes: treat web as best-effort and use a strict CSP.** Details: [docs/04_SECURITY_DESIGN.md](docs/04_SECURITY_DESIGN.md).
 
 ## Privacy
-The packages make no network requests, collect no telemetry and store everything locally on the device.
+The core, plugin and UI packages make no network requests, collect no telemetry and store everything locally on the device. The optional QR scanner uses Google's on-device ML Kit on Android, which can send usage metrics to Google (see the `flutter_mfa_qr` README), and loads a web decoder from a CDN only if you opt in.
 
 ## Project docs
 Requirements, architecture, API contract, threat model, test plan and build plan live in [docs/](docs/README.md). Design decisions: [docs/adr/](docs/adr/).
 
 ## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 
 ## Credits
 See [AUTHORS.md](AUTHORS.md).
