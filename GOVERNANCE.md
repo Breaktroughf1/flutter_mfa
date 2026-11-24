@@ -20,4 +20,4 @@ Maintainers publish from release tags through GitHub Actions with OIDC and a pro
 A contributor with a record of reviewed, merged contributions (including tests and documentation) can be invited by the existing maintainers. New maintainers are added to AUTHORS.md and CODEOWNERS, and as pub.dev publisher members with 2-step verification.
 
 ## Continuity
-The project keeps at least two people with admin access to the GitHub organisation and to the `breaktroughf1.com` pub.dev publisher (both with 2-step verification), so releases and security fixes can continue if one maintainer is unavailable.
+Two maintainers, Noeal Rajeev Thaleeparambil and Alfred Shaju (BreaktroughF1 LLP), hold admin access to the GitHub organisation and to the `breaktroughf1.com` pub.dev publisher, so releases and security fixes can continue if one of them is unavailable. The project keeps at least two such admins.

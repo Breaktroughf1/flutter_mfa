@@ -106,7 +106,7 @@ Last checked: 24 November 2026 (0.3.0 release preparation).
 ## Toward silver
 
 Not needed for "passing". These are the main gaps for the silver level:
-- **A second maintainer with merge rights** and two-person review of changes (`bus factor ≥ 2`). [GOVERNANCE.md](../../GOVERNANCE.md) describes the process; it needs a second active maintainer.
+- **Two-person review of changes.** Two maintainers hold admin access ([GOVERNANCE.md](../../GOVERNANCE.md)), so access continuity is covered; silver also expects changes to be reviewed by someone other than their author.
 - **Signed releases**: sign release tags (`git tag -s`), as `docs/07_RELEASE_RUNBOOK.md` §A.5 already plans.
 - **Roadmap**: publish one (for example in GitHub Discussions or the docs site).
 

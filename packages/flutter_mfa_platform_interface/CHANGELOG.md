@@ -4,7 +4,7 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package uses
 [Semantic Versioning](https://semver.org) (0.x: a minor bump may break).
 
-## 0.3.0
+## 0.3.0 - 2026-11-24
 
 - Requires Dart 3.13 and Flutter 3.47 or later (was 3.9 / 3.35), the oldest
   release where `qr` 4 and Flutter's `material_ui` / `cupertino_ui` packages
