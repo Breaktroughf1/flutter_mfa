@@ -2,6 +2,7 @@
 
 [![ci](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci-full.yml/badge.svg?branch=main)](https://github.com/Breaktroughf1/flutter_mfa/actions/workflows/ci-full.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Breaktroughf1/flutter_mfa/badge)](https://scorecard.dev/viewer/?uri=github.com/Breaktroughf1/flutter_mfa)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17062/badge)](https://www.bestpractices.dev/projects/17062)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 <!-- After the OpenSSF Best Practices badge is granted, add it here with its project id
      (docs/security/openssf-best-practices.md):
