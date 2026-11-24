@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # flutter_mfa_ui and flutter_mfa_qr build on the widgets layer only (ADR-0006).
-# Only the two adapter files in flutter_mfa_ui may import Material/Cupertino.
+# Only the two adapter files in flutter_mfa_ui may import Material/Cupertino
+# (package:material_ui / package:cupertino_ui since 0.3.0).
 # flutter_mfa_ui also depends on flutter_mfa_core only (02_ARCHITECTURE.md §3).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -8,7 +9,9 @@ LIBS=$(ls -d packages/flutter_mfa_ui/lib packages/flutter_mfa_qr/lib 2>/dev/null
 [ -n "$LIBS" ] || { echo "skip: ui/qr not created yet"; exit 0; }
 fail=0
 
-BAD=$(grep -rlE "^\s*(import|export)\b.*['\"]package:flutter/(material|cupertino)\.dart" $LIBS \
+# Both the SDK libraries (deprecated since Flutter 3.47) and their successors,
+# package:material_ui and package:cupertino_ui.
+BAD=$(grep -rlE "^\s*(import|export)\b.*['\"]package:(flutter/(material|cupertino)\.dart|material_ui/|cupertino_ui/)" $LIBS \
   | grep -vE "^packages/flutter_mfa_ui/lib/src/theme/(material|cupertino)_adapter\.dart$" || true)
 if [ -n "$BAD" ]; then
   echo "ERROR: Material/Cupertino imported outside the adapters:"; echo "$BAD"; fail=1

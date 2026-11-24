@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_mfa_ui/cupertino.dart';
 import 'package:flutter_mfa_ui/flutter_mfa_ui.dart';
 import 'package:flutter_mfa_ui/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   group('Material adapter', () {

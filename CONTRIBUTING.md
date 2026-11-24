@@ -10,7 +10,7 @@ Thanks for helping. This is security software, so the bar is deliberately high â
 ## Setup
 Full workstation setup (Debian/Ubuntu, Android emulators, web and iOS testing): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-Requires Flutter stable (CI pins the version in `.github/workflows/ci.yml`; floor 3.35) and, for browser tests, Chrome (or set `CHROME_EXECUTABLE`).
+Requires Flutter stable (`.github/workflows/ci-full.yml` pins the version; floor 3.47, ADR-0015) and, for browser tests, Chrome (or set `CHROME_EXECUTABLE`).
 ```bash
 git clone https://github.com/Breaktroughf1/flutter_mfa && cd flutter_mfa
 dart pub global activate melos   # Melos 8.x; make sure ~/.pub-cache/bin is on PATH

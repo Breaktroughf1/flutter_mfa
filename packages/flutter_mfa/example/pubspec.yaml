@@ -4,8 +4,8 @@ publish_to: none
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
-  flutter: ">=3.35.0"
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"
 
 resolution: workspace
 
@@ -18,12 +18,13 @@ dependencies:
     path: ../../flutter_mfa_qr
   flutter_mfa_ui:
     path: ../../flutter_mfa_ui
+  material_ui: ^1.4.0
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  flutter_mfa_core: ^0.2.0
-  flutter_mfa_platform_interface: ^0.2.0
+  flutter_mfa_core: ">=0.2.0 <0.4.0"
+  flutter_mfa_platform_interface: ">=0.2.0 <0.4.0"
   flutter_test:
     sdk: flutter
   integration_test:

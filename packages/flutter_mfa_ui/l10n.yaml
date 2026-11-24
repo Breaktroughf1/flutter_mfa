@@ -7,3 +7,9 @@ output-localization-file: mfa_localizations.dart
 output-class: MfaLocalizations
 nullable-getter: true
 format: true
+# Flutter 3.50's gen-l10n still emits the flutter_localizations Material and
+# Cupertino delegates, deprecated since 3.47 in favour of material_ui and
+# cupertino_ui. The generated list is kept for apps on the old imports; apps
+# should add MfaLocalizations.delegate next to their design system's own
+# delegates (see README). Remove this once gen-l10n stops emitting them.
+header: "// ignore_for_file: deprecated_member_use"

@@ -23,7 +23,7 @@ Every line matches the code on `main`; snippets come from the package READMEs. A
 
 ## Requirements
 
-- Flutter 3.35 or later, Dart 3.9 or later
+- Flutter 3.47 or later, Dart 3.13 or later (0.3.0 and later; 0.2.x supports Flutter 3.35 / Dart 3.9)
 - Android 7.0 (API 24) or later (biometric protection: Android 11+, Class 3 biometric)
 - iOS 15 or later (biometric protection: add `NSFaceIDUsageDescription` to Info.plist)
 - Web: HTTPS or localhost (secure context)
