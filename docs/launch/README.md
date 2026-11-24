@@ -10,6 +10,7 @@ Everything needed to take flutter_mfa from "merged on `main`" to "published and 
 | [04-live-metrics.md](04-live-metrics.md) | Pulling version, pub points, likes and downloads live from pub.dev (and stars from GitHub) | Web team |
 | [05-launch-checklist.md](05-launch-checklist.md) | The order of operations, from testing to publish to announcement | Maintainer |
 | [06-ardc-testing.md](06-ardc-testing.md) | The test phase at ARDC: what to run, on which devices, and how to report findings | Maintainer + ARDC |
+| [07-website-claims-check.md](07-website-claims-check.md) | Every claim on the live website checked against the code (24 Nov 2026): what's true, what 0.3.0 makes true, and the copy fixes for the rest | Web team |
 
 Decisions taken (7 November 2026, maintainer):
 - The developer docs live in a section on **breaktroughf1.com**, not on GitHub Pages.
