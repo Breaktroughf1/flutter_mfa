@@ -1,20 +1,56 @@
+# Publishes one package to pub.dev when its release tag is pushed (OIDC, no
+# stored credentials). Tags:
+#   v<version>              flutter_mfa (the plugin)
+#   <package>-v<version>    flutter_mfa_core, flutter_mfa_platform_interface,
+#                           flutter_mfa_ui, flutter_mfa_qr (and flutter_mfa)
+# On pub.dev, each package's Admin tab must enable automated publishing from
+# this repository with the matching tag pattern ("v{{version}}" or
+# "<package>-v{{version}}") and the required environment "pub.dev".
+# See docs/07_RELEASE_RUNBOOK.md. The shared workflows are pinned by commit SHA.
 name: Publish
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
+      - 'flutter_mfa_core-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'flutter_mfa_platform_interface-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'flutter_mfa-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'flutter_mfa_ui-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'flutter_mfa_qr-v[0-9]+.[0-9]+.[0-9]+*'
+permissions:
+  contents: read
 jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    outputs:
+      path: ${{ steps.p.outputs.path }}
+    steps:
+      - id: p
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          case "$TAG" in
+            v*) PKG=flutter_mfa ;;
+            *-v*) PKG="${TAG%-v*}" ;;
+            *) echo "unexpected tag $TAG"; exit 1 ;;
+          esac
+          case "$PKG" in
+            flutter_mfa|flutter_mfa_core|flutter_mfa_platform_interface|flutter_mfa_ui|flutter_mfa_qr) ;;
+            *) echo "unknown package $PKG"; exit 1 ;;
+          esac
+          echo "path=packages/$PKG" >> "$GITHUB_OUTPUT"
   ci:
-    uses: Breaktroughf1/.github/.github/workflows/dart-package-ci.yml@main
+    needs: resolve
+    uses: Breaktroughf1/.github/.github/workflows/dart-package-ci.yml@6f2b090f81810c38725bf7cfd11d6770c7fee6ad # main, 2026-11
     with:
       flutter: true
-      package-path: packages/flutter_mfa
+      package-path: ${{ needs.resolve.outputs.path }}
   publish:
-    needs: ci
+    needs: [resolve, ci]
     permissions:
       id-token: write
       contents: read
-    uses: Breaktroughf1/.github/.github/workflows/dart-package-publish.yml@main
+    uses: Breaktroughf1/.github/.github/workflows/dart-package-publish.yml@6f2b090f81810c38725bf7cfd11d6770c7fee6ad # main, 2026-11
     with:
       flutter: true
-      package-path: packages/flutter_mfa
+      package-path: ${{ needs.resolve.outputs.path }}

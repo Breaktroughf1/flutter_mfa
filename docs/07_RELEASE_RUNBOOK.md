@@ -33,7 +33,7 @@ cd ../flutter_mfa_qr && flutter pub publish
 After each: pub.dev → package → **Admin** → *Transfer to publisher* `breaktroughf1.com`.
 Then **Admin → Automated publishing → Enable publishing from GitHub Actions**:
 - Repository: `Breaktroughf1/flutter_mfa`
-- Tag pattern: `<package_name>-v{{version}}` (e.g. `flutter_mfa_core-v{{version}}`)
+- Tag pattern: `<package_name>-v{{version}}` (e.g. `flutter_mfa_core-v{{version}}`). `flutter_mfa` may instead use `v{{version}}`: `publish.yml` accepts both forms for the plugin.
 - Require GitHub Actions environment: `pub.dev`
 
 (If the 0.2.0 versions are what you publish manually, automation starts at 0.2.1.)
@@ -42,8 +42,11 @@ Then **Admin → Automated publishing → Enable publishing from GitHub Actions*
 1. `melos version --no-git-tag-version` (or manual bumps) on a release PR; update CHANGELOGs; merge.
 2. Maintainer creates signed tags in dependency order, one push per package:
    `git tag -s flutter_mfa_core-v0.2.1 -m "flutter_mfa_core 0.2.1" && git push origin flutter_mfa_core-v0.2.1`
-3. `publish.yml` runs for that tag, waits for `pub.dev` environment approval, publishes with OIDC.
-4. Wait for the package to appear on pub.dev before tagging dependents.
+3. `publish.yml` runs for that tag: it maps the tag to the package, runs the organisation's shared `dart-package-ci` on it, waits for `pub.dev` environment approval, and publishes with OIDC through the shared `dart-package-publish` workflow (both pinned by SHA).
+4. Wait for the package to appear on pub.dev before tagging dependents. (Sibling constraints accept 0.2 and 0.3 since 0.3.0, so the order matters less, but keep it.)
+
+### 0.3.0 (ADR-0015)
+All five packages move to 0.3.0 with the Flutter 3.47 / Dart 3.13 floor. Before tagging, check on pub.dev that every package's Admin tab has automated publishing enabled with its tag pattern; until now only `flutter_mfa` released from GitHub Actions. Add the date to each `## 0.3.0` heading, then tag in order: `flutter_mfa_core-v0.3.0`, `flutter_mfa_platform_interface-v0.3.0`, `v0.3.0` (or `flutter_mfa-v0.3.0`), `flutter_mfa_ui-v0.3.0`, `flutter_mfa_qr-v0.3.0`.
 
 ## E. Post-release
 - GitHub Release per tag (notes from CHANGELOG), pinned "v0.2.0" umbrella release on the repo.
