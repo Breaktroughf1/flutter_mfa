@@ -4,7 +4,7 @@
 
 The platform interface behind the [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa) secure vault. App developers should depend on `flutter_mfa`. Implement this interface only to add a new vault backend.
 
-> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
+> **Status:** v0.3.0. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 

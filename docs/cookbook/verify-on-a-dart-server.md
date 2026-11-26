@@ -6,7 +6,7 @@ Why on the server: a code checked on the same device that holds the secret is no
 
 ```yaml
 dependencies:
-  flutter_mfa_core: ^0.2.0
+  flutter_mfa_core: ^0.3.0
 ```
 
 ## What to store per user

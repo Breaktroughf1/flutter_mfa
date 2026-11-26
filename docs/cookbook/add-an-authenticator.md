@@ -4,9 +4,9 @@ Let your users keep their one-time codes in your app: scan or type an enrolment,
 
 ```yaml
 dependencies:
-  flutter_mfa: ^0.2.0
-  flutter_mfa_ui: ^0.2.0
-  flutter_mfa_qr: ^0.2.0   # only if you scan QR codes
+  flutter_mfa: ^0.3.0
+  flutter_mfa_ui: ^0.3.0
+  flutter_mfa_qr: ^0.3.0   # only if you scan QR codes
 ```
 
 ## 1. Open the client

@@ -4,7 +4,7 @@
 
 Widgets for [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa): OTP code field, code display with countdown, account list, enrolment QR and status badges. Built on the widgets layer, independent of Material or Cupertino, accessible and localisable.
 
-> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
+> **Status:** v0.3.0. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 Built and maintained by **BreaktroughF1 LLP** in collaboration with **ARDC, CHRIST (Deemed to be University)**. MIT licensed.
 

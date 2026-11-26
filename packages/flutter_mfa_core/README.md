@@ -11,7 +11,7 @@ Pure Dart core of [flutter_mfa](https://github.com/Breaktroughf1/flutter_mfa):
 
 It has **no Flutter dependency**, so the same tested code runs in your Dart backend (shelf, dart_frog, Serverpod) and in Flutter apps. It runs on the VM, and compiled to JS and WASM.
 
-> **Status:** v0.2.0, the first public release. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
+> **Status:** v0.3.0. Until 1.0, a minor version may change the API; the CHANGELOG says what changed.
 
 ## Install
 
